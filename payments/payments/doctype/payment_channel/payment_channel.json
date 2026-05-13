@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "autoname": "field:channel_code",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "channel_code",
+  "display_label",
+  "icon",
+  "column_break_1",
+  "ui_kind",
+  "section_break_capabilities",
+  "capabilities_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "channel_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Channel Code",
+   "reqd": 1,
+   "unique": 1,
+   "description": "Stable identifier, e.g. 'web', 'terminal', 'qr_bridge', 'billing'"
+  },
+  {
+   "fieldname": "display_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon",
+   "description": "Optional emoji or icon hint for UI"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ui_kind",
+   "fieldtype": "Select",
+   "label": "UI Kind",
+   "in_list_view": 1,
+   "options": "redirect\ncard_present_modal\nqr_display\nembedded_form\nbackground",
+   "description": "How the frontend should render a payment of this channel"
+  },
+  {
+   "fieldname": "section_break_capabilities",
+   "fieldtype": "Section Break",
+   "label": "Capabilities"
+  },
+  {
+   "fieldname": "capabilities_json",
+   "fieldtype": "Code",
+   "label": "Capabilities (JSON)",
+   "options": "JSON",
+   "description": "JSON object: supports_refund, supports_tip, supports_partial_capture, async, max_amount, ..."
+  }
+ ],
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Payment Channel",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

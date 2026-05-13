@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "autoname": "format:{provider}-{provider_customer_id}",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "provider",
+  "provider_customer_id",
+  "column_break_1",
+  "email",
+  "is_default_payment_method"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Provider",
+   "options": "Payment Provider",
+   "reqd": 1
+  },
+  {
+   "fieldname": "provider_customer_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider Customer ID",
+   "reqd": 1,
+   "description": "External customer id (e.g. 'cus_xxx' for Stripe)"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_default_payment_method",
+   "fieldtype": "Check",
+   "label": "Is Default Payment Method"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Customer Payment Link",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Accounts User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

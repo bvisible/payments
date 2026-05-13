@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "autoname": "format:{provider}-{channel}",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "provider",
+  "channel",
+  "enabled",
+  "column_break_1",
+  "driver_class",
+  "webhook_endpoint",
+  "section_break_config",
+  "config_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Provider",
+   "options": "Payment Provider",
+   "reqd": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Channel",
+   "options": "Payment Channel",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "driver_class",
+   "fieldtype": "Data",
+   "label": "Driver Class (override)",
+   "description": "Optional override of the Provider.driver_class for this specific channel, e.g. 'payments.drivers.stripe.terminal_driver.StripeTerminalDriver'"
+  },
+  {
+   "fieldname": "webhook_endpoint",
+   "fieldtype": "Data",
+   "label": "Webhook Endpoint",
+   "read_only": 1,
+   "description": "Auto-computed: /api/method/payments.api.webhook_{provider}.handle"
+  },
+  {
+   "fieldname": "section_break_config",
+   "fieldtype": "Section Break",
+   "label": "Channel-specific configuration"
+  },
+  {
+   "fieldname": "config_json",
+   "fieldtype": "Code",
+   "label": "Config (JSON)",
+   "options": "JSON",
+   "description": "Channel-specific configuration: terminal_default_location_id, webhook_secret, twint_merchant_uuid, etc."
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Provider Channel Settings",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

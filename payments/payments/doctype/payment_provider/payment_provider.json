@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "autoname": "field:provider_name",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "provider_name",
+  "display_label",
+  "enabled",
+  "mode",
+  "column_break_1",
+  "driver_class",
+  "section_break_credentials",
+  "credentials_json",
+  "section_break_meta",
+  "description",
+  "documentation_url"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider Name",
+   "reqd": 1,
+   "unique": 1,
+   "description": "Lowercase identifier, e.g. 'stripe', 'twint', 'worldline'"
+  },
+  {
+   "fieldname": "display_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Label",
+   "reqd": 1,
+   "description": "Human-readable name shown in UI, e.g. 'Stripe', 'TWINT'"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "default": "test",
+   "fieldname": "mode",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Mode",
+   "options": "test\nlive",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "driver_class",
+   "fieldtype": "Data",
+   "label": "Driver Provider Class",
+   "description": "Python class path, e.g. 'payments.drivers.stripe.provider.StripeProvider'"
+  },
+  {
+   "fieldname": "section_break_credentials",
+   "fieldtype": "Section Break",
+   "label": "Credentials"
+  },
+  {
+   "fieldname": "credentials_json",
+   "fieldtype": "Code",
+   "label": "Credentials (JSON, encrypted)",
+   "options": "JSON",
+   "description": "Sensitive credentials in JSON format. Stored encrypted via Frappe Password field semantics."
+  },
+  {
+   "fieldname": "section_break_meta",
+   "fieldtype": "Section Break",
+   "label": "Metadata"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "documentation_url",
+   "fieldtype": "Data",
+   "label": "Documentation URL",
+   "options": "URL"
+  }
+ ],
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Payment Provider",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

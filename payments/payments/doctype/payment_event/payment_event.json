@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "intent",
+  "from_status",
+  "to_status",
+  "column_break_1",
+  "event_source",
+  "webhook_event_log",
+  "section_break_payload",
+  "payload_excerpt"
+ ],
+ "fields": [
+  {
+   "fieldname": "intent",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payment Intent",
+   "options": "Payment Intent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "from_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "From Status"
+  },
+  {
+   "fieldname": "to_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "To Status",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "api",
+   "fieldname": "event_source",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Event Source",
+   "options": "api\nwebhook\npoll\nmanual\nsystem",
+   "reqd": 1
+  },
+  {
+   "fieldname": "webhook_event_log",
+   "fieldtype": "Link",
+   "label": "Webhook Event Log",
+   "options": "Webhook Event Log"
+  },
+  {
+   "fieldname": "section_break_payload",
+   "fieldtype": "Section Break",
+   "label": "Excerpt",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "payload_excerpt",
+   "fieldtype": "Small Text",
+   "label": "Payload Excerpt",
+   "description": "Short excerpt of the payload that triggered this transition (max 140 chars)"
+  }
+ ],
+ "in_create": 0,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Payment Event",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "read": 1,
+   "role": "System Manager",
+   "write": 0
+  },
+  {
+   "read": 1,
+   "role": "Accounts User"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

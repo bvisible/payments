@@ -1,0 +1,229 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "status",
+  "column_break_1",
+  "amount",
+  "currency",
+  "section_break_provider",
+  "provider",
+  "channel",
+  "provider_channel_settings",
+  "column_break_2",
+  "device",
+  "provider_intent_id",
+  "section_break_ref",
+  "reference_doctype",
+  "reference_name",
+  "section_break_next_action",
+  "next_action_type",
+  "next_action_payload",
+  "client_secret",
+  "section_break_error",
+  "error_code",
+  "error_message",
+  "section_break_meta",
+  "metadata_json",
+  "created_at",
+  "completed_at"
+ ],
+ "fields": [
+  {
+   "default": "PI-.YYYY.-.########",
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series"
+  },
+  {
+   "default": "requires_action",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "requires_action\nprocessing\nsucceeded\nfailed\ncanceled\nrefunded",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Amount (smallest unit)",
+   "reqd": 1,
+   "description": "Amount in smallest currency unit (cents for USD/EUR, rappen for CHF)"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Currency",
+   "length": 3,
+   "reqd": 1,
+   "description": "ISO 4217 uppercase, e.g. CHF, EUR, USD"
+  },
+  {
+   "fieldname": "section_break_provider",
+   "fieldtype": "Section Break",
+   "label": "Provider / Channel"
+  },
+  {
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Provider",
+   "options": "Payment Provider",
+   "reqd": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Channel",
+   "options": "Payment Channel",
+   "reqd": 1
+  },
+  {
+   "fieldname": "provider_channel_settings",
+   "fieldtype": "Link",
+   "label": "Provider Channel Settings",
+   "options": "Provider Channel Settings"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "device",
+   "fieldtype": "Link",
+   "label": "Device",
+   "options": "Payment Device"
+  },
+  {
+   "fieldname": "provider_intent_id",
+   "fieldtype": "Data",
+   "label": "Provider Intent ID",
+   "unique": 1,
+   "description": "External transaction id (e.g. 'pi_xxx' from Stripe, transaction_id from TWINT)"
+  },
+  {
+   "fieldname": "section_break_ref",
+   "fieldtype": "Section Break",
+   "label": "Reference Document"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Reference Name",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "section_break_next_action",
+   "fieldtype": "Section Break",
+   "label": "Next Action (frontend hint)",
+   "collapsible": 1
+  },
+  {
+   "default": "none",
+   "fieldname": "next_action_type",
+   "fieldtype": "Select",
+   "label": "Next Action Type",
+   "options": "none\ndisplay_card_present_modal\ndisplay_qr_payload\nredirect_to_url\nrequires_confirmation"
+  },
+  {
+   "fieldname": "next_action_payload",
+   "fieldtype": "Code",
+   "label": "Next Action Payload (JSON)",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Data",
+   "label": "Client Secret",
+   "description": "Optional secret for SDK client (used by Stripe Web)"
+  },
+  {
+   "fieldname": "section_break_error",
+   "fieldtype": "Section Break",
+   "label": "Error",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "error_code",
+   "fieldtype": "Data",
+   "label": "Error Code"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Small Text",
+   "label": "Error Message"
+  },
+  {
+   "fieldname": "section_break_meta",
+   "fieldtype": "Section Break",
+   "label": "Metadata",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "metadata_json",
+   "fieldtype": "Code",
+   "label": "Metadata (JSON)",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "label": "Created At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "completed_at",
+   "fieldtype": "Datetime",
+   "label": "Completed At",
+   "read_only": 1,
+   "description": "Set when status becomes succeeded, failed, canceled or refunded"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Payment Intent",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Accounts User"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

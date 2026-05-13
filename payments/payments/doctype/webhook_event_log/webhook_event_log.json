@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "autoname": "field:event_id",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "event_id",
+  "provider",
+  "event_type",
+  "column_break_1",
+  "status",
+  "signature_valid",
+  "section_break_intent",
+  "intent",
+  "section_break_timing",
+  "received_at",
+  "processed_at",
+  "section_break_payload",
+  "raw_payload",
+  "section_break_error",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Event ID",
+   "reqd": 1,
+   "unique": 1,
+   "description": "Provider-supplied event id (e.g. 'evt_xxx' for Stripe). Used for deduplication."
+  },
+  {
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Provider",
+   "options": "Payment Provider",
+   "reqd": 1
+  },
+  {
+   "fieldname": "event_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Event Type",
+   "description": "Provider event type, e.g. 'payment_intent.succeeded'"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Queued\nProcessed\nFailed\nSkipped"
+  },
+  {
+   "default": "0",
+   "fieldname": "signature_valid",
+   "fieldtype": "Check",
+   "label": "Signature Valid"
+  },
+  {
+   "fieldname": "section_break_intent",
+   "fieldtype": "Section Break",
+   "label": "Linked Intent",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "intent",
+   "fieldtype": "Link",
+   "label": "Payment Intent",
+   "options": "Payment Intent",
+   "description": "Linked after processing if applicable"
+  },
+  {
+   "fieldname": "section_break_timing",
+   "fieldtype": "Section Break",
+   "label": "Timing"
+  },
+  {
+   "fieldname": "received_at",
+   "fieldtype": "Datetime",
+   "label": "Received At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed_at",
+   "fieldtype": "Datetime",
+   "label": "Processed At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_payload",
+   "fieldtype": "Section Break",
+   "label": "Raw Payload",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "raw_payload",
+   "fieldtype": "Code",
+   "label": "Raw Payload (JSON)",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_error",
+   "fieldtype": "Section Break",
+   "label": "Error",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error"
+  }
+ ],
+ "in_create": 0,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Webhook Event Log",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

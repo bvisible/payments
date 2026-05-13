@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-05-13 17:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "device_label",
+  "enabled",
+  "column_break_1",
+  "provider_device_id",
+  "device_type",
+  "serial_number",
+  "section_break_link",
+  "provider_channel_settings",
+  "location_ref",
+  "section_break_status",
+  "status",
+  "last_seen_at",
+  "device_sw_version"
+ ],
+ "fields": [
+  {
+   "default": "DEV-.YYYY.-.######",
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series"
+  },
+  {
+   "fieldname": "device_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Device Label",
+   "reqd": 1,
+   "description": "Human-readable label, e.g. 'Caisse 1', 'Comptoir mobile'"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "provider_device_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider Device ID",
+   "unique": 1,
+   "description": "ID at the provider (e.g. 'tmr_xxx' for Stripe Terminal Reader)"
+  },
+  {
+   "fieldname": "device_type",
+   "fieldtype": "Data",
+   "label": "Device Type",
+   "description": "e.g. 'bbpos_wisepos_e', 'stripe_s700', 'stripe_s710', 'worldline_t630'"
+  },
+  {
+   "fieldname": "serial_number",
+   "fieldtype": "Data",
+   "label": "Serial Number"
+  },
+  {
+   "fieldname": "section_break_link",
+   "fieldtype": "Section Break",
+   "label": "Provider / Channel binding"
+  },
+  {
+   "fieldname": "provider_channel_settings",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Provider Channel Settings",
+   "options": "Provider Channel Settings",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location_ref",
+   "fieldtype": "Data",
+   "label": "Location Reference",
+   "description": "Free-form, e.g. Stripe Terminal Location ID 'tml_xxx' or branch code"
+  },
+  {
+   "fieldname": "section_break_status",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "default": "unknown",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "unknown\nonline\noffline"
+  },
+  {
+   "fieldname": "last_seen_at",
+   "fieldtype": "Datetime",
+   "label": "Last Seen At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "device_sw_version",
+   "fieldtype": "Data",
+   "label": "Device SW Version",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-05-13 17:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Payment Device",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
