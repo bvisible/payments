@@ -266,15 +266,18 @@ def run_all(stripe_secret_key: str | None = None) -> dict:
 			currency="CHF",
 			metadata={"source": "phase2_smoke", "ts": frappe.utils.now()},
 		)
-		ok = (
+		# Bool cast: chained ``and`` of strings returns the last truthy operand,
+		# which would leak the client_secret into the JSON report otherwise.
+		ok = bool(
 			result["status"] == "requires_action"
 			and (result["provider_intent_id"] or "").startswith("pi_")
 			and result["client_secret"]
 		)
+		# Never log the client_secret in plain text — sensitive enough to keep out.
 		add(
 			"create_intent → Stripe PaymentIntent",
 			ok,
-			f"intent={result['intent_name']} pi={result['provider_intent_id']} status={result['status']}",
+			f"intent={result['intent_name']} pi={result['provider_intent_id']} status={result['status']} client_secret=***",
 		)
 		intent_name = result["intent_name"]
 		provider_intent_id = result["provider_intent_id"]
