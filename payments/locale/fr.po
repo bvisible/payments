@@ -1,0 +1,624 @@
+# French translations for Payments.
+# Copyright (C) 2026 Frappe Technologies
+# This file is distributed under the same license as the Payments project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Payments VERSION\n"
+"Report-Msgid-Bugs-To: hello@frappe.io\n"
+"POT-Creation-Date: 2026-02-12 10:51+0034\n"
+"PO-Revision-Date: 2026-02-12 11:08+0034\n"
+"Last-Translator: hello@frappe.io\n"
+"Language: fr\n"
+"Language-Team: hello@frappe.io\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#. Label of a Password field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid " Online PassKey"
+msgstr ""
+
+#. Label of a Data field in DocType 'Razorpay Settings'
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+msgid "API Key"
+msgstr ""
+
+#. Label of a Password field in DocType 'PayPal Settings'
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+msgid "API Password"
+msgstr ""
+
+#. Label of a Password field in DocType 'Razorpay Settings'
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+msgid "API Secret"
+msgstr ""
+
+#. Label of a Data field in DocType 'PayPal Settings'
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+msgid "API Username"
+msgstr ""
+
+#. Label of a Data field in DocType 'GoCardless Settings'
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+msgid "Access Token"
+msgstr ""
+
+#. Label of a Long Text field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Account Balance"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/account_balance.html:6
+msgid "Account Type"
+msgstr ""
+
+#. Name of a role
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Accounts Manager"
+msgstr ""
+
+#. Name of a role
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Accounts User"
+msgstr ""
+
+#: payments/overrides/payment_webform.py:23
+msgid "Amount must be greater than 0."
+msgstr ""
+
+#: payments/templates/pages/stripe_checkout.html:50
+msgid "An error occured during the payment process. Please contact us."
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/account_balance.html:8
+msgid "Available Balance"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/account_balance.html:2
+msgid "Balance Details"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+msgid "Braintree Settings"
+msgstr ""
+
+#. Label of a Data field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Business Shortcode"
+msgstr ""
+
+#: payments/templates/pages/stripe_checkout.html:41
+msgid "Card Details"
+msgstr ""
+
+#. Description of the 'Use Sandbox' (Check) field in DocType 'PayPal Settings'
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+msgid "Check this if you are testing your payment using the Sandbox API"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.js:7
+msgid "Clear"
+msgstr ""
+
+#. Label of a Data field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Consumer Key"
+msgstr ""
+
+#. Label of a Password field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Consumer Secret"
+msgstr ""
+
+#: payments/templates/pages/payment-cancel.html:13
+#: payments/templates/pages/payment-failed.html:13
+#: payments/templates/pages/payment-success.html:17
+msgid "Continue"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:563
+msgid "Controller method get_razorpay_order missing"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:564
+msgid "Could not create Razorpay order. Please contact Administrator"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/account_balance.html:7
+msgid "Current Balance"
+msgstr ""
+
+#. Label of a Check field in DocType 'GoCardless Mandate'
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+msgid "Disabled"
+msgstr ""
+
+#: payments/templates/pages/stripe_checkout.html:34
+msgid "Email"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:279
+msgid "Error"
+msgstr ""
+
+#: payments/utils/utils.py:10
+msgid "Expired Token"
+msgstr ""
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:451
+msgid "Failed while amending subscription"
+msgstr ""
+
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:185
+msgid "For currency {0}, the minimum transaction amount should be {1}"
+msgstr ""
+
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.js:6
+msgid "For more information, {0}."
+msgstr ""
+
+#. Label of a Data field in DocType 'Payment Gateway'
+#: payments/payments/doctype/payment_gateway/payment_gateway.json
+msgid "Gateway"
+msgstr ""
+
+#. Label of a Dynamic Link field in DocType 'Payment Gateway'
+#: payments/payments/doctype/payment_gateway/payment_gateway.json
+msgid "Gateway Controller"
+msgstr ""
+
+#. Label of a Link field in DocType 'Payment Gateway'
+#: payments/payments/doctype/payment_gateway/payment_gateway.json
+msgid "Gateway Settings"
+msgstr ""
+
+#. Label of a Button field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Get Account Balance"
+msgstr ""
+
+#. Label of a Data field in DocType 'GoCardless Mandate'
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+msgid "GoCardless Customer"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+msgid "GoCardless Mandate"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+msgid "GoCardless Settings"
+msgstr ""
+
+#. Label of a Attach Image field in DocType 'Braintree Settings'
+#. Label of a Attach Image field in DocType 'GoCardless Settings'
+#. Label of a Attach Image field in DocType 'Stripe Settings'
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+msgid "Header Image"
+msgstr ""
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:490
+msgid "In Valid Request"
+msgstr ""
+
+#. Label of a Data field in DocType 'Paytm Settings'
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+msgid "Industry Type ID"
+msgstr ""
+
+#. Label of a Data field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Initiator Name"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:175
+msgid "Invalid Checkout Request ID"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:289
+msgid "Invalid Conversation ID"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:652
+msgid "Invalid Subscription"
+msgstr ""
+
+#: payments/templates/pages/paytm_checkout.py:31
+#: payments/templates/pages/razorpay_checkout.py:48
+msgid "Invalid Token"
+msgstr ""
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:171
+msgid "Invalid payment gateway credentials"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:158
+msgid "Issue detected with Mpesa configuration, check the error logs for more details"
+msgstr ""
+
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:209
+#: payments/payment_gateways/stripe_integration.py:29
+msgid "It seems that there is an issue with the server's stripe configuration. In case of failure, the amount will get refunded to your account."
+msgstr ""
+
+#: payments/templates/pages/stripe_checkout.html:27
+msgid "John Doe"
+msgstr ""
+
+#: payments/templates/pages/gocardless_checkout.html:13
+msgid "Loading Payment System"
+msgstr ""
+
+#: payments/templates/pages/braintree_checkout.py:50
+#: payments/templates/pages/gocardless_checkout.py:48
+#: payments/templates/pages/gocardless_confirmation.py:28
+#: payments/templates/pages/stripe_checkout.py:59
+msgid "Looks like someone sent you to an incomplete URL. Please ask them to look into it."
+msgstr ""
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:215
+msgid "Looks like something is wrong with this site's Paypal configuration."
+msgstr ""
+
+#: payments/utils/utils.py:39
+msgid "Looks like something is wrong with this site's payment gateway configuration. No payment has been made."
+msgstr ""
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:279
+msgid "Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}."
+msgstr ""
+
+#. Label of a Data field in DocType 'GoCardless Mandate'
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+msgid "Mandate"
+msgstr ""
+
+#. Description of the 'Redirect To' (Data) field in DocType 'PayPal Settings'
+#. Description of the 'Redirect To' (Data) field in DocType 'Razorpay Settings'
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+msgid "Mention transaction completion page URL"
+msgstr ""
+
+#. Label of a Data field in DocType 'Braintree Settings'
+#. Label of a Data field in DocType 'Paytm Settings'
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+msgid "Merchant ID"
+msgstr ""
+
+#. Label of a Password field in DocType 'Paytm Settings'
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+msgid "Merchant Key"
+msgstr ""
+
+#: payments/utils/utils.py:216
+msgid "Missing ERPNext App"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:159
+msgid "Mpesa Express Error"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Mpesa Settings"
+msgstr ""
+
+#: payments/templates/pages/stripe_checkout.html:26
+msgid "Name"
+msgstr ""
+
+#: payments/templates/pages/braintree_checkout.html:29
+#: payments/templates/pages/stripe_checkout.html:48
+msgid "Pay"
+msgstr ""
+
+#: payments/templates/pages/gocardless_checkout.py:89
+msgid "Pay {0} {1}"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+msgid "PayPal Settings"
+msgstr ""
+
+#: payments/templates/pages/payment-cancel.html:3
+#: payments/templates/pages/payment-cancel.html:9
+msgid "Payment Cancelled"
+msgstr ""
+
+#: payments/templates/pages/gocardless_confirmation.html:13
+msgid "Payment Confirmation"
+msgstr ""
+
+#: payments/templates/pages/payment-failed.html:3
+#: payments/templates/pages/payment-failed.html:9
+msgid "Payment Failed"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payments/doctype/payment_gateway/payment_gateway.json
+msgid "Payment Gateway"
+msgstr ""
+
+#. Label of a Data field in DocType 'Braintree Settings'
+#. Label of a Data field in DocType 'GoCardless Settings'
+#. Label of a Data field in DocType 'Mpesa Settings'
+#. Label of a Data field in DocType 'Stripe Settings'
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+msgid "Payment Gateway Name"
+msgstr ""
+
+#: payments/templates/pages/payment-success.html:3
+msgid "Payment Success"
+msgstr ""
+
+#: payments/config/desktop.py:5
+msgid "Payments"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+msgid "Paytm Settings"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:279
+msgid "Please check your configuration and try again"
+msgstr ""
+
+#: payments/overrides/payment_webform.py:21
+msgid "Please select a Amount Field."
+msgstr ""
+
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:96
+msgid "Please select another payment method. Go Cardless does not support transactions in currency '{0}'"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:26
+msgid "Please select another payment method. Mpesa does not support transactions in currency '{0}'"
+msgstr ""
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:129
+msgid "Please select another payment method. PayPal does not support transactions in currency '{0}'"
+msgstr ""
+
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.py:36
+msgid "Please select another payment method. Paytm does not support transactions in currency '{0}'"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:242
+msgid "Please select another payment method. Razorpay does not support transactions in currency '{0}'"
+msgstr ""
+
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:183
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:176
+msgid "Please select another payment method. Stripe does not support transactions in currency '{0}'"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.js:18
+msgid "Please set the initiator name and the security credential"
+msgstr ""
+
+#. Label of a Password field in DocType 'Braintree Settings'
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+msgid "Private Key"
+msgstr ""
+
+#: payments/templates/includes/stripe_checkout.js:33
+msgid "Processing..."
+msgstr ""
+
+#. Label of a Data field in DocType 'Braintree Settings'
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+msgid "Public Key"
+msgstr ""
+
+#. Label of a Data field in DocType 'Stripe Settings'
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+msgid "Publishable Key"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+msgid "Razorpay Settings"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:491
+msgid "Razorpay Signature Verification Failed"
+msgstr ""
+
+#. Label of a Data field in DocType 'PayPal Settings'
+#. Label of a Data field in DocType 'Razorpay Settings'
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+msgid "Redirect To"
+msgstr ""
+
+#. Label of a Data field in DocType 'Stripe Settings'
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+msgid "Redirect URL"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/account_balance.html:9
+msgid "Reserved Balance"
+msgstr ""
+
+#. Label of a Check field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Sandbox"
+msgstr ""
+
+#. Label of a Password field in DocType 'Stripe Settings'
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+msgid "Secret Key"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Security Credential"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:237
+msgid "Seems API Key or API Secret is wrong !!!"
+msgstr ""
+
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:171
+msgid "Seems Publishable Key or Secret Key is wrong !!!"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:375
+msgid "Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account."
+msgstr ""
+
+#: payments/templates/pages/paytm_checkout.py:32
+#: payments/templates/pages/razorpay_checkout.py:49
+msgid "Seems token you are using is invalid!"
+msgstr ""
+
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:202
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:115
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:374
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:208
+#: payments/payment_gateways/stripe_integration.py:28
+msgid "Server Error"
+msgstr ""
+
+#. Label of a Data field in DocType 'PayPal Settings'
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+msgid "Signature"
+msgstr ""
+
+#: payments/templates/pages/braintree_checkout.py:49
+#: payments/templates/pages/gocardless_checkout.py:47
+#: payments/templates/pages/gocardless_confirmation.py:27
+#: payments/templates/pages/stripe_checkout.py:58
+msgid "Some information is missing"
+msgstr ""
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:278
+#: payments/utils/utils.py:38
+msgid "Something went wrong"
+msgstr ""
+
+#. Label of a Check field in DocType 'Paytm Settings'
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+msgid "Staging"
+msgstr ""
+
+#. Name of a DocType
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+msgid "Stripe Settings"
+msgstr ""
+
+#: payments/templates/pages/payment-success.html:9
+msgid "Success"
+msgstr ""
+
+#. Name of a role
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+#: payments/payments/doctype/payment_gateway/payment_gateway.json
+msgid "System Manager"
+msgstr ""
+
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:116
+msgid "There seems to be an issue with the server's GoCardless configuration. Don't worry, in case of failure, the amount will get refunded to your account."
+msgstr ""
+
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:203
+msgid "There seems to be an issue with the server's braintree configuration. Don't worry, in case of failure, the amount will get refunded to your account."
+msgstr ""
+
+#. Label of a Data field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Till Number"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:119
+msgid "Transaction Error"
+msgstr ""
+
+#. Label of a Float field in DocType 'Mpesa Settings'
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+msgid "Transaction Limit"
+msgstr ""
+
+#: payments/payment_gateways/doctype/mpesa_settings/account_balance.html:10
+msgid "Uncleared Balance"
+msgstr ""
+
+#. Label of a Check field in DocType 'Braintree Settings'
+#. Label of a Check field in DocType 'GoCardless Settings'
+#. Label of a Check field in DocType 'PayPal Settings'
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+msgid "Use Sandbox"
+msgstr ""
+
+#. Label of a Data field in DocType 'GoCardless Settings'
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+msgid "Webhooks Secret"
+msgstr ""
+
+#. Label of a Data field in DocType 'Paytm Settings'
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+msgid "Website"
+msgstr ""
+
+#: payments/overrides/payment_webform.py:71
+msgid "You are not allowed to update this Web Form Document"
+msgstr ""
+
+#: payments/overrides/payment_webform.py:115
+msgid "You must login to submit this form"
+msgstr ""
+
+#: payments/templates/pages/stripe_checkout.html:51
+msgid "Your payment has been successfully registered."
+msgstr ""
+
+#: payments/templates/pages/payment-failed.html:11
+msgid "Your payment has failed."
+msgstr ""
+
+#: payments/templates/pages/payment-cancel.html:11
+msgid "Your payment is cancelled."
+msgstr ""
+
+#: payments/templates/pages/payment-success.html:11
+msgid "Your payment was successfully accepted"
+msgstr ""
+
+#: payments/utils/utils.py:210
+msgid "erpnext app is not installed. Please install it from {} or {}"
+msgstr ""
+
+#: payments/templates/pages/stripe_checkout.html:35
+msgid "john@doe.com"
+msgstr ""
+
+#: payments/utils/utils.py:20 payments/utils/utils.py:25
+msgid "{0} Settings not found"
+msgstr ""
+

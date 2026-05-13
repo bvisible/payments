@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 
 
-class TwintSettings(Document):
+class TwintBridgeSettings(Document):
 	"""Per-merchant TWINT configuration.
 
 	One record per TWINT merchant on the calling site. The actual P12

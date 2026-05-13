@@ -105,9 +105,9 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 
 	def _resolve_merchant_context(self, merchant_uuid: str) -> dict[str, Any]:
 		"""Read store_uuid + cash_register_id + environment from Twint Settings."""
-		if not frappe.db.exists("Twint Settings", merchant_uuid):
-			frappe.throw(_("Twint Settings record not found for merchant_uuid {0}").format(merchant_uuid))
-		doc = frappe.get_doc("Twint Settings", merchant_uuid)
+		if not frappe.db.exists("Twint Bridge Settings", merchant_uuid):
+			frappe.throw(_("Twint Bridge Settings record not found for merchant_uuid {0}").format(merchant_uuid))
+		doc = frappe.get_doc("Twint Bridge Settings", merchant_uuid)
 		return {
 			"store_uuid": doc.store_uuid,
 			"cash_register_id": doc.cash_register_id or None,

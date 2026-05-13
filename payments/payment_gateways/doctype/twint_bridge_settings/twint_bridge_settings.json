@@ -106,7 +106,7 @@
  "modified": "2026-05-13 20:30:00.000000",
  "modified_by": "Administrator",
  "module": "Payment Gateways",
- "name": "Twint Settings",
+ "name": "Twint Bridge Settings",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [

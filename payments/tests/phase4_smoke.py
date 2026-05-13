@@ -69,10 +69,10 @@ def _ensure_fixtures() -> None:
 				"enabled": 1,
 			}
 		).insert(ignore_permissions=True)
-	if not frappe.db.exists("Twint Settings", MERCHANT_UUID):
+	if not frappe.db.exists("Twint Bridge Settings", MERCHANT_UUID):
 		frappe.get_doc(
 			{
-				"doctype": "Twint Settings",
+				"doctype": "Twint Bridge Settings",
 				"merchant_uuid": MERCHANT_UUID,
 				"display_label": "Smoke Merchant",
 				"enabled": 1,
@@ -113,9 +113,9 @@ def run_all() -> dict:
 
 	# 1. Twint Settings DocType exists.
 	add(
-		"Twint Settings DocType exists on this site",
-		bool(frappe.db.exists("DocType", "Twint Settings")),
-		"Twint Settings ✅" if frappe.db.exists("DocType", "Twint Settings") else "missing",
+		"Twint Bridge Settings DocType exists on this site",
+		bool(frappe.db.exists("DocType", "Twint Bridge Settings")),
+		"Twint Bridge Settings ✅" if frappe.db.exists("DocType", "Twint Bridge Settings") else "missing",
 	)
 
 	# 2. Fixtures.

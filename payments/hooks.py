@@ -122,12 +122,13 @@ scheduler_events = {
 			"payments.api.terminal.sync_stripe_readers_status",
 		],
 	},
-	# TWINT has no webhook stream, so we poll the bridge each minute for any
-	# Payment Intent in qr_bridge channel still in requires_action/processing.
-	"cron_minutely": [
-		"payments.api.twint.poll_pending_twint_transactions",
-	],
 }
+
+# TWINT has no webhook stream, so we poll the bridge each minute for any
+# Payment Intent in qr_bridge channel still in requires_action/processing.
+scheduler_events["cron"]["* * * * *"] = [
+	"payments.api.twint.poll_pending_twint_transactions",
+]
 
 # Testing
 # -------
