@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "autoname": "field:merchant_uuid",
+ "creation": "2026-05-13 20:30:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "merchant_uuid",
+  "display_label",
+  "enabled",
+  "column_break_1",
+  "store_uuid",
+  "cash_register_id",
+  "environment",
+  "section_break_creds",
+  "p12_password",
+  "section_break_link",
+  "linked_payment_provider",
+  "linked_company"
+ ],
+ "fields": [
+  {
+   "fieldname": "merchant_uuid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Merchant UUID",
+   "reqd": 1,
+   "unique": 1,
+   "description": "Stable identifier matching the P12 filename on neoservice: /home/frappe/twint-certs/<merchant_uuid>.p12"
+  },
+  {
+   "fieldname": "display_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Label",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "store_uuid",
+   "fieldtype": "Data",
+   "label": "TWINT Store UUID",
+   "reqd": 1,
+   "description": "UUID provisioned by TWINT for the merchant store"
+  },
+  {
+   "fieldname": "cash_register_id",
+   "fieldtype": "Data",
+   "label": "Cash Register ID",
+   "description": "Optional cash register identifier (PrefixedCashRegisterId)"
+  },
+  {
+   "default": "production",
+   "fieldname": "environment",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Environment",
+   "options": "production\nsandbox",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_creds",
+   "fieldtype": "Section Break",
+   "label": "Credentials"
+  },
+  {
+   "fieldname": "p12_password",
+   "fieldtype": "Password",
+   "label": "P12 Password",
+   "reqd": 1,
+   "description": "Password protecting the P12 certificate file stored on neoservice"
+  },
+  {
+   "fieldname": "section_break_link",
+   "fieldtype": "Section Break",
+   "label": "Links",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "linked_payment_provider",
+   "fieldtype": "Link",
+   "label": "Linked Payment Provider",
+   "options": "Payment Provider",
+   "description": "Payment Provider record that uses this Twint Settings as credentials source"
+  },
+  {
+   "fieldname": "linked_company",
+   "fieldtype": "Link",
+   "label": "Linked Company",
+   "options": "Company"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-05-13 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payment Gateways",
+ "name": "Twint Settings",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
