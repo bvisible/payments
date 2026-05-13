@@ -98,15 +98,15 @@ override_doctype_class = {"Web Form": "payments.overrides.payment_webform.Paymen
 
 # Document Events
 # ---------------
-# Hook on document methods and events
+# Auto-reconcile a Payment Intent into its reference document (Sales Invoice / POS
+# Invoice payments table) every time it is saved in the `succeeded` state.
+# Idempotent thanks to a `reconciled_at` flag in `metadata_json`.
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Payment Intent": {
+		"on_update": "payments.api.reconciliation.on_payment_intent_after_update",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
