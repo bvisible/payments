@@ -259,12 +259,16 @@ def run_all(stripe_secret_key: str | None = None) -> dict:
 	from payments.api import intent as intent_api
 
 	try:
+		# IMPORTANT: never include a timestamp in the metadata of an idempotent
+		# create_intent. Stripe's 24h idempotency cache rejects 'same key + different
+		# body' with HTTP 400. We keep the metadata deterministic so re-runs hit
+		# the cache and return the same PaymentIntent.
 		result = intent_api.create_intent(
 			provider=PROVIDER_NAME,
 			channel=CHANNEL_CODE,
 			amount=1500,
 			currency="CHF",
-			metadata={"source": "phase2_smoke", "ts": frappe.utils.now()},
+			metadata={"source": "phase2_smoke"},
 		)
 		# Bool cast: chained ``and`` of strings returns the last truthy operand,
 		# which would leak the client_secret into the JSON report otherwise.
