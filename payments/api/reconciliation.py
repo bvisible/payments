@@ -70,9 +70,11 @@ def reconcile_payment_intent(intent_name: str) -> dict[str, Any]:
 			"reconcile_payment_intent unsupported reference",
 			f"intent={intent_name} ref_doctype={ref_dt} ref_name={ref_name}",
 		)
-		return {"action": "unsupported_reference", "reference_doctype": ref_dt}
+		result = {"action": "unsupported_reference", "reference_doctype": ref_dt}
 
-	# Stamp reconciliation flag in metadata so we don't double-process.
+	# Always stamp reconciliation flag so the doc_event doesn't loop, even for
+	# skipped / unsupported paths. ``db_update`` bypasses doc_events so we won't
+	# trigger ourselves recursively.
 	md["reconciled_at"] = str(now_datetime())
 	md["reconciliation_action"] = result.get("action")
 	doc.metadata_json = json.dumps(md)
