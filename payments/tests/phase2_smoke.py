@@ -49,11 +49,23 @@ SIMULATOR_REGCODE = "simulated-wpe"
 def _get_secret_key(stripe_secret_key: str | None) -> str | None:
 	if stripe_secret_key:
 		return stripe_secret_key
-	# Fallback: read from existing provider record.
+	# Fallback 1: read from existing Payment Provider record.
 	if frappe.db.exists("Payment Provider", PROVIDER_NAME):
 		doc = frappe.get_doc("Payment Provider", PROVIDER_NAME)
 		creds = doc.get_credentials()
-		return creds.get("secret_key")
+		if creds.get("secret_key"):
+			return creds["secret_key"]
+	# Fallback 2: look at any legacy Stripe Settings record on the site for a
+	# test key. Only test keys are reused — we never touch a live key here.
+	for name in frappe.get_all("Stripe Settings", pluck="name"):
+		try:
+			doc = frappe.get_doc("Stripe Settings", name)
+		except Exception:  # noqa: BLE001
+			continue
+		sk = doc.get_password("secret_key", raise_exception=False) or ""
+		if sk.startswith("sk_test_"):
+			print(f"  (using legacy Stripe Settings '{name}' as fallback test key source)")
+			return sk
 	return None
 
 
