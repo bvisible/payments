@@ -30,6 +30,7 @@ logical action against Stripe is safe (24h cache window).
 
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Any
 
@@ -134,6 +135,22 @@ class StripeTerminalDriver(PaymentDriverBase):
 		# the same name, by design — we trust the caller.
 		metadata.update({k: str(v) for k, v in (request.metadata or {}).items()})
 
+		# Idempotency key strategy: scope by intent_name AND a deterministic hash
+		# of the body. Stripe rejects 'same key + different body' with HTTP 400;
+		# hashing the body ensures network retries (same body) hit the 24h cache
+		# whereas an intentional re-run with different metadata gets a fresh key.
+		import hashlib
+
+		body_seed = json.dumps(
+			{
+				"a": request.amount,
+				"c": request.currency.lower(),
+				"m": {k: str(v) for k, v in metadata.items()},
+			},
+			sort_keys=True,
+		)
+		body_hash = hashlib.sha256(body_seed.encode("utf-8")).hexdigest()[:12]
+		idempotency_key = f"pi_create_{request.intent_name}_{body_hash}"
 		try:
 			pi = self._stripe.PaymentIntent.create(
 				api_key=self._api_key,
@@ -142,7 +159,7 @@ class StripeTerminalDriver(PaymentDriverBase):
 				payment_method_types=["card_present"],
 				capture_method="manual",
 				metadata=metadata,
-				idempotency_key=f"pi_create_{request.intent_name}",
+				idempotency_key=idempotency_key,
 			)
 		except self._stripe.error.StripeError as exc:
 			return DriverResponse(

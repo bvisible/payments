@@ -134,7 +134,9 @@ class TestStripeTerminalDriver(FrappeTestCase):
 		self.assertEqual(kwargs["currency"], "chf")
 		self.assertEqual(kwargs["payment_method_types"], ["card_present"])
 		self.assertEqual(kwargs["capture_method"], "manual")
-		self.assertEqual(kwargs["idempotency_key"], "pi_create_PI-test-001")
+		# Idempotency key is intent_name + a 12-char body hash for body-aware idempotency.
+		self.assertTrue(kwargs["idempotency_key"].startswith("pi_create_PI-test-001_"))
+		self.assertEqual(len(kwargs["idempotency_key"]), len("pi_create_PI-test-001_") + 12)
 		# Metadata: frappe_intent_name + channel + reference_* + caller metadata.
 		md = kwargs["metadata"]
 		self.assertEqual(md["frappe_intent_name"], "PI-test-001")
