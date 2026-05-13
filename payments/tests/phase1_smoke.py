@@ -253,9 +253,12 @@ def run_all() -> dict:
 			fields=["from_status", "to_status", "event_source"],
 			order_by="creation asc",
 		)
+		# Expected exactly 2 events: requires_action→processing and processing→succeeded.
+		# `create_intent` calls transition_to("requires_action") on the freshly inserted
+		# intent — that's a self-transition, which is idempotent and does NOT log an event.
 		add(
-			"Payment Event log has ≥ 3 FSM rows for the test intent",
-			len(events) >= 3,
+			"Payment Event log has 2 FSM rows for the test intent",
+			len(events) == 2,
 			f"events={events}",
 		)
 
