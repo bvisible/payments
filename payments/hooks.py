@@ -115,6 +115,13 @@ scheduler_events = {
 	"all": [
 		"payments.payment_gateways.doctype.razorpay_settings.razorpay_settings.capture_payment",
 	],
+	"cron": {
+		# Refresh online/offline status of registered Stripe Terminal readers.
+		# Stripe flips Reader.status to offline after ~2 minutes without contact.
+		"*/5 * * * *": [
+			"payments.api.terminal.sync_stripe_readers_status",
+		],
+	},
 }
 
 # Testing
