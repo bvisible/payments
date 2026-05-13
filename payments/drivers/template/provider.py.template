@@ -1,0 +1,39 @@
+# Copyright (c) 2026, Neoffice and contributors
+# License: MIT. See LICENSE
+"""Template: <Psp>Provider — copy / adapt to a real PSP."""
+
+from __future__ import annotations
+
+from typing import Any
+
+import frappe
+from frappe import _
+
+from payments.drivers.base import PaymentProviderBase
+
+
+class TemplateProvider(PaymentProviderBase):
+	"""Rename me. Implement get_credentials + health_check at minimum."""
+
+	#: Stable provider identifier — match the ``provider_name`` of the
+	#: corresponding ``Payment Provider`` record.
+	name = "template"
+
+	@classmethod
+	def from_doc(cls, provider_doc) -> "TemplateProvider":  # noqa: ANN001
+		return cls(provider_doc)
+
+	def get_credentials(self) -> dict[str, Any]:
+		creds = self.provider_doc.get_credentials()
+		# Validate required keys here.
+		# missing = [k for k in ("api_key",) if not creds.get(k)]
+		# if missing: raise frappe.ValidationError(...)
+		return creds
+
+	def health_check(self) -> dict[str, Any]:
+		# Lightweight reachability probe. Avoid heavy API calls.
+		return {"ok": True, "provider": self.provider_doc.name}
+
+	def list_supported_channels(self) -> list[str]:
+		# Return e.g. ["terminal", "web"] depending on what your driver supports.
+		return []

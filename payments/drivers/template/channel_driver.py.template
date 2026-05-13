@@ -1,0 +1,68 @@
+# Copyright (c) 2026, Neoffice and contributors
+# License: MIT. See LICENSE
+"""Template: <Psp><Channel>Driver — copy / adapt to a real PSP × Channel couple."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from payments.drivers.base import (
+	DriverResponse,
+	IntentRequest,
+	PaymentChannelBase,
+	PaymentDriverBase,
+	WebhookResult,
+)
+from payments.drivers.template.provider import TemplateProvider  # rename
+
+
+class TemplateChannel(PaymentChannelBase):
+	code = "template_channel"
+	capabilities = {
+		"supports_refund": True,
+		"supports_partial_refund": True,
+		"supports_tip": False,
+		"async": True,
+	}
+
+
+class TemplateDriver(PaymentDriverBase):
+	code = "template.template_channel"
+
+	@classmethod
+	def from_docs(cls, provider_doc, channel_doc, binding_doc):  # noqa: ANN001
+		return cls(TemplateProvider(provider_doc), TemplateChannel(), settings_doc=binding_doc)
+
+	def create_intent(self, request: IntentRequest) -> DriverResponse:
+		# 1. Build the PSP-specific request from `request` (IntentRequest dataclass).
+		# 2. Use `request.intent_name` as part of an idempotency key:
+		#       idempotency_key = f"pi_create_{request.intent_name}"
+		# 3. Stamp `metadata["frappe_intent_name"] = request.intent_name` so the
+		#    webhook handler can correlate.
+		# 4. Map the PSP response to a `DriverResponse` with a sensible
+		#    `next_action_type` (`display_card_present_modal`, `display_qr_payload`,
+		#    `redirect_to_url`, or `none`).
+		raise NotImplementedError
+
+	def confirm_intent(self, provider_intent_id: str, **kwargs: Any) -> DriverResponse:
+		# For "attach to reader" flows, accept reader_id via kwargs and push.
+		# For PSPs that don't need an explicit confirm, just return processing.
+		raise NotImplementedError
+
+	def cancel_intent(self, provider_intent_id: str) -> DriverResponse:
+		# Idempotent. If the PSP says "already canceled", treat as success.
+		raise NotImplementedError
+
+	def refund(self, provider_intent_id: str, amount: int | None = None) -> DriverResponse:
+		# amount=None means full refund. Add an idempotency key e.g.
+		# `rf_{provider_intent_id}_{amount or 'full'}`.
+		raise NotImplementedError
+
+	def handle_webhook(self, payload: bytes, headers: dict[str, str]) -> WebhookResult:
+		# 1. Verify the signature using the PSP's SDK / verification function.
+		# 2. Parse `payload` once, extract event_id + event_type.
+		# 3. Map event_type → FSM target_status via a dict
+		#    (see payments/drivers/stripe/terminal_driver.py for the pattern).
+		# 4. Extract `frappe_intent_name` from the PSP-side metadata so the
+		#    worker can find the Frappe Payment Intent record.
+		raise NotImplementedError
