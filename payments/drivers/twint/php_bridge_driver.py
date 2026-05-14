@@ -104,7 +104,12 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 		)
 
 	def _resolve_merchant_context(self, merchant_uuid: str) -> dict[str, Any]:
-		"""Read store_uuid + cash_register_id + environment from Twint Settings."""
+		"""Read store_uuid + cash_register_id + environment + P12 password from Twint Bridge Settings.
+
+		The P12 password is stored encrypted on THIS (client) instance and is
+		forwarded to neoservice in the request body — neoservice never persists
+		it. The P12 file itself lives only on neoservice.
+		"""
 		if not frappe.db.exists("Twint Bridge Settings", merchant_uuid):
 			frappe.throw(_("Twint Bridge Settings record not found for merchant_uuid {0}").format(merchant_uuid))
 		doc = frappe.get_doc("Twint Bridge Settings", merchant_uuid)
@@ -112,6 +117,7 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 			"store_uuid": doc.store_uuid,
 			"cash_register_id": doc.cash_register_id or None,
 			"environment": doc.environment or "production",
+			"certificate_password": doc.get_password("p12_password", raise_exception=False) or "",
 		}
 
 	# ------------------------------------------------------------------------
@@ -126,6 +132,7 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 		body = {
 			"command": command,
 			"merchant_uuid": merchant_uuid,
+			"certificate_password": ctx["certificate_password"],
 			"store_uuid": ctx["store_uuid"],
 			"cash_register_id": ctx["cash_register_id"],
 			"environment": ctx["environment"],
