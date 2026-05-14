@@ -242,9 +242,76 @@ Voir `~/.claude/plans/alors-est-ce-que-tu-stateless-sun.md` pour le détail.
 - 3 fichiers API (intent, webhook_stripe, __init__)
 - 2 fichiers tests intégration (__init__ + test_intent_api)
 
-**Phase 1 restante** :
-- ⏳ Déployer la branche `feat/unified-payments` sur Osiris via TransHub MCP
-- ⏳ Lancer `bench --site osiris.local migrate` puis `bench run-tests --app payments --module payments.tests.test_intent_api`
-- ⏳ Acceptance Osiris : create_intent(provider=mock, channel=terminal) round-trip + webhook replay dedup
+### 2026-05-13 19:30 — Phase 1 acceptance Osiris ✅ (10/10 smoke + 20/20 unit)
 
-**Prochaine étape proposée** : (option A) tester sur Osiris ce qu'on a, ou (option B) attaquer Phase 2 (Stripe Terminal driver) et tester en bloc plus tard.
+**Déploiement** :
+- Branche `feat/unified-payments` pushed (commits `e32ecf5` → `ac7482b` → `07d40cc`)
+- Pulled sur Osiris `83.228.224.101:/home/neoffice/frappe-bench/apps/payments`
+- `bench --site prod.local migrate` OK : les 8 DocTypes ontologiques créés en DB (module `Payments`)
+
+**Smoke test custom** (`payments.tests.phase1_smoke.run_all` via `bench execute`) — 10/10 ALL GREEN :
+1. ✅ Fixtures Mock Provider/Channel/Binding idempotentes
+2. ✅ 8 DocTypes ontologiques en DB
+3. ✅ `resolve_driver(mock, terminal)` → `MockDriver` instancié
+4. ✅ `create_intent(mock, terminal, 1500 CHF)` → `PI-2026-00000001`, status `requires_action`, `provider_intent_id=mock_pi_*`
+5. ✅ FSM rejette `succeeded → requires_action` (`frappe.ValidationError` levée comme attendu)
+6. ✅ FSM idempotent self-transition (`transition_to` retourne False, pas d'event loggé)
+7. ✅ `cancel_intent` → status `canceled`
+8. ✅ Webhook Event Log first insert OK
+9. ✅ Webhook Event Log dedup blocks 2nd insert (`DuplicateEntryError` via UNIQUE autoname)
+10. ✅ Payment Event log : 2 transitions FSM correctement loggées
+
+**Tests unitaires Frappe** (`bench run-tests --app payments --module ...`) — 20/20 PASS :
+- `payments.payments.doctype.payment_provider.test_payment_provider` : 3/3
+- `payments.payments.doctype.payment_intent.test_payment_intent` : 10/10 (FSM + validations)
+- `payments.payments.doctype.webhook_event_log.test_webhook_event_log` : 2/2 (dedup)
+- `payments.tests.test_intent_api` : 5/5 (E2E API + MockDriver round-trip)
+
+**Notes annexes** :
+- ⚠️ 3 orphelins DocType détectés pendant migrate (`Swissdec EMA Notification`, `Swiss QST Tariff`, `Swiss QST Tariff Bracket`) — sans rapport avec Payments, à investiguer dans `erpnextswiss`.
+- ⚠️ Bug sécurité noté : PAT GitHub en clair dans `apps/payments/.git/config` Osiris (remote `upstream`). À nettoyer hors scope Phase 1.
+
+**Conclusion Phase 1** : ✅ **COMPLETED**. Foundations solides, FSM enforced, dedup DB-level garanti, registry → driver fonctionnel, API publique testée end-to-end. Prêt pour Phase 2 (Stripe Terminal driver).
+
+### 2026-05-13/14 — Phases 2 → 8 livrées en cascade (session all-out)
+
+> Le tableau §4 ci-dessus reflète l'intention initiale ; **cette section est l'état réel**.
+
+| Phase | Statut | Tests Osiris |
+|---|---|---|
+| 2 — Stripe Terminal server-driven | ✅ COMPLETED | 9/9 smoke (Stripe sandbox réel) + 13/13 unit |
+| 3 — POSNext abstraction + Wallee out | ✅ COMPLETED | 8/8 smoke |
+| 4 — PHP Bridge TWINT | ✅ COMPLETED | 7/7 smoke + 7/7 unit (HTTP mocké) |
+| 5 — UI Vue (composable + Pinia + dialogs) | ✅ COMPLETED | composants livrés, tests visuels = Phase 7 hardware |
+| 6 — Reconciliation auto | ✅ COMPLETED | 5/5 smoke |
+| 7 — Runbooks + E2E test plan | ✅ COMPLETED | 5 runbooks `docs/runbooks/`, tests hardware reportés |
+| 8 — Template PSP additionnel | ✅ COMPLETED | `drivers/template/` + `docs/adding-a-new-psp.md` |
+
+**Total cumulé : 79/79 tests Osiris GREEN.**
+
+**Bugs rencontrés + fixés (tous re-testés vert)** :
+1. `phase1_smoke` — assertion event count (≥3 → ==2 : `create_intent` requires_action est une self-transition idempotente qui ne log pas d'event)
+2. `phase2_smoke` — report bool cast + redaction du `client_secret` dans le JSON
+3. `phase2_smoke` — fallback sur la clé `sk_test_*` du Stripe Settings legacy
+4. DocType `Twint Settings` → `Twint Bridge Settings` (collision avec le legacy `twint_integration` toujours dans le bench Osiris)
+5. `scheduler_events` — `cron_minutely` n'est pas un key valide Frappe → `cron["* * * * *"]`
+6. `reconcile_payment_intent` — stamp `reconciled_at` systématique pour éviter la ré-entrée du doc_event `on_update`
+7. **Idempotency key Stripe body-aware** — `pi_create_<intent_name>` → `pi_create_<intent_name>_<sha256(amount+currency+metadata)[:12]>`. Stripe rejette « same key + different body » avec HTTP 400 ; le hash rend la clé body-aware (network retries → cache 24h, re-runs avec body différent → fresh key)
+8. `phase2_smoke` — metadata déterministe (retrait du `ts` qui changeait à chaque run)
+
+**État final des branches** :
+- `bvisible/payments@feat/unified-payments` — Phases 1, 2, 4, 6, 7, 8
+- `bvisible/POSNext@feat/unified-payments` — Phases 3, 5
+- `bvisible/neoffice-devops@feat/twint-php-bridge` — Phase 4 (bridge PHP)
+
+**Reste à faire (hors session — bloqué par livraisons)** :
+- ⏳ Hardware Stripe (WisePOS E / S700 / S710) en commande → tests E2E physiques
+- ⏳ P12 sandbox TWINT à demander → tests E2E bridge PHP réel
+- ⏳ `yarn build` POSNext + `bench restart` pour activer les composants Vue
+- ⏳ Wiring final `PaymentDialog.vue` + `GuestCheckout.vue` sur `usePaymentDriver` (remplace l'appel Wallee direct legacy)
+- ⏳ Déploiement bridge PHP sur `neoservice.neoffice.me` via `scripts/install_twint.sh`
+- ⏳ Merge des 3 branches vers leurs `version-15` respectives une fois l'E2E hardware validé
+
+**Dette / sécurité signalée** (problèmes pré-existants découverts, hors scope code Payments) :
+- ⚠️ PAT GitHub en clair dans `apps/payments/.git/config` sur Osiris (remote `upstream`) → **corrigé le 2026-05-14** : `git remote set-url upstream https://github.com/frappe/payments.git`. **Le token exposé doit être révoqué sur GitHub** (action utilisateur).
+- ⚠️ 3 orphelins DocType (`Swissdec EMA Notification`, `Swiss QST Tariff`, `Swiss QST Tariff Bracket`) détectés pendant `bench migrate` — relèvent de `erpnextswiss`, non traités.
