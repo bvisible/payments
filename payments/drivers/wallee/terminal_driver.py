@@ -169,10 +169,11 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				self._wallee_provider.space_id, tx_create
 			)
 		except Exception as exc:  # noqa: BLE001 — Wallee SDK raises generic Exception subclasses
+			friendly_msg, error_code = _extract_wallee_error(exc)
 			return DriverResponse(
 				status="failed",
-				error_code="wallee_create_failed",
-				error_message=str(exc),
+				error_code=error_code or "wallee_create_failed",
+				error_message=friendly_msg,
 				raw={"exception": repr(exc)},
 			)
 
@@ -225,11 +226,16 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				self._wallee_provider.space_id,
 			)
 		except Exception as exc:  # noqa: BLE001
+			# Wallee ApiException carries the full HTTP response (headers + body)
+			# in str(exc). The actionable bit is the body's "message=" — extract
+			# it so the cashier sees something readable instead of an HTTP dump.
+			# Also expose Wallee's error code (e.g. long_polling_timeout, ...).
+			friendly_msg, error_code = _extract_wallee_error(exc)
 			return DriverResponse(
 				status="failed",
 				provider_intent_id=provider_intent_id,
-				error_code="wallee_perform_failed",
-				error_message=str(exc),
+				error_code=error_code or "wallee_perform_failed",
+				error_message=friendly_msg,
 				raw={"exception": repr(exc)},
 			)
 
@@ -465,6 +471,28 @@ class WalleeTerminalDriver(PaymentDriverBase):
 # ----------------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------------
+
+
+_WALLEE_MESSAGE_RE = __import__("re").compile(r"message=['\"]([^'\"]+)['\"]")
+_WALLEE_CODE_RE = __import__("re").compile(r"\bcode=['\"]?([\w_\-]+)['\"]?")
+
+
+def _extract_wallee_error(exc: Exception) -> tuple[str, str | None]:
+	"""Pull the user-facing ``message=...`` and ``code=...`` out of a Wallee
+	SDK exception. Falls back to a truncated str(exc) when the format does not
+	match.
+	"""
+	raw = str(exc)
+	msg_match = _WALLEE_MESSAGE_RE.search(raw)
+	code_match = _WALLEE_CODE_RE.search(raw)
+	message = msg_match.group(1) if msg_match else raw[:200]
+	code = code_match.group(1) if (code_match and code_match.group(1) not in ("None", "")) else None
+	# Tag the HTTP status if present in the prefix "(NNN)\nReason:"
+	import re as _re
+	status_match = _re.match(r"\((\d{3})\)", raw)
+	if status_match:
+		message = f"[HTTP {status_match.group(1)}] {message}"
+	return message, code
 
 
 def _state_value(state: Any) -> str | None:
