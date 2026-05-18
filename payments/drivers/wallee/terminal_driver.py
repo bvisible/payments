@@ -357,32 +357,39 @@ class WalleeTerminalDriver(PaymentDriverBase):
 			or headers.get("HTTP_X_SIGNATURE")
 		)
 		webhook_secret = self._wallee_provider.webhook_secret
-		if not webhook_secret:
-			return WebhookResult(
-				event_id="unknown",
-				event_type="unknown",
-				signature_valid=False,
-				error_code="no_webhook_secret",
-				error_message="Wallee Settings.webhook_secret is not configured",
-			)
-		if not signature:
-			return WebhookResult(
-				event_id="unknown",
-				event_type="unknown",
-				signature_valid=False,
-				error_code="no_signature_header",
-				error_message="X-Signature header missing",
-			)
+		# Mode test/debug: when no webhook_secret is configured AND the provider is
+		# in test mode, we accept the webhook without signature verification. This
+		# lets the operator iterate on the UI flow before configuring the secret
+		# on the Wallee dashboard. In live mode the secret is mandatory.
+		provider_mode = getattr(self.provider.provider_doc, "mode", "live")
+		bypass_signature = (provider_mode == "test") and not webhook_secret
 
-		expected = hmac.new(webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
-		if not hmac.compare_digest(expected, signature):
-			return WebhookResult(
-				event_id="unknown",
-				event_type="unknown",
-				signature_valid=False,
-				error_code="invalid_signature",
-				error_message="HMAC mismatch",
-			)
+		if not bypass_signature:
+			if not webhook_secret:
+				return WebhookResult(
+					event_id="unknown",
+					event_type="unknown",
+					signature_valid=False,
+					error_code="no_webhook_secret",
+					error_message="Wallee Settings.webhook_secret is not configured (required in live mode)",
+				)
+			if not signature:
+				return WebhookResult(
+					event_id="unknown",
+					event_type="unknown",
+					signature_valid=False,
+					error_code="no_signature_header",
+					error_message="X-Signature header missing",
+				)
+			expected = hmac.new(webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
+			if not hmac.compare_digest(expected, signature):
+				return WebhookResult(
+					event_id="unknown",
+					event_type="unknown",
+					signature_valid=False,
+					error_code="invalid_signature",
+					error_message="HMAC mismatch",
+				)
 
 		try:
 			body = json.loads(payload.decode("utf-8") or "{}")
