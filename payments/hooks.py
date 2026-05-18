@@ -130,6 +130,13 @@ scheduler_events["cron"]["* * * * *"] = [
 	"payments.api.twint.poll_pending_twint_transactions",
 ]
 
+# Wallee Terminal: webhook is primary, scheduler poll is a fallback every 5 min
+# for intents stuck in requires_action / processing when a webhook is lost
+# (LAN/firewall blip on the terminal-side). Idempotent.
+scheduler_events["cron"]["*/5 * * * *"].append(
+	"payments.drivers.wallee.terminal_driver.poll_pending_transactions"
+)
+
 # Testing
 # -------
 
