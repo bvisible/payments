@@ -124,6 +124,78 @@ def list_stripe_locations(provider: str | None = None) -> list[dict[str, Any]]:
 
 
 @frappe.whitelist()
+def ensure_stripe_webhook(provider: str | None = None) -> dict[str, Any]:
+	"""Idempotent: make sure a Stripe webhook endpoint is configured for our site.
+
+	Called automatically on first reader registration via the wizard. Skips if a
+	webhook endpoint already exists pointing at our site's
+	``/api/method/payments.api.webhook_stripe.handle`` URL. Otherwise creates one
+	(events: payment_intent.*, terminal.reader.action_*, charge.*) and stores
+	the signing secret in the Payment Provider's ``credentials_json`` so the
+	webhook driver can verify signatures.
+
+	Returns ``{created, endpoint_id, url}`` or ``{skipped, endpoint_id, url}``.
+	"""
+	import json as _json
+
+	import stripe
+
+	from frappe.utils import get_url
+
+	stripe_provider, provider_doc = _resolve_stripe_provider(provider)
+	target_url = f"{get_url()}/api/method/payments.api.webhook_stripe.handle"
+
+	# 1) Look for an existing endpoint pointing at our URL.
+	for ep in stripe.WebhookEndpoint.list(api_key=stripe_provider.secret_key, limit=100).data:
+		if ep.url == target_url:
+			return {
+				"skipped": True,
+				"endpoint_id": ep.id,
+				"url": target_url,
+				"reason": "already_present",
+			}
+
+	# 2) None found — create a fresh one.
+	events = [
+		"payment_intent.succeeded",
+		"payment_intent.payment_failed",
+		"payment_intent.canceled",
+		"payment_intent.created",
+		"payment_intent.requires_action",
+		"terminal.reader.action_succeeded",
+		"terminal.reader.action_failed",
+		"terminal.reader.action_updated",
+		"charge.succeeded",
+		"charge.refunded",
+	]
+	created = stripe.WebhookEndpoint.create(
+		api_key=stripe_provider.secret_key,
+		url=target_url,
+		enabled_events=events,
+		description=f"Auto-created by Neoffice payments wizard ({provider_doc.name})",
+	)
+
+	# 3) Persist signing secret in Payment Provider.credentials_json so the
+	#    webhook driver can verify signatures. The secret is returned ONLY at
+	#    creation time — we can never read it back from Stripe later.
+	try:
+		creds = _json.loads(provider_doc.credentials_json or "{}")
+	except (ValueError, TypeError):
+		creds = {}
+	creds["webhook_secret"] = created.secret
+	provider_doc.credentials_json = _json.dumps(creds)
+	provider_doc.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {
+		"created": True,
+		"endpoint_id": created.id,
+		"url": target_url,
+		"events_count": len(events),
+	}
+
+
+@frappe.whitelist()
 def register_stripe_reader(
 	registration_code: str,
 	location: str,
@@ -139,12 +211,26 @@ def register_stripe_reader(
 
 	For sandbox/simulator, pass ``simulated-wpe`` / ``simulated-s700`` /
 	``simulated-s710``.
+
+	Side-effect: also makes sure a webhook endpoint is registered with Stripe
+	for this site (idempotent), so async state changes from the reader actually
+	reach our FSM. The wizard never has to ask the operator to configure it
+	manually in the Stripe dashboard.
 	"""
 	import stripe
 
 	stripe_provider, provider_doc = _resolve_stripe_provider(provider)
 	provider_name = provider_doc.name
 	binding_name = _terminal_binding(provider_name)
+
+	# Auto-setup webhook on first call. Idempotent — no-op if already configured.
+	try:
+		ensure_stripe_webhook(provider=provider_name)
+	except Exception as exc:  # noqa: BLE001 — don't block reader enrollment on webhook setup
+		frappe.log_error(
+			"ensure_stripe_webhook failed during register_stripe_reader",
+			f"provider={provider_name}: {exc!r}",
+		)
 
 	reader = stripe.terminal.Reader.create(
 		api_key=stripe_provider.secret_key,
