@@ -47,25 +47,19 @@ def _wallee_refund(refund_id: int = 777, state: str = "SUCCESSFUL"):
 
 
 def _ensure_fixtures() -> None:
-	"""Set up Payment Provider 'wallee_test_unit' + Channel 'terminal' + binding.
+	"""Set up Payment Provider 'wallee_test_unit' + Channel 'terminal' + binding +
+	a ``Wallee Settings`` row linked to that provider.
 
-	Also seeds a stub ``Wallee Settings`` row so WalleeProvider.get_credentials
-	does not raise. We patch the SDK at call sites so credentials are never
-	actually transmitted anywhere.
+	Wallee Settings was promoted from Single → regular DocType in the merger
+	(see ADR-005). One record per Payment Provider, keyed by ``provider``.
 	"""
-	# Wallee Settings singleton (skip silently if the wallee_integration app
-	# isn't installed in the test site — the tests will then be skipped).
+	# Wallee Settings DocType must be present (after the merger it lives in
+	# payments/payments/doctype/wallee_settings/). Tests can't run if the
+	# DocType isn't registered yet.
 	if not frappe.db.exists("DocType", "Wallee Settings"):
 		return
-	settings = frappe.get_single("Wallee Settings")
-	settings.enabled = 1
-	settings.user_id = 42
-	settings.authentication_key = "unit-test-key"
-	settings.space_id = 100
-	settings.api_host = "https://app-wallee.com/api/v2.0"
-	settings.webhook_secret = "unit-test-secret"
-	settings.save(ignore_permissions=True)
 
+	# Create Payment Provider FIRST — Wallee Settings.provider links to it.
 	if not frappe.db.exists("Payment Provider", PROVIDER_NAME):
 		frappe.get_doc(
 			{
@@ -76,6 +70,22 @@ def _ensure_fixtures() -> None:
 				"mode": "test",
 				"driver_class": "payments.drivers.wallee.terminal_driver.WalleeTerminalDriver",
 				"credentials_json": "{}",
+			}
+		).insert(ignore_permissions=True)
+
+	# Wallee Settings row for this provider (autoname=field:provider, so
+	# the document name equals PROVIDER_NAME).
+	if not frappe.db.exists("Wallee Settings", PROVIDER_NAME):
+		frappe.get_doc(
+			{
+				"doctype": "Wallee Settings",
+				"provider": PROVIDER_NAME,
+				"enabled": 1,
+				"user_id": 42,
+				"authentication_key": "unit-test-key",
+				"space_id": 100,
+				"api_host": "https://app-wallee.com/api/v2.0",
+				"webhook_secret": "unit-test-secret",
 			}
 		).insert(ignore_permissions=True)
 	if not frappe.db.exists("Payment Channel", CHANNEL_CODE):

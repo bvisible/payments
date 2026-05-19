@@ -1,0 +1,306 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:provider",
+ "creation": "2026-05-19 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "provider",
+  "enabled",
+  "section_credentials",
+  "user_id",
+  "authentication_key",
+  "column_break_1",
+  "space_id",
+  "api_host",
+  "account_id",
+  "section_webshop",
+  "enable_webshop",
+  "payment_mode",
+  "webshop_user_id",
+  "webshop_authentication_key",
+  "success_url",
+  "failed_url",
+  "column_break_webshop",
+  "section_pos",
+  "enable_pos_terminal",
+  "pos_mode_of_payment",
+  "pos_user_id",
+  "pos_authentication_key",
+  "default_terminal",
+  "column_break_pos",
+  "auto_capture",
+  "section_terminal_defaults",
+  "default_terminal_configuration",
+  "default_terminal_location",
+  "column_break_terminal_defaults",
+  "btn_terminal_wizard",
+  "section_advanced",
+  "webhook_secret",
+  "log_api_calls",
+  "column_break_advanced",
+  "test_mode",
+  "send_invoice_to_customer"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "options": "Payment Provider",
+   "label": "Payment Provider",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "The Payment Provider this Wallee configuration belongs to (one record per Wallee account, e.g. wallee_test or wallee_live)."
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_credentials",
+   "fieldtype": "Section Break",
+   "label": "API Credentials"
+  },
+  {
+   "fieldname": "user_id",
+   "fieldtype": "Int",
+   "label": "User ID",
+   "mandatory_depends_on": "eval:doc.enabled",
+   "description": "Your Wallee Application User ID. Go to Wallee → Account → Users → Application Users"
+  },
+  {
+   "fieldname": "authentication_key",
+   "fieldtype": "Password",
+   "label": "Authentication Key",
+   "mandatory_depends_on": "eval:doc.enabled",
+   "description": "The BASE64 key shown when creating an Application User (shown only once!)"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "space_id",
+   "fieldtype": "Int",
+   "label": "Space ID",
+   "mandatory_depends_on": "eval:doc.enabled",
+   "description": "The number shown next to your company name in Wallee (e.g., #12345)",
+   "in_list_view": 1
+  },
+  {
+   "default": "https://app-wallee.com/api/v2.0",
+   "fieldname": "api_host",
+   "fieldtype": "Data",
+   "label": "API Host",
+   "description": "Wallee API endpoint URL"
+  },
+  {
+   "fieldname": "account_id",
+   "fieldtype": "Int",
+   "label": "Account ID",
+   "read_only": 1,
+   "description": "Wallee Account ID (auto-detected)"
+  },
+  {
+   "fieldname": "section_webshop",
+   "fieldtype": "Section Break",
+   "label": "Webshop Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_webshop",
+   "fieldtype": "Check",
+   "label": "Enable Webshop Payments"
+  },
+  {
+   "fieldname": "payment_mode",
+   "fieldtype": "Select",
+   "label": "Payment Mode",
+   "options": "Redirect\nLightbox\niFrame",
+   "default": "Redirect",
+   "depends_on": "eval:doc.enable_webshop",
+   "description": "Redirect: Customer goes to Wallee payment page. Lightbox: Payment form in overlay modal. iFrame: Embedded payment form on checkout page."
+  },
+  {
+   "fieldname": "webshop_user_id",
+   "fieldtype": "Int",
+   "label": "Webshop User ID",
+   "depends_on": "eval:doc.enable_webshop",
+   "read_only": 1,
+   "description": "Dedicated Application User for webshop transactions (auto-created)"
+  },
+  {
+   "fieldname": "webshop_authentication_key",
+   "fieldtype": "Password",
+   "label": "Webshop Authentication Key",
+   "depends_on": "eval:doc.enable_webshop",
+   "read_only": 1,
+   "description": "Authentication key for webshop user"
+  },
+  {
+   "fieldname": "success_url",
+   "fieldtype": "Data",
+   "label": "Success URL",
+   "description": "Redirect URL after successful payment"
+  },
+  {
+   "fieldname": "failed_url",
+   "fieldtype": "Data",
+   "label": "Failed URL",
+   "description": "Redirect URL after failed payment"
+  },
+  {
+   "fieldname": "column_break_webshop",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_pos",
+   "fieldtype": "Section Break",
+   "label": "POS Terminal Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_pos_terminal",
+   "fieldtype": "Check",
+   "label": "Enable POS Terminal"
+  },
+  {
+   "fieldname": "pos_mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Mode of Payment",
+   "options": "Mode of Payment",
+   "depends_on": "eval:doc.enable_pos_terminal",
+   "description": "Mode of Payment used when recording Wallee terminal payments by default"
+  },
+  {
+   "fieldname": "pos_user_id",
+   "fieldtype": "Int",
+   "label": "POS User ID",
+   "depends_on": "eval:doc.enable_pos_terminal",
+   "read_only": 1,
+   "description": "Dedicated Application User for POS terminal transactions (auto-created)"
+  },
+  {
+   "fieldname": "pos_authentication_key",
+   "fieldtype": "Password",
+   "label": "POS Authentication Key",
+   "depends_on": "eval:doc.enable_pos_terminal",
+   "read_only": 1,
+   "description": "Authentication key for POS user"
+  },
+  {
+   "fieldname": "default_terminal",
+   "fieldtype": "Link",
+   "label": "Default Terminal",
+   "options": "Payment Device",
+   "depends_on": "eval:doc.enable_pos_terminal",
+   "description": "Default Wallee Payment Device used when none is explicitly picked"
+  },
+  {
+   "fieldname": "column_break_pos",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "auto_capture",
+   "fieldtype": "Check",
+   "label": "Auto Capture",
+   "description": "Automatically capture authorized transactions"
+  },
+  {
+   "fieldname": "section_terminal_defaults",
+   "fieldtype": "Section Break",
+   "label": "Terminal Defaults",
+   "depends_on": "eval:doc.enable_pos_terminal"
+  },
+  {
+   "fieldname": "default_terminal_configuration",
+   "fieldtype": "Link",
+   "label": "Default Terminal Configuration",
+   "options": "Wallee Terminal Configuration",
+   "description": "Default configuration for new terminals"
+  },
+  {
+   "fieldname": "default_terminal_location",
+   "fieldtype": "Link",
+   "label": "Default Terminal Location",
+   "options": "Wallee Location",
+   "description": "Default location for new terminals"
+  },
+  {
+   "fieldname": "column_break_terminal_defaults",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "btn_terminal_wizard",
+   "fieldtype": "Button",
+   "label": "Open Terminal Wizard",
+   "description": "Open the unified Payment Terminal Wizard"
+  },
+  {
+   "fieldname": "section_advanced",
+   "fieldtype": "Section Break",
+   "label": "Advanced Settings",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "webhook_secret",
+   "fieldtype": "Password",
+   "label": "Webhook Secret",
+   "description": "Secret key for webhook signature verification (HMAC-SHA256)"
+  },
+  {
+   "default": "0",
+   "fieldname": "log_api_calls",
+   "fieldtype": "Check",
+   "label": "Log API Calls",
+   "description": "Enable detailed API logging for debugging"
+  },
+  {
+   "fieldname": "column_break_advanced",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "test_mode",
+   "fieldtype": "Check",
+   "label": "Test Mode",
+   "description": "Use sandbox/test environment"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_invoice_to_customer",
+   "fieldtype": "Check",
+   "label": "Send Invoice to Customer",
+   "description": "When enabled, Wallee will send invoice PDFs to customers via email after transaction completion."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Wallee Settings",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

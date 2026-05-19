@@ -2,19 +2,20 @@
 # License: MIT. See LICENSE
 """Wallee provider — credentials lookup + health check.
 
-Wallee credentials live on the **single DocType ``Wallee Settings``**, owned by
-the legacy ``wallee_integration`` app (which stays installed for this purpose).
-We deliberately do NOT mirror them into ``Payment Provider.credentials_json``:
-operators already manage them via the Wallee Settings desk page, and the
-existing wallee_integration webshop/guest flow reads from the same source.
+After ADR-005 (fusion of ``wallee_integration`` into ``payments``), credentials
+live in a regular (non-single) ``Wallee Settings`` DocType — one record per
+``Payment Provider``. The ``Payment Provider.driver_class`` points to the
+Wallee driver class, and ``Wallee Settings.provider`` links back to the
+provider record.
 
-The ``Payment Provider`` record for Wallee therefore carries minimal data:
-``provider_name=wallee_test``, ``mode``, ``driver_class``, and an empty
-``credentials_json=\"{}\"``.
+This means two Wallee accounts can cohabit on the same site (e.g.
+``wallee_test`` and ``wallee_live``) — they each have their own
+``Wallee Settings`` row with distinct API credentials, webhook secret,
+locations, etc.
 
-If the operator wants per-instance overrides (test vs live keys on the same
-site), they create two ``Payment Provider`` records with distinct ``mode`` and
-two ``Wallee Settings``-equivalent DocTypes — out of scope for v1.
+The ``Payment Provider.credentials_json`` is left empty for Wallee (``{}``):
+all Wallee-specific config lives on the linked ``Wallee Settings`` row, which
+exposes a richer schema (POS toggles, terminal defaults, webshop options).
 """
 
 from __future__ import annotations
@@ -45,7 +46,19 @@ class WalleeProvider(PaymentProviderBase):
 		# Re-fetch each time so credential rotations propagate without a restart.
 		# Cost is one row read — negligible compared with the network call that
 		# follows.
-		return frappe.get_single("Wallee Settings")
+		#
+		# Wallee Settings is keyed by ``provider`` (Link → Payment Provider). One
+		# record per Wallee account. autoname=field:provider so the document name
+		# equals the provider name.
+		name = frappe.db.get_value("Wallee Settings", {"provider": self.provider_doc.name})
+		if not name:
+			raise frappe.ValidationError(
+				_("No Wallee Settings row found for Payment Provider {0}. "
+				  "Create one at /app/wallee-settings/new?provider={0}.").format(
+					self.provider_doc.name
+				)
+			)
+		return frappe.get_doc("Wallee Settings", name)
 
 	def get_credentials(self) -> dict[str, Any]:
 		"""Return the decrypted credentials dict.

@@ -1,0 +1,40 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="container py-5">
+	<div class="row justify-content-center">
+		<div class="col-md-6 text-center">
+			<div class="payment-failed">
+				<div class="failed-icon mb-4" style="display:flex; justify-content:center;">
+					<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<circle cx="40" cy="40" r="40" fill="#dc3545"/>
+						<path d="M28 28L52 52M52 28L28 52" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<h2 class="mb-3">{{ _("Payment Failed") }}</h2>
+				<p class="text-muted mb-4">{{ _("We're sorry, but your payment could not be processed. Please try again or use a different payment method.") }}</p>
+
+				{% if failure_reason %}
+				<div class="alert alert-danger mb-4">
+					<strong>{{ _("Reason") }}:</strong> {{ failure_reason }}
+				</div>
+				{% endif %}
+
+				<div class="payment-details card mb-4">
+					<div class="card-body">
+						{% if intent %}
+						<p><strong>{{ _("Reference") }}:</strong> {{ intent.name }}</p>
+						<p><strong>{{ _("Transaction") }}:</strong> {{ intent.provider_intent_id }}</p>
+						<p><strong>{{ _("Status") }}:</strong> {{ intent.status }}</p>
+						<p><strong>{{ _("Amount") }}:</strong> {{ frappe.format_value(intent.amount / 100, {"fieldtype": "Currency", "options": intent.currency}) }}</p>
+						{% endif %}
+					</div>
+				</div>
+
+				<a href="/cart" class="btn btn-primary">{{ _("Try Again") }}</a>
+				<a href="/contact" class="btn btn-outline-secondary ml-2">{{ _("Contact Support") }}</a>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

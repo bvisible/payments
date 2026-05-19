@@ -1,0 +1,161 @@
+/* Copyright (c) 2026, Neoffice and contributors */
+/* License: MIT. See LICENSE */
+
+.ptw-wrap {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 24px 16px;
+}
+
+/* Progress bar ---------------------------------------------------------- */
+.ptw-progress {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 32px;
+	position: relative;
+}
+.ptw-progress::before {
+	content: "";
+	position: absolute;
+	top: 18px;
+	left: 32px;
+	right: 32px;
+	height: 2px;
+	background: var(--border-color, #d1d8dd);
+	z-index: 0;
+}
+.ptw-step {
+	flex: 1;
+	text-align: center;
+	z-index: 1;
+	background: var(--bg-color, #fff);
+	padding: 0 8px;
+}
+.ptw-step-circle {
+	width: 36px;
+	height: 36px;
+	line-height: 36px;
+	border-radius: 50%;
+	background: var(--gray-200, #e9ecef);
+	color: var(--text-muted, #6c757d);
+	font-weight: 600;
+	margin: 0 auto 6px;
+	border: 2px solid var(--gray-200, #e9ecef);
+}
+.ptw-step.active .ptw-step-circle {
+	background: var(--primary, #007bff);
+	color: white;
+	border-color: var(--primary, #007bff);
+}
+.ptw-step.done .ptw-step-circle {
+	background: var(--green-500, #28a745);
+	color: white;
+	border-color: var(--green-500, #28a745);
+}
+.ptw-step-label {
+	font-size: 12px;
+	color: var(--text-muted, #6c757d);
+}
+.ptw-step.active .ptw-step-label {
+	color: var(--text-color, #212529);
+	font-weight: 600;
+}
+
+/* Content --------------------------------------------------------------- */
+.ptw-content {
+	min-height: 320px;
+	padding: 16px 0;
+}
+.ptw-content h3 {
+	margin-top: 0;
+	margin-bottom: 8px;
+}
+
+/* Cards (provider / location / config picker) --------------------------- */
+.ptw-providers,
+.ptw-locations,
+.ptw-configs {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 12px;
+	margin: 12px 0;
+}
+.ptw-card {
+	border: 2px solid var(--border-color, #d1d8dd);
+	border-radius: 8px;
+	padding: 12px;
+	cursor: pointer;
+	transition: all 0.15s;
+	background: var(--card-bg, #fff);
+}
+.ptw-card:hover {
+	border-color: var(--primary-light, #80bdff);
+	background: var(--gray-100, #f8f9fa);
+}
+.ptw-card.selected {
+	border-color: var(--primary, #007bff);
+	background: var(--primary-bg, #e7f1ff);
+}
+.ptw-card-title {
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+.ptw-card-meta {
+	font-size: 12px;
+	color: var(--text-muted, #6c757d);
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.ptw-badge {
+	display: inline-block;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+.ptw-kind-stripe { background: #635bff; color: white; }
+.ptw-kind-wallee { background: #00b389; color: white; }
+.ptw-kind-other  { background: #6c757d; color: white; }
+.ptw-mode-test   { background: #ffc107; color: #212529; }
+.ptw-mode-live   { background: #dc3545; color: white; }
+
+/* Two-column layout for Wallee step 2 ----------------------------------- */
+.ptw-two-col {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 24px;
+	margin-top: 12px;
+}
+.ptw-col-title {
+	font-weight: 600;
+	margin-bottom: 8px;
+}
+
+/* Form (step 3 + 4) ----------------------------------------------------- */
+.ptw-form {
+	max-width: 540px;
+}
+.ptw-form label {
+	font-weight: 600;
+	margin-bottom: 4px;
+	display: block;
+}
+.ptw-form .form-control {
+	margin-bottom: 4px;
+}
+.ptw-status {
+	min-height: 24px;
+}
+
+/* Nav buttons ---------------------------------------------------------- */
+.ptw-nav {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid var(--border-color, #d1d8dd);
+}
