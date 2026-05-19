@@ -15,8 +15,13 @@ app_license = "MIT"
 # app_include_js = "/assets/pay/js/pay.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/pay/css/pay.css"
-# web_include_js = "/assets/pay/js/pay.js"
+# TWINT overlay (consumer-flow QR checkout) is loaded both on desk (for tests)
+# and on public web pages (for the webshop checkout). Ships the `frappe.twint`
+# namespace consumed by `webshop/templates/payments/twint.html`.
+web_include_css = "/assets/payments/css/twint_dialog.css"
+web_include_js = "/assets/payments/js/twint_dialog.js"
+app_include_css = "/assets/payments/css/twint_dialog.css"
+app_include_js = "/assets/payments/js/twint_dialog.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "pay/public/scss/website"

@@ -1,0 +1,298 @@
+/* Global */
+.twint-modal-dialog .twint-payment-container, .twint-dialog .twint-payment-container {
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+.twint-modal-dialog .twint-line, .twint-dialog .twint-line {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.twint-modal-dialog .payment-content, .twint-dialog .payment-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+.twint-modal-dialog .payment-info, .twint-dialog .payment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.twint-modal-dialog .amount-display, .twint-dialog .amount-display {
+    font-size: 24px;
+    font-weight: bold;
+    background: #000;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-align: center;
+}
+.twint-modal-dialog .company-logo img, .twint-dialog .company-logo img {
+    max-height: 50px;
+    max-width: 200px;
+}
+.twint-modal-dialog .qr-section, .twint-dialog .qr-section {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.3s ease-in-out;
+}
+.twint-modal-dialog .amount-section, .twint-dialog .amount-section {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.3s ease-in-out;
+    width: 100%;
+}
+.twint-modal-dialog .company-logo-section, .twint-dialog .company-logo-section {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.3s ease-in-out;
+    width: 100%;
+}      
+.twint-modal-dialog .qr-section.visible, .twint-dialog .qr-section.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+.twint-modal-dialog .amount-section.visible, .twint-dialog .amount-section.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+.twint-modal-dialog .company-logo-section.visible, .twint-dialog .company-logo-section.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+.twint-modal-dialog .timer-container, .twint-dialog .timer-container {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+.twint-modal-dialog .timer-bar, .twint-dialog .timer-bar {
+    width: 100%;
+    height: 4px;
+    background: #edf2f7;
+    border-radius: 2px;
+    margin-top: 5px;
+}
+.twint-modal-dialog .timer-progress, .twint-dialog .timer-progress {
+    height: 100%;
+    background: #2490ef;
+    border-radius: 2px;
+    transition: width 1s linear;
+}
+.twint-modal-dialog .qr-code img, .twint-dialog .qr-code img {
+    max-width: 200px;
+    margin: 0 auto;
+    display: block;
+}
+.twint-modal-dialog .qr-code svg, .twint-dialog .qr-code svg {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    display: block;
+}
+.twint-modal-dialog .pairing-token, .twint-dialog .pairing-token {
+    font-size: 32px;
+    font-weight: bold;
+    margin: 20px 0 0 0;
+    letter-spacing: 2px;
+}
+.twint-modal-dialog .twint-instructions, .twint-dialog .twint-instructions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 695px;
+    margin: 20px auto;
+}
+.twint-modal-dialog .icon-app, .twint-dialog .icon-app {
+    background: url(/assets/payments/images/twint/twint-app-icon.png);
+    background-repeat: no-repeat;
+    background-size: 116px 48px;
+    width: 43px;
+    border-radius: 10px;
+    height: 48px;
+    margin: 4px auto;
+}
+.twint-modal-dialog .instruction-step, .twint-dialog .instruction-step {
+    text-align: center;
+}
+.twint-modal-dialog .instruction-step img, .twint-dialog .instruction-step img {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+}
+.twint-modal-dialog .instruction-step p, .twint-dialog .instruction-step p {
+    font-size: 14px;
+    color: #4a5568;
+    margin: 0;
+}
+.twint-modal-dialog .payment-status-container, .twint-dialog .payment-status-container {
+    text-align: center;
+    margin: 20px;
+}
+.twint-modal-dialog .loading-spinner, .twint-dialog .loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #2490ef;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.open-app-btn {
+    display: inline-block;
+    background-color: #2490ef;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+    margin: 10px 0;
+    border: none;
+    text-align: center;
+    width: 100%;
+    max-width: 250px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.open-app-btn:hover {
+    background-color: #1a7ed0;
+    color: white;
+    text-decoration: none;
+}
+.twint-modal-dialog .alert, .twint-dialog .alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+.twint-modal-dialog .alert-success, .twint-dialog .alert-success {
+    background-color: #def7ec;
+    color: #03543f;
+}
+.twint-modal-dialog .alert-danger, .twint-dialog .alert-danger {
+    background-color: #fde8e8;
+    color: #9b1c1c;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@media (max-width: 768px) {
+    .twint-modal-dialog .payment-content, .twint-dialog .payment-content {  
+        flex-direction: column;
+        align-items: center;
+    }
+    .twint-modal-dialog .payment-info, .twint-dialog .payment-info {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0;
+    }
+    .twint-modal-dialog .twint-instructions, .twint-dialog .twint-instructions {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        justify-items: start;
+    }
+    .twint-modal-dialog .instruction-step, .twint-dialog .instruction-step {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        padding: 0 20px;
+    }
+    .twint-modal-dialog .instruction-step img, .twint-dialog .instruction-step img,
+    .twint-modal-dialog .icon-app, .twint-dialog .icon-app {
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    .twint-modal-dialog .instruction-step p, .twint-dialog .instruction-step p {
+        margin: 0;
+    }
+}
+@media (max-width: 668px) {
+    .twint-modal-dialog .payment-info, .twint-dialog .payment-info {
+        flex-direction: column;
+        max-width: 260px;
+    }
+}
+
+/* Backend */
+.twint-modal-dialog > .modal-dialog{
+    width: 90% !important;
+    max-width: 90% !important;
+}
+.twint-modal-dialog .modal-body {
+    background: #f5f5f5;
+    padding: 0 0 10px 0;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.twint-modal-dialog .modal-actions .btn-modal-close {
+    display: none;
+}
+
+/* Frontend */
+.twint-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    overflow-y: auto;
+}
+
+.twint-dialog {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 90% !important;
+    margin: 20px auto;
+    overflow-y: auto;
+    max-height: 90vh;
+}
+
+.twint-dialog .twint-dialog-content {
+    background: #f5f5f5;
+}
+
+.twint-dialog .twint-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.twint-dialog .twint-dialog-header h3 {
+    margin: 0;
+}
+
+.twint-dialog .close-btn {
+    background: none;
+    border: none;
+    font-size: 50px;
+    line-height: 0;
+    cursor: pointer;
+    padding: 0;
+    color: #666;
+}

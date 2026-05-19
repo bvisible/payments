@@ -106,7 +106,9 @@ class TwintProvider(PaymentProviderBase):
 			return {"ok": False, "error": repr(exc)}
 
 	def list_supported_channels(self) -> list[str]:
-		return ["qr_bridge"]
+		# qr_bridge: merchant-initiated (POS terminal)
+		# twint_web: consumer-initiated (webshop QR scanned by buyer)
+		return ["qr_bridge", "twint_web"]
 
 	# ------------------------------------------------------------------------
 	# Helpers
