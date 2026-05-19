@@ -339,15 +339,51 @@ class StripeTerminalDriver(PaymentDriverBase):
 		event_type = event["type"]
 		target_status = _EVENT_TO_STATUS.get(event_type)
 
-		# Identify the Frappe Payment Intent via metadata.frappe_intent_name set at
-		# create_intent time.
+		# Identify the Frappe Payment Intent. Lookup strategy (in order):
+		# 1. obj.metadata.frappe_intent_name (the canonical path for PaymentIntent
+		#    events).
+		# 2. For terminal.reader.* events, the metadata can sometimes be on
+		#    obj.action.payment_intent.metadata (when Stripe expands the PI).
+		# 3. For terminal.reader.action_* events, Stripe omits the PI id entirely
+		#    from the payload — we fall back to looking up by the reader id
+		#    (obj.id) and picking the most recent Payment Intent attached to
+		#    that device, still in requires_action/processing. This is the only
+		#    way to map a terminal.reader.action_failed event back to its PI.
 		obj = event.get("data", {}).get("object", {}) or {}
 		frappe_intent_name = (obj.get("metadata") or {}).get("frappe_intent_name")
-		# For terminal.reader.* events, the metadata is on `obj.action.payment_intent.metadata`.
+
 		if not frappe_intent_name and event_type.startswith("terminal.reader."):
 			action = obj.get("action") or {}
-			pi_obj = action.get("payment_intent") or {}
-			frappe_intent_name = (pi_obj.get("metadata") or {}).get("frappe_intent_name")
+			pi_obj = action.get("payment_intent")
+			# pi_obj might be a dict (expanded), a string (just the id), or None.
+			if isinstance(pi_obj, dict):
+				frappe_intent_name = (pi_obj.get("metadata") or {}).get("frappe_intent_name")
+			elif isinstance(pi_obj, str) and pi_obj:
+				# Direct lookup by Stripe PI id.
+				frappe_intent_name = frappe.db.get_value(
+					"Payment Intent", {"provider_intent_id": pi_obj}, "name"
+				)
+
+			# Final fallback: lookup by reader id (obj.id) — the most recent
+			# Payment Intent still attached to that physical device. Bounded by
+			# device + non-terminal status to avoid mismatching old intents.
+			if not frappe_intent_name and obj.get("id"):
+				device_name = frappe.db.get_value(
+					"Payment Device", {"provider_device_id": obj["id"]}, "name"
+				)
+				if device_name:
+					rows = frappe.get_all(
+						"Payment Intent",
+						filters={
+							"device": device_name,
+							"status": ["in", ("requires_action", "processing")],
+						},
+						order_by="creation desc",
+						limit=1,
+						pluck="name",
+					)
+					if rows:
+						frappe_intent_name = rows[0]
 
 		# Build a short excerpt for the Payment Event log.
 		excerpt = f"{event_type} pi={obj.get('id') or '<no-id>'} status={obj.get('status') or '?'}"
@@ -356,9 +392,16 @@ class StripeTerminalDriver(PaymentDriverBase):
 		error_code: str | None = None
 		error_message: str | None = None
 		if target_status == "failed":
+			# For payment_intent.* events, the last_payment_error is on the PI.
 			last_err = obj.get("last_payment_error") or {}
 			error_code = last_err.get("code")
 			error_message = last_err.get("message")
+			# For terminal.reader.action_failed events, the failure is on
+			# obj.action — propagate it for the cashier UI.
+			if not error_code and event_type == "terminal.reader.action_failed":
+				action = obj.get("action") or {}
+				error_code = action.get("failure_code")
+				error_message = action.get("failure_message")
 
 		# If event is informational only (passthrough), record it but don't drive FSM.
 		if target_status is None and event_type in _EVENT_PASSTHROUGH:
