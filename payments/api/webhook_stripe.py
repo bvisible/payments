@@ -138,6 +138,41 @@ def _resolve_stripe_webhook_driver():
 	return resolve_driver(provider_name, binding["channel"])
 
 
+def _capture_after_action_succeeded(log, driver) -> None:  # noqa: ANN001
+	"""Trigger Stripe PaymentIntent.capture after a successful reader action.
+
+	The reader payload doesn't carry the PI metadata directly (Stripe sends
+	``reader.action.payment_intent`` as a string id when not expanded, or
+	None in some payloads). We extract the PI id from the raw event payload
+	and call ``driver.capture_payment``. Idempotent — Stripe will accept the
+	same capture call twice within 24h thanks to the idempotency key inside
+	``capture_payment``.
+	"""
+	import json as _json
+
+	try:
+		raw = _json.loads(log.raw_payload or "{}")
+	except (ValueError, TypeError):
+		return
+
+	obj = raw.get("data", {}).get("object", {}) or {}
+	action = obj.get("action") or {}
+	# In Stripe webhooks, action.payment_intent is the bare PI id string.
+	pi_id = action.get("payment_intent")
+	if not pi_id and isinstance(action.get("payment_intent"), dict):
+		pi_id = action["payment_intent"].get("id")
+	if not pi_id:
+		return
+
+	try:
+		driver.capture_payment(pi_id)
+	except Exception as exc:  # noqa: BLE001
+		frappe.log_error(
+			"Stripe capture after action_succeeded failed",
+			f"pi={pi_id} log={log.name}: {exc!r}",
+		)
+
+
 def _safe_truncate(payload: bytes, max_bytes: int = 200_000) -> str:
 	"""Decode + truncate the payload to keep the log row reasonable in size."""
 	try:
@@ -186,6 +221,17 @@ def process_event(log_name: str) -> None:
 		log.error = f"handle_webhook raised: {exc!r}"
 		log.save(ignore_permissions=True)
 		return
+
+	# Bridge for Stripe Terminal: `terminal.reader.action_succeeded` means the
+	# card was authorized on the reader. Since we create PaymentIntents with
+	# capture_method="manual" (so cashier can adjust tip after auth), we must
+	# explicitly call PaymentIntent.capture here — otherwise the PI stays in
+	# `requires_capture` forever and `payment_intent.succeeded` never fires.
+	#
+	# We resolve the Frappe intent via provider_intent_id (the Stripe PI id is
+	# in the event payload even when metadata lookup fails for reader events).
+	if result.event_type == "terminal.reader.action_succeeded":
+		_capture_after_action_succeeded(log, driver)
 
 	# Apply FSM transition if the event maps to a known Intent.
 	if result.intent_name and result.target_status:
