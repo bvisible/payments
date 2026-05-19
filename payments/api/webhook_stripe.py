@@ -26,8 +26,10 @@ import json
 import frappe
 from frappe import _
 
-# Conventional name of the Payment Provider record for Stripe.
-STRIPE_PROVIDER_NAME = "stripe"
+# Stripe provider records are detected by their driver_class (any class under
+# ``payments.drivers.stripe.*``). This avoids hard-coding a single provider name
+# — operators can have ``stripe_test`` + ``stripe_live`` cohabiting and the
+# webhook just resolves the first enabled match.
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -73,7 +75,7 @@ def handle() -> str:
 		{
 			"doctype": "Webhook Event Log",
 			"event_id": result.event_id,
-			"provider": STRIPE_PROVIDER_NAME,
+			"provider": _stripe_provider_name() or "stripe",
 			"event_type": result.event_type,
 			"signature_valid": 1,
 			"status": "Queued",
@@ -93,6 +95,21 @@ def handle() -> str:
 	return "ok"
 
 
+def _stripe_provider_name() -> str | None:
+	"""First enabled Payment Provider record with a Stripe driver class.
+
+	Operators name their providers anything they like (``stripe_test``,
+	``stripe_live``, ``stripe_main``, …) — we detect Stripe via the driver
+	class path instead of a hard-coded record name.
+	"""
+	return frappe.db.get_value(
+		"Payment Provider",
+		{"driver_class": ["like", "payments.drivers.stripe.%"], "enabled": 1},
+		"name",
+		order_by="modified desc",
+	)
+
+
 def _resolve_stripe_webhook_driver():
 	"""Pick the first enabled Stripe binding and resolve its driver.
 
@@ -101,20 +118,24 @@ def _resolve_stripe_webhook_driver():
 	bindings exist (web + terminal), they share the same webhook signing secret
 	per Stripe account, so any of them can verify.
 	"""
-	from payments.drivers.registry import resolve_driver
+	from payments.drivers.registry import DriverResolutionError, resolve_driver
+
+	provider_name = _stripe_provider_name()
+	if not provider_name:
+		raise DriverResolutionError(_("No enabled Stripe Payment Provider found"))
 
 	binding = frappe.db.get_value(
 		"Provider Channel Settings",
-		{"provider": STRIPE_PROVIDER_NAME, "enabled": 1},
+		{"provider": provider_name, "enabled": 1},
 		["channel"],
 		as_dict=True,
 		order_by="modified desc",
 	)
 	if not binding:
-		from payments.drivers.registry import DriverResolutionError
-
-		raise DriverResolutionError(_("No enabled Stripe binding found"))
-	return resolve_driver(STRIPE_PROVIDER_NAME, binding["channel"])
+		raise DriverResolutionError(
+			_("No enabled Provider Channel Settings for {0}").format(provider_name)
+		)
+	return resolve_driver(provider_name, binding["channel"])
 
 
 def _safe_truncate(payload: bytes, max_bytes: int = 200_000) -> str:
