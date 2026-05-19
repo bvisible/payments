@@ -154,20 +154,57 @@ class WalleeWebDriver(PaymentDriverBase):
 	# Driver contract
 	# ------------------------------------------------------------------------
 
+	def _build_billing_address(self, request: IntentRequest):
+		"""Build Wallee AddressCreate from a metadata.billing_address dict.
+
+		Caller passes a dict with keys: email_address, given_name, family_name,
+		street, city, postcode, country (ISO 3166-1 alpha-2). Missing keys are
+		omitted (Wallee accepts partial addresses for hosted checkout).
+		"""
+		metadata = request.metadata or {}
+		addr_input = metadata.get("billing_address") if isinstance(metadata, dict) else None
+		if not addr_input or not isinstance(addr_input, dict):
+			return None
+
+		from wallee.models import AddressCreate
+
+		country = (addr_input.get("country") or "").upper() or None
+		return AddressCreate(
+			email_address=addr_input.get("email_address") or None,
+			given_name=addr_input.get("given_name") or None,
+			family_name=addr_input.get("family_name") or None,
+			street=addr_input.get("street") or None,
+			city=addr_input.get("city") or None,
+			postcode=addr_input.get("postcode") or None,
+			country=country,
+		)
+
 	def create_intent(self, request: IntentRequest) -> DriverResponse:
 		"""Create a Wallee web transaction and return its payment page URL.
 
 		The customer must be redirected to ``next_action_payload["url"]``. After
 		paying they return to ``/wallee/success?payment_intent=<intent_name>``
 		(or ``/wallee/failed?...``), see :mod:`payments.www.wallee_success`.
+
+		Metadata keys honoured by the driver:
+		- ``line_items`` — see :meth:`_build_line_items`
+		- ``billing_address`` — see :meth:`_build_billing_address`
+		- ``success_url`` / ``failed_url`` — override the default redirect
+		  targets (webshop passes its own with ``?payment_request=<PR>`` so the
+		  www page can finalise the Sales Order).
 		"""
 		from wallee import TransactionCreate
 
+		metadata = request.metadata if isinstance(request.metadata, dict) else {}
 		base_url = get_url()
-		success_url = f"{base_url}/wallee/success?payment_intent={request.intent_name}"
-		failed_url = f"{base_url}/wallee/failed?payment_intent={request.intent_name}"
+		success_url = metadata.get("success_url") or (
+			f"{base_url}/wallee/success?payment_intent={request.intent_name}"
+		)
+		failed_url = metadata.get("failed_url") or (
+			f"{base_url}/wallee/failed?payment_intent={request.intent_name}"
+		)
 
-		tx_create = TransactionCreate(
+		tx_kwargs: dict[str, Any] = dict(
 			line_items=self._build_line_items(request),
 			currency=request.currency.upper(),
 			# Web checkout: auto-confirm so we can pay right away after the
@@ -177,6 +214,11 @@ class WalleeWebDriver(PaymentDriverBase):
 			success_url=success_url,
 			failed_url=failed_url,
 		)
+		billing_address = self._build_billing_address(request)
+		if billing_address is not None:
+			tx_kwargs["billing_address"] = billing_address
+
+		tx_create = TransactionCreate(**tx_kwargs)
 
 		try:
 			tx_service, _refunds = self._services()

@@ -43,6 +43,21 @@ def _provider(provider_name: str) -> WalleeProvider:
 	return WalleeProvider(provider_doc)
 
 
+def _resolve_wallee_provider_name(provider: str | None) -> str:
+	"""Return a Wallee Payment Provider name — explicit, else first enabled."""
+	if provider:
+		return provider
+	name = frappe.db.get_value(
+		"Payment Provider",
+		{"driver_class": ["like", "payments.drivers.wallee.%"], "enabled": 1},
+		"name",
+		order_by="modified desc",
+	)
+	if not name:
+		frappe.throw(_("No enabled Wallee Payment Provider found"))
+	return name
+
+
 def _terminal_binding(provider_name: str) -> str:
 	"""Return the Provider Channel Settings name for (provider, terminal)."""
 	binding = frappe.db.get_value(
@@ -330,6 +345,278 @@ def link_terminal_device(provider: str, payment_device: str, serial_number: str)
 # ---------------------------------------------------------------------------
 # Static helpers
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Webshop helpers — hosted checkout (Redirect / Lightbox / iFrame)
+# ---------------------------------------------------------------------------
+#
+# These endpoints are called from the webshop checkout JS once a Payment
+# Request has been created via the generic ``payment_handler.create_payment_request``.
+# They wrap the existing :mod:`payments.drivers.wallee.web_driver` to:
+#   1. create a Wallee transaction (via the unified Payment Intent FSM)
+#   2. surface the right JS/redirect URL according to the requested mode
+#
+# Pre-fusion this lived in ``wallee_integration.api.transaction`` and
+# ``webshop.templates.payments.wallee`` directly imported it; that module is
+# gone, hence the port here.
+
+
+def _build_line_items_from_quotation(quotation_doc) -> list[dict[str, Any]]:  # noqa: ANN001
+	"""Map a Quotation to the dict format expected by ``WalleeWebDriver``.
+
+	Mirrors what the legacy ``webshop.templates.payments.wallee`` did inline:
+	one PRODUCT line per item, plus one SHIPPING/FEE line per ``Actual``
+	tax-row (shipping, handling, etc.). Taxes are NOT attached here — caller
+	can pass percentage-tax info via ``metadata['line_items'][i].taxes`` if
+	needed (Wallee accepts items without explicit tax breakdown).
+	"""
+	line_items: list[dict[str, Any]] = []
+	for item in quotation_doc.items or []:
+		line_items.append(
+			{
+				"name": item.item_name or item.item_code,
+				"sku": item.item_code,
+				"quantity": float(item.qty or 1),
+				"amount_including_tax": float(item.amount or 0),
+				"type": "PRODUCT",
+			}
+		)
+	# Actual charges (shipping / fees not included in item prices) become
+	# their own line items so the totals match Wallee's expectation.
+	for tax_row in (quotation_doc.taxes or []):
+		if tax_row.charge_type == "Actual" and (tax_row.tax_amount or 0) > 0:
+			desc_lower = (tax_row.description or "").lower()
+			is_shipping = any(
+				kw in desc_lower for kw in ("ship", "post", "livraison", "envoi", "frais de port")
+			)
+			line_items.append(
+				{
+					"name": tax_row.description or "Fee",
+					"quantity": 1,
+					"amount_including_tax": float(tax_row.tax_amount),
+					"type": "SHIPPING" if is_shipping else "FEE",
+				}
+			)
+	return line_items
+
+
+def _build_billing_address_from_quotation(quotation_doc) -> dict[str, Any] | None:  # noqa: ANN001
+	"""Best-effort mapping of Quotation → Wallee billing address dict."""
+	if not (quotation_doc.contact_email or quotation_doc.customer_address):
+		return None
+
+	addr: dict[str, Any] = {"email_address": quotation_doc.contact_email or None}
+
+	if quotation_doc.contact_display:
+		parts = quotation_doc.contact_display.strip().split(" ", 1)
+		addr["given_name"] = parts[0] if parts else ""
+		addr["family_name"] = parts[1] if len(parts) > 1 else ""
+
+	if quotation_doc.customer_address:
+		try:
+			addr_doc = frappe.get_doc("Address", quotation_doc.customer_address)
+			addr["street"] = addr_doc.address_line1
+			addr["city"] = addr_doc.city
+			addr["postcode"] = addr_doc.pincode
+			if addr_doc.country:
+				country_code = frappe.db.get_value("Country", addr_doc.country, "code")
+				addr["country"] = (country_code or "").upper()
+		except frappe.DoesNotExistError:
+			pass
+
+	return addr
+
+
+@frappe.whitelist(allow_guest=True)
+def create_web_transaction(
+	payment_request_id: str,
+	mode: str = "Redirect",
+	line_items: list[dict[str, Any]] | str | None = None,
+	billing_address: dict[str, Any] | str | None = None,
+	success_url: str | None = None,
+	failed_url: str | None = None,
+	provider: str | None = None,
+) -> dict[str, Any]:
+	"""Create a Wallee web transaction and return the URL appropriate for ``mode``.
+
+	Webshop pivot endpoint. Wraps :func:`payments.api.intent.create_intent` and
+	enriches the response with Lightbox / iFrame URLs when needed.
+
+	Args:
+	  payment_request_id: name of the Frappe Payment Request created by
+	    ``webshop.controllers.payment_handler.create_payment_request``.
+	  mode: ``Redirect`` | ``Lightbox`` | ``iFrame``.
+	  line_items: optional override. If omitted, built from the quotation
+	    referenced by the Payment Request.
+	  billing_address: optional override. If omitted, built from the quotation.
+	  success_url / failed_url: optional overrides for the Wallee return URLs.
+	    Defaults derived from the Payment Request id so ``/wallee/success`` can
+	    resolve the right Payment Intent.
+	  provider: optional Wallee provider name; first enabled is used otherwise.
+	"""
+	import json as _json
+
+	from payments.api.intent import create_intent
+
+	# Accept JSON strings (Frappe HTTP layer may pass them as strings).
+	if isinstance(line_items, str):
+		line_items = _json.loads(line_items) if line_items else None
+	if isinstance(billing_address, str):
+		billing_address = _json.loads(billing_address) if billing_address else None
+
+	mode = (mode or "Redirect").strip()
+	if mode not in ("Redirect", "Lightbox", "iFrame"):
+		frappe.throw(_("Invalid Wallee mode: {0}").format(mode))
+
+	pr = frappe.get_doc("Payment Request", payment_request_id)
+	if pr.payment_request_type != "Inward":
+		frappe.throw(_("Payment Request {0} is not Inward").format(payment_request_id))
+
+	# Auto-build line_items / billing_address from the Quotation when not provided.
+	if not line_items and pr.reference_doctype == "Quotation":
+		try:
+			quotation = frappe.get_doc("Quotation", pr.reference_name)
+			line_items = _build_line_items_from_quotation(quotation)
+			if not billing_address:
+				billing_address = _build_billing_address_from_quotation(quotation)
+		except frappe.DoesNotExistError:
+			pass
+
+	provider_name = _resolve_wallee_provider_name(provider)
+
+	# Default callback URLs include the PR id so ``/wallee/success`` can
+	# resolve the Payment Intent by reference (legacy compat path).
+	base_url = frappe.utils.get_url()
+	if not success_url:
+		success_url = f"{base_url}/wallee/success?payment_request={payment_request_id}"
+	if not failed_url:
+		failed_url = f"{base_url}/wallee/failed?payment_request={payment_request_id}"
+
+	metadata = {
+		"line_items": line_items,
+		"billing_address": billing_address,
+		"success_url": success_url,
+		"failed_url": failed_url,
+		"description": f"Webshop {payment_request_id}",
+	}
+
+	# Frappe stores Payment Request amount in major units; the Intent FSM
+	# expects minor units (cents) like Stripe/Wallee SDKs.
+	amount_minor = int(round((pr.grand_total or 0) * 100))
+
+	intent = create_intent(
+		provider=provider_name,
+		channel="wallee_web",
+		amount=amount_minor,
+		currency=pr.currency,
+		reference_doctype="Payment Request",
+		reference_name=payment_request_id,
+		metadata=metadata,
+	)
+
+	if intent.get("status") in ("failed", "canceled"):
+		return {
+			"status": "error",
+			"message": intent.get("error_message") or _("Wallee transaction creation failed"),
+			"payment_request_id": payment_request_id,
+		}
+
+	transaction_id = intent.get("provider_intent_id")
+	next_action_payload = intent.get("next_action_payload") or {}
+	payment_url = next_action_payload.get("url")  # Redirect mode URL from driver
+
+	# Persist payment_url on the Payment Request for legacy callers that
+	# read PR.payment_url (Frappe convention).
+	try:
+		pr.db_set("payment_url", payment_url, update_modified=False)
+	except Exception:  # noqa: BLE001 — non-fatal, just cosmetic
+		pass
+
+	result: dict[str, Any] = {
+		"status": "success",
+		"payment_mode": mode,
+		"payment_request_id": payment_request_id,
+		"payment_intent": intent.get("intent_name"),
+		"transaction_id": transaction_id,
+	}
+
+	if mode == "Redirect":
+		result["payment_url"] = payment_url
+	elif mode == "Lightbox":
+		result["javascript_url"] = get_lightbox_javascript_url(transaction_id, provider=provider_name)
+	elif mode == "iFrame":
+		result["javascript_url"] = get_iframe_javascript_url(transaction_id, provider=provider_name)
+		methods = get_payment_method_configurations(
+			transaction_id, integration_mode="IFRAME", provider=provider_name
+		)
+		if methods:
+			result["payment_method_id"] = methods[0]["id"]
+			result["payment_methods"] = methods
+
+	return result
+
+
+@frappe.whitelist(allow_guest=True)
+def get_lightbox_javascript_url(transaction_id: int | str, provider: str | None = None) -> str:
+	"""Fetch the Wallee Lightbox JS URL for a created transaction."""
+	from wallee import TransactionsService
+
+	prov = _provider(_resolve_wallee_provider_name(provider))
+	service = TransactionsService(prov.build_configuration())
+	# SDK signature: (transaction_id, space_id)
+	return str(service.get_payment_transactions_id_lightbox_javascript_url(int(transaction_id), prov.space_id))
+
+
+@frappe.whitelist(allow_guest=True)
+def get_iframe_javascript_url(transaction_id: int | str, provider: str | None = None) -> str:
+	"""Fetch the Wallee iFrame JS URL for a created transaction."""
+	from wallee import TransactionsService
+
+	prov = _provider(_resolve_wallee_provider_name(provider))
+	service = TransactionsService(prov.build_configuration())
+	return str(service.get_payment_transactions_id_iframe_javascript_url(int(transaction_id), prov.space_id))
+
+
+@frappe.whitelist(allow_guest=True)
+def get_payment_method_configurations(
+	transaction_id: int | str,
+	integration_mode: str = "IFRAME",
+	provider: str | None = None,
+) -> list[dict[str, Any]]:
+	"""Return available payment method configurations for a transaction.
+
+	``integration_mode`` is one of ``IFRAME``, ``LIGHTBOX``, ``PAYMENT_PAGE``.
+	Used by the iFrame flow to pick which payment method tab to display.
+	"""
+	from wallee import TransactionsService
+
+	prov = _provider(_resolve_wallee_provider_name(provider))
+	service = TransactionsService(prov.build_configuration())
+
+	response = service.get_payment_transactions_id_payment_method_configurations(
+		int(transaction_id), integration_mode, prov.space_id
+	)
+
+	# Response can be a list, a paginated object with .data, or .items.
+	data_list = response
+	if hasattr(response, "data") and response.data is not None:
+		data_list = response.data
+	elif hasattr(response, "items") and response.items is not None:
+		data_list = response.items
+
+	methods: list[dict[str, Any]] = []
+	for m in data_list or []:
+		methods.append(
+			{
+				"id": getattr(m, "id", None),
+				"name": getattr(m, "name", None),
+				"resolved_title": getattr(m, "resolved_title", None),
+				"resolved_description": getattr(m, "resolved_description", None),
+				"image_url": getattr(m, "resolved_image_url", None),
+			}
+		)
+	return methods
 
 
 @frappe.whitelist()
