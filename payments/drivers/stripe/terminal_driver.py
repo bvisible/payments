@@ -298,7 +298,19 @@ class StripeTerminalDriver(PaymentDriverBase):
 		)
 
 	def handle_webhook(self, payload: bytes, headers: dict[str, str]) -> WebhookResult:
-		"""Verify the Stripe signature and map the event to an FSM transition."""
+		"""Verify the Stripe signature and map the event to an FSM transition.
+
+		Two invocation modes:
+		- **Live webhook** (called from ``handle()`` with real HTTP headers):
+		  verify the Stripe-Signature header against the webhook_secret.
+		- **Trusted replay** (called from ``process_event()`` worker with
+		  empty headers): the signature was already validated at insertion
+		  time, so we skip the check and just JSON-parse the payload.
+
+		The signature_valid flag in the returned WebhookResult is True in both
+		modes — the worker can't distinguish a re-parse from a fresh call, and
+		shouldn't have to.
+		"""
 		# Stripe-Signature header. We accept any case for the header dict (Werkzeug
 		# vs lower-case sources).
 		signature = (
@@ -306,34 +318,48 @@ class StripeTerminalDriver(PaymentDriverBase):
 			or headers.get("stripe-signature")
 			or headers.get("STRIPE_SIGNATURE")
 		)
-		webhook_secret = self._resolve_webhook_secret()
-		if not webhook_secret:
-			return WebhookResult(
-				event_id="unknown",
-				event_type="unknown",
-				signature_valid=False,
-				error_code="no_webhook_secret",
-				error_message="Stripe webhook_secret not configured on this Provider",
-			)
 
-		try:
-			event = self._stripe.Webhook.construct_event(payload, signature, webhook_secret)
-		except self._stripe.error.SignatureVerificationError as exc:
-			return WebhookResult(
-				event_id="unknown",
-				event_type="unknown",
-				signature_valid=False,
-				error_code="invalid_signature",
-				error_message=str(exc),
-			)
-		except (ValueError, TypeError) as exc:
-			return WebhookResult(
-				event_id="unknown",
-				event_type="unknown",
-				signature_valid=False,
-				error_code="invalid_payload",
-				error_message=str(exc),
-			)
+		if signature:
+			# Live mode — verify signature against webhook_secret.
+			webhook_secret = self._resolve_webhook_secret()
+			if not webhook_secret:
+				return WebhookResult(
+					event_id="unknown",
+					event_type="unknown",
+					signature_valid=False,
+					error_code="no_webhook_secret",
+					error_message="Stripe webhook_secret not configured on this Provider",
+				)
+			try:
+				event = self._stripe.Webhook.construct_event(payload, signature, webhook_secret)
+			except self._stripe.error.SignatureVerificationError as exc:
+				return WebhookResult(
+					event_id="unknown",
+					event_type="unknown",
+					signature_valid=False,
+					error_code="invalid_signature",
+					error_message=str(exc),
+				)
+			except (ValueError, TypeError) as exc:
+				return WebhookResult(
+					event_id="unknown",
+					event_type="unknown",
+					signature_valid=False,
+					error_code="invalid_payload",
+					error_message=str(exc),
+				)
+		else:
+			# Trusted replay mode (worker re-processes a verified row).
+			try:
+				event = json.loads(payload.decode("utf-8"))
+			except (ValueError, UnicodeDecodeError) as exc:
+				return WebhookResult(
+					event_id="unknown",
+					event_type="unknown",
+					signature_valid=False,
+					error_code="invalid_payload",
+					error_message=str(exc),
+				)
 
 		event_id = event["id"]
 		event_type = event["type"]
