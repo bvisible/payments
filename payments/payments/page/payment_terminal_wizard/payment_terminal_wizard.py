@@ -51,7 +51,7 @@ def list_terminal_providers() -> list[dict[str, Any]]:
 		if "stripe" in dc and "terminal" in dc:
 			kind = "stripe"
 		elif "wallee" in dc and ("terminal" in dc or "web" in dc):
-			# Wallee providers serve both `terminal` and `wallee.web` from the
+			# Wallee providers serve both `terminal` and `wallee_web` from the
 			# same Payment Provider record (one Wallee Settings backs both).
 			kind = "wallee"
 		elif "terminal" in dc:

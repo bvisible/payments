@@ -49,7 +49,7 @@ from payments.drivers.wallee.terminal_driver import (
 
 
 class WalleeWebChannel(PaymentChannelBase):
-	code = "wallee.web"
+	code = "wallee_web"
 	capabilities = {
 		"supports_refund": True,
 		"supports_partial_refund": True,
@@ -63,7 +63,7 @@ class WalleeWebChannel(PaymentChannelBase):
 class WalleeWebDriver(PaymentDriverBase):
 	"""Wallee hosted payment page driver (redirect/iframe/lightbox)."""
 
-	code = "wallee.web"
+	code = "wallee_web"
 
 	@classmethod
 	def from_docs(cls, provider_doc, channel_doc, binding_doc):  # noqa: ANN001

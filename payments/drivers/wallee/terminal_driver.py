@@ -537,7 +537,7 @@ def poll_pending_transactions() -> dict[str, Any]:
 	if not wallee_providers:
 		return stats
 
-	# Poll both wallee.terminal and wallee.web — both back the same Wallee
+	# Poll both wallee.terminal and wallee_web — both back the same Wallee
 	# transaction state machine, the only difference is which dialog/redirect
 	# spawned the intent.
 	intents = frappe.get_all(
@@ -545,7 +545,7 @@ def poll_pending_transactions() -> dict[str, Any]:
 		filters={
 			"status": ["in", ("requires_action", "processing")],
 			"provider": ["in", wallee_providers],
-			"channel": ["in", ("terminal", "wallee.web")],
+			"channel": ["in", ("terminal", "wallee_web")],
 		},
 		fields=["name", "provider", "channel", "provider_intent_id"],
 		limit=200,
