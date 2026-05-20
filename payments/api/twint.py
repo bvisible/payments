@@ -195,6 +195,66 @@ _FAST_POLL_DELAYS: list[int] = (
 )
 
 
+# ---------------------------------------------------------------------------
+# DEV-ONLY E2E SIMULATOR
+# ---------------------------------------------------------------------------
+#
+# Gated by ``frappe.conf.enable_e2e_simulators=True``. Returns 403 in prod.
+#
+# Used by the Webshop E2E runbook (Neoffice/Webshop/Runbooks/E2E-Twint-Only.md)
+# to validate the full chain — SocketIO push → Sales Order finalize →
+# /thank_you redirect — without needing a real TWINT app to scan the QR.
+#
+# Safe to leave in production code because:
+#   (a) the gating flag is opt-in per-site via site_config
+#   (b) the endpoint is whitelisted but requires an authenticated user
+#   (c) calling it on a real PI just shortcuts what the poll would do anyway
+@frappe.whitelist()
+def simulate_consumer_success(intent_name: str) -> dict[str, Any]:
+	"""DEV-ONLY — transition a TWINT Payment Intent to succeeded.
+
+	Idempotent: re-running re-finalises + re-pushes the SocketIO event so
+	callers can replay the event during JS debugging.
+
+	Raises ``frappe.PermissionError`` (HTTP 403) when
+	``frappe.conf.enable_e2e_simulators`` is not truthy.
+	"""
+	if not frappe.conf.get("enable_e2e_simulators"):
+		frappe.throw(_("E2E simulators not enabled on this site"), frappe.PermissionError)
+
+	doc = frappe.get_doc("Payment Intent", intent_name)
+
+	if doc.status != "succeeded":
+		moved = doc.transition_to(
+			"succeeded",
+			event_source="manual",
+			payload_excerpt="E2E simulate_consumer_success (dev-only)",
+			ignore_invalid=True,
+		)
+		if not moved:
+			return {"ok": False, "error": f"could not transition to succeeded from {doc.status}"}
+		doc.reload()
+
+	# Always re-run finalize + publish so re-invoking re-pushes the SocketIO event.
+	extra: dict[str, Any] = {}
+	finalize = _finalize_webshop_sales_order(doc)
+	if finalize and finalize.get("status") == "success":
+		extra["redirect_to"] = finalize.get("redirect_to")
+	elif doc.reference_doctype == "Payment Request" and doc.reference_name:
+		pr_ref = frappe.db.get_value(
+			"Payment Request",
+			doc.reference_name,
+			["reference_doctype", "reference_name"],
+			as_dict=True,
+		)
+		if pr_ref and pr_ref.reference_doctype == "Sales Order":
+			extra["redirect_to"] = f"/thank_you?sales_order={pr_ref.reference_name}"
+
+	_publish_intent_update(doc, doc.channel, "succeeded", extra)
+	frappe.db.commit()
+	return {"ok": True, "intent_name": doc.name, "status": "succeeded", **extra}
+
+
 def fast_poll_intent(intent_name: str) -> dict[str, Any]:
 	"""Tight poll loop for one ``twint_web`` intent (enqueued at creation).
 
