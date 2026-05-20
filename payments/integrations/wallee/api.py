@@ -371,12 +371,19 @@ def _build_line_items_from_quotation(quotation_doc) -> list[dict[str, Any]]:  # 
 	can pass percentage-tax info via ``metadata['line_items'][i].taxes`` if
 	needed (Wallee accepts items without explicit tax breakdown).
 	"""
+	# Wallee requires each line item's ``unique_id`` to be distinct WITHIN the
+	# transaction. We assign an explicit indexed unique_id so two products
+	# with the same SKU — or two ``Actual`` charges — never collide
+	# (collision → Wallee HTTP 422 "The unique id ... is already used").
 	line_items: list[dict[str, Any]] = []
+	idx = 0
 	for item in quotation_doc.items or []:
+		idx += 1
 		line_items.append(
 			{
 				"name": item.item_name or item.item_code,
 				"sku": item.item_code,
+				"unique_id": f"li-{idx}-{item.item_code}",
 				"quantity": float(item.qty or 1),
 				"amount_including_tax": float(item.amount or 0),
 				"type": "PRODUCT",
@@ -386,6 +393,7 @@ def _build_line_items_from_quotation(quotation_doc) -> list[dict[str, Any]]:  # 
 	# their own line items so the totals match Wallee's expectation.
 	for tax_row in (quotation_doc.taxes or []):
 		if tax_row.charge_type == "Actual" and (tax_row.tax_amount or 0) > 0:
+			idx += 1
 			desc_lower = (tax_row.description or "").lower()
 			is_shipping = any(
 				kw in desc_lower for kw in ("ship", "post", "livraison", "envoi", "frais de port")
@@ -393,6 +401,7 @@ def _build_line_items_from_quotation(quotation_doc) -> list[dict[str, Any]]:  # 
 			line_items.append(
 				{
 					"name": tax_row.description or "Fee",
+					"unique_id": f"li-{idx}-charge",
 					"quantity": 1,
 					"amount_including_tax": float(tax_row.tax_amount),
 					"type": "SHIPPING" if is_shipping else "FEE",

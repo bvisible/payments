@@ -70,14 +70,29 @@ class FrappeAPI:
 		self.session.headers.update({"Authorization": f"token {key}:{secret}"})
 
 	def call(self, method: str, **kwargs: Any) -> Any:
-		"""Call a whitelisted method via POST. Returns the ``message`` payload."""
+		"""Call a whitelisted method via POST. Returns the ``message`` payload.
+
+		Retries on timeout / 5xx — osiris is shared and can lag under load.
+		"""
 		url = f"{self.base_url}/api/method/{method}"
-		resp = self.session.post(url, data=kwargs, timeout=60)
-		if not resp.ok:
-			raise RuntimeError(f"{method} HTTP {resp.status_code}: {resp.text[:500]}")
-		body = resp.json()
-		# Frappe whitelisted methods wrap return in "message"
-		return body.get("message", body)
+		last_err: Exception | None = None
+		for attempt in range(3):
+			try:
+				resp = self.session.post(url, data=kwargs, timeout=120)
+				if resp.status_code >= 500:
+					last_err = RuntimeError(f"{method} HTTP {resp.status_code}")
+					import time
+					time.sleep(3)
+					continue
+				if not resp.ok:
+					raise RuntimeError(f"{method} HTTP {resp.status_code}: {resp.text[:500]}")
+				body = resp.json()
+				return body.get("message", body)
+			except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
+				last_err = exc
+				import time
+				time.sleep(3)
+		raise RuntimeError(f"{method} failed after 3 attempts: {last_err}")
 
 
 # ---------------------------------------------------------------------------
@@ -138,16 +153,28 @@ def logged_in_page(page: Page, site_config: dict, base_url: str) -> Page:
 	password = site_config["e2e_test_user_password"]
 
 	# Frappe login via the JSON API — sets sid cookie on the browser context.
-	page.context.request.post(
-		f"{base_url}/api/method/login",
-		form={"usr": email, "pwd": password},
-	)
-
-	# Sanity-check session via the same context's request client.
-	resp = page.context.request.get(f"{base_url}/api/method/frappe.auth.get_logged_user")
-	assert resp.ok, f"get_logged_user not ok: {resp.status} {resp.text()[:200]}"
-	data = resp.json()
-	assert data.get("message") == email, f"logged user mismatch: {data}"
+	# Retry a couple of times: osiris can be slow under test load.
+	last_err = None
+	for attempt in range(3):
+		try:
+			page.context.request.post(
+				f"{base_url}/api/method/login",
+				form={"usr": email, "pwd": password},
+				timeout=60_000,
+			)
+			resp = page.context.request.get(
+				f"{base_url}/api/method/frappe.auth.get_logged_user",
+				timeout=60_000,
+			)
+			assert resp.ok, f"get_logged_user not ok: {resp.status} {resp.text()[:200]}"
+			data = resp.json()
+			assert data.get("message") == email, f"logged user mismatch: {data}"
+			break
+		except Exception as exc:  # noqa: BLE001
+			last_err = exc
+			if attempt == 2:
+				raise
+			page.wait_for_timeout(3_000)
 
 	# Navigate to /cart (lightweight) so subsequent locators have a real page.
 	# Avoid the homepage — heavy theme assets push DOMContentLoaded past 30s.
@@ -171,5 +198,13 @@ def assert_payment_complete(backend: FrappeAPI, payment_intent: str) -> dict[str
 def list_recent_test_intents(backend: FrappeAPI, minutes: int = 30) -> list[dict[str, Any]]:
 	return backend.call(
 		"payments.tests.e2e.assertions.list_recent_test_intents",
+		minutes=minutes,
+	)
+
+
+def assert_recent_sales_order(backend: FrappeAPI, minutes: int = 10) -> dict[str, Any]:
+	"""PSP-agnostic assertion : a submitted Sales Order exists for the test customer."""
+	return backend.call(
+		"payments.tests.e2e.assertions.assert_recent_sales_order",
 		minutes=minutes,
 	)

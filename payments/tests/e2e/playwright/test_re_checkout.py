@@ -21,7 +21,7 @@ def test_back_mid_checkout_then_retry(logged_in_page, paying_item, base_url, bac
 	# Add + go to checkout
 	add_to_cart(page, base_url, paying_item["route"])
 	open_cart(page, base_url)
-	proceed_to_checkout(page)
+	proceed_to_checkout(page, base_url)
 
 	complete_information_step(page)
 	complete_shipping_step(page)

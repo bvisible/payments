@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 import pytest
 from playwright.sync_api import expect
 
@@ -14,7 +16,6 @@ from helpers import (
 	complete_shipping_step,
 	select_payment_method,
 	click_pay,
-	capture_twint_intent,
 	trigger_twint_simulate,
 )
 
@@ -29,29 +30,40 @@ def test_checkout_twint_with_simulate(logged_in_page, paying_item, base_url, bac
 	# Cart
 	add_to_cart(page, base_url, paying_item["route"])
 	open_cart(page, base_url)
-	proceed_to_checkout(page)
+	proceed_to_checkout(page, base_url)
 
 	# 4-step
 	complete_information_step(page)
 	complete_shipping_step(page)
-
-	# Install the JS hook BEFORE clicking pay so we can capture intent_name.
-	capture_twint_intent(page)
-
 	select_payment_method(page, "twint")
 	click_pay(page)
 
-	# Wait for the TWINT overlay to render with a captured intent.
-	page.wait_for_function("window.__intent !== null", timeout=15_000)
-	intent_name = page.evaluate("window.__intent")
-	assert intent_name and intent_name.startswith("PI-"), f"intent_name not captured: {intent_name}"
+	# Wait for the TWINT overlay to render (QR + pairing token).
+	overlay = page.locator(".twint-dialog, .twint-modal-dialog")
+	overlay.first.wait_for(state="visible", timeout=25_000)
+
+	# Visual assert : QR + pairing token present.
+	expect(page.locator(".qr-code svg, .qr-code img").first).to_be_visible(timeout=10_000)
+	expect(page.locator(".pairing-token")).not_to_be_empty()
+
+	# Recover the Payment Intent from the backend (most recent twint_web PI for
+	# the test customer). More robust than hooking frappe.call client-side.
+	intent_name = None
+	for _ in range(10):
+		intents = list_recent_test_intents(backend, minutes=5)
+		twint = [i for i in intents if i.get("channel") == "twint_web"]
+		if twint:
+			intent_name = twint[0]["name"]
+			break
+		time.sleep(1)
+	assert intent_name and intent_name.startswith("PI-"), f"No twint_web PI found: {intents if 'intents' in dir() else '?'}"
 
 	# Simulate the consumer success via server API.
-	res = trigger_twint_simulate(page, intent_name)
+	res = trigger_twint_simulate(page, base_url, intent_name)
 	assert res.get("ok"), f"simulate failed: {res}"
 
 	# JS receives SocketIO event → redirects /thank_you.
-	page.wait_for_url("**/thank_you**", timeout=15_000)
+	page.wait_for_url("**/thank_you**", timeout=20_000)
 
 	# Backend assert
 	page.wait_for_timeout(2_000)

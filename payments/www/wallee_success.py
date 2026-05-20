@@ -53,8 +53,15 @@ def _find_intent_name(form_dict) -> str | None:
 	return None
 
 
-def _refresh_status(intent_doc, max_retries: int = 5, retry_delay: int = 2) -> None:
-	"""Poll the Wallee transaction state until terminal or retries exhausted."""
+def _refresh_status(intent_doc, max_retries: int = 9, retry_delay: int = 3) -> None:
+	"""Poll the Wallee transaction state until terminal or retries exhausted.
+
+	~27s window (9 × 3s) — Wallee can take 10-20s to move a freshly-paid
+	transaction from PROCESSING to FULFILL, especially under load. The page
+	also auto-refreshes every 3s while pending (see wallee_success.html), so a
+	transaction that settles after this window is still caught on the next
+	page load.
+	"""
 	from payments.drivers.registry import resolve_driver
 	from payments.drivers.wallee.terminal_driver import _state_value, _TX_STATE_TO_STATUS
 

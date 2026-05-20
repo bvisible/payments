@@ -56,6 +56,53 @@ def assert_payment_complete(payment_intent: str) -> dict[str, Any]:
 
 
 @frappe.whitelist()
+def assert_recent_sales_order(minutes: int = 10) -> dict[str, Any]:
+	"""Return the most recent submitted Sales Order for the test customer.
+
+	Works for ALL PSPs — Stripe webshop goes through the upstream
+	``stripe_checkout.make_payment`` which does NOT create a unified Payment
+	Intent, so an SO-based assertion is the common denominator.
+
+	Returns ``{ok, sales_order, so_status, grand_total, payment_request,
+	pr_status}``.
+	"""
+	customer = frappe.conf.get("e2e_test_customer") or "Test E2E Webshop"
+	cutoff = frappe.utils.add_to_date(None, minutes=-int(minutes))
+
+	rows = frappe.get_all(
+		"Sales Order",
+		filters={"customer": customer, "creation": [">", cutoff]},
+		fields=["name", "status", "docstatus", "grand_total"],
+		order_by="creation desc",
+		limit=1,
+	)
+	if not rows:
+		return {"ok": False, "error": f"No Sales Order for {customer} in last {minutes} min"}
+
+	so = rows[0]
+	out: dict[str, Any] = {
+		"sales_order": so["name"],
+		"so_status": so["status"],
+		"so_docstatus": so["docstatus"],
+		"grand_total": so["grand_total"],
+	}
+	# Find the linked Payment Request (if any).
+	pr = frappe.db.get_value(
+		"Payment Request",
+		{"reference_doctype": "Sales Order", "reference_name": so["name"]},
+		["name", "status", "docstatus"],
+		as_dict=True,
+	)
+	if pr:
+		out["payment_request"] = pr["name"]
+		out["pr_status"] = pr["status"]
+		out["pr_docstatus"] = pr["docstatus"]
+
+	out["ok"] = so["docstatus"] == 1
+	return out
+
+
+@frappe.whitelist()
 def list_recent_test_intents(minutes: int = 30) -> list[dict[str, Any]]:
 	"""Return Payment Intents created in the last N minutes — for runbook fetch.
 

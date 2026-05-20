@@ -92,10 +92,13 @@ def ensure_test_customer() -> dict[str, Any]:
 			}
 		).insert(ignore_permissions=True)
 
-	# 3. Contact linked to the Customer + User email (so portal sees the cart)
+	# 3. Contact linked to the Customer + User email (so portal sees the cart).
+	# Make sure phone + email are set so the webshop checkout step-address
+	# validation passes without the user having to type anything.
 	contact_name = frappe.db.get_value(
 		"Contact Email", {"email_id": email, "is_primary": 1}, "parent"
 	)
+	phone_number = "+41 21 555 00 01"
 	if not contact_name:
 		contact = frappe.get_doc(
 			{
@@ -103,18 +106,39 @@ def ensure_test_customer() -> dict[str, Any]:
 				"first_name": "Test",
 				"last_name": "E2E",
 				"email_ids": [{"email_id": email, "is_primary": 1}],
+				"phone_nos": [{"phone": phone_number, "is_primary_phone": 1, "is_primary_mobile_no": 1}],
 				"links": [{"link_doctype": "Customer", "link_name": customer_name}],
 			}
 		).insert(ignore_permissions=True)
 		contact_name = contact.name
 	else:
-		# Make sure the Contact links to our Customer (idempotent merge)
-		doc = frappe.get_doc("Contact", contact_name)
-		if not any(
-			lnk.link_doctype == "Customer" and lnk.link_name == customer_name for lnk in doc.links
-		):
-			doc.append("links", {"link_doctype": "Customer", "link_name": customer_name})
-			doc.save(ignore_permissions=True)
+		# Make sure the Contact has Customer link + a phone number.
+		# Only save when something actually changed — and tolerate a
+		# concurrent ensure_test_customer (TimestampMismatch → reload+retry).
+		for _retry in range(3):
+			doc = frappe.get_doc("Contact", contact_name)
+			changed = False
+			if not any(
+				lnk.link_doctype == "Customer" and lnk.link_name == customer_name
+				for lnk in doc.links
+			):
+				doc.append("links", {"link_doctype": "Customer", "link_name": customer_name})
+				changed = True
+			if not doc.phone_nos:
+				doc.append(
+					"phone_nos",
+					{"phone": phone_number, "is_primary_phone": 1, "is_primary_mobile_no": 1},
+				)
+				changed = True
+			if not changed:
+				break
+			try:
+				doc.save(ignore_permissions=True)
+				break
+			except frappe.TimestampMismatchError:
+				if _retry == 2:
+					raise
+				continue
 
 	# 4. Billing+shipping address attached to the Customer
 	addr_title = f"{customer_name}-Billing"
@@ -173,6 +197,17 @@ def reset_test_env() -> dict[str, Any]:
 	customer = _cfg("e2e_test_customer", _DEFAULT_CUSTOMER)
 	stats = {"quotations": 0, "sales_orders": 0, "payment_requests": 0, "payment_intents": 0}
 
+	# 0. Payment Entries first — a submitted Payment Entry linked to a Sales
+	#    Order / Payment Request blocks the cascade below. Cancel + delete.
+	stats["payment_entries"] = 0
+	for pe in frappe.get_all(
+		"Payment Entry",
+		filters={"party_type": "Customer", "party": customer, "docstatus": ["<", 2]},
+		pluck="name",
+	):
+		if _safe_cancel_and_delete("Payment Entry", pe):
+			stats["payment_entries"] += 1
+
 	# 1. Sales Orders attached to the test customer.
 	for so in frappe.get_all(
 		"Sales Order", filters={"customer": customer, "docstatus": ["<", 2]}, pluck="name"
@@ -180,10 +215,10 @@ def reset_test_env() -> dict[str, Any]:
 		if _safe_cancel_and_delete("Sales Order", so):
 			stats["sales_orders"] += 1
 
-	# 2. Payment Requests — keyed by the party link, not always the customer.
+	# 2. Payment Requests — every state (incl. cancelled) so no PI is orphaned.
 	for pr in frappe.get_all(
 		"Payment Request",
-		filters={"party_type": "Customer", "party": customer, "docstatus": ["<", 2]},
+		filters={"party_type": "Customer", "party": customer},
 		pluck="name",
 	):
 		# Delete PIs that reference this PR before we drop the PR.

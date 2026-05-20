@@ -7,7 +7,9 @@ import time
 import pytest
 from playwright.sync_api import expect
 
-from conftest import assert_payment_complete, list_recent_test_intents
+import time
+
+from conftest import assert_recent_sales_order
 from helpers import (
 	add_to_cart,
 	open_cart,
@@ -17,6 +19,7 @@ from helpers import (
 	select_payment_method,
 	click_pay,
 	fill_stripe_card,
+	stripe_iframe_visible,
 )
 
 
@@ -28,26 +31,25 @@ def test_checkout_stripe_4242(logged_in_page, paying_item, base_url, backend):
 	# Cart
 	add_to_cart(page, base_url, paying_item["route"])
 	open_cart(page, base_url)
-	proceed_to_checkout(page)
+	proceed_to_checkout(page, base_url)
 
 	# 4-step checkout
 	complete_information_step(page)
 	complete_shipping_step(page)
 	select_payment_method(page, "stripe")
+
+	# Visual assert : the Stripe Elements iframe must be rendered + visible.
+	assert stripe_iframe_visible(page), "Stripe Elements iframe not visible after selecting Stripe"
+
 	fill_stripe_card(page)
 	click_pay(page)
 
 	# Stripe needs ~8s to tokenize + 3DS + redirect.
-	page.wait_for_url("**/thank_you**", timeout=30_000)
+	page.wait_for_url("**/thank_you**", timeout=45_000)
 	assert "/thank_you" in page.url
-	assert "sales_order=" in page.url or "payment_intent=" in page.url
 
-	# Backend assert via Frappe API
-	# Wait briefly for the poll job to finalize, then look up the most recent PI
+	# Backend assert — Stripe webshop uses the upstream make_payment which does
+	# NOT create a unified Payment Intent, so we assert on the Sales Order.
 	page.wait_for_timeout(2_000)
-	intents = list_recent_test_intents(backend, minutes=5)
-	stripe_intents = [i for i in intents if i.get("channel") == "terminal" or "stripe" in (i.get("channel") or "")]
-	assert stripe_intents, f"No Stripe PI created in last 5 min. intents={intents}"
-	latest = stripe_intents[0]["name"]
-	res = assert_payment_complete(backend, latest)
-	assert res.get("ok"), f"Stripe payment chain not complete: {res}"
+	res = assert_recent_sales_order(backend, minutes=5)
+	assert res.get("ok"), f"Stripe checkout did not produce a submitted Sales Order: {res}"

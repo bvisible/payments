@@ -9,3 +9,6 @@ __pycache__/
 
 # E2E test virtualenv (local, do not commit)
 .venv-e2e/
+
+# E2E dev-only inspection scratch files
+payments/tests/e2e/playwright/_inspect*

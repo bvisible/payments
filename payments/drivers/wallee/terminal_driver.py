@@ -512,6 +512,38 @@ def _state_value(state: Any) -> str | None:
 # ----------------------------------------------------------------------------
 
 
+def _finalize_wallee_web_sales_order(intent_doc) -> None:  # noqa: ANN001
+	"""Create the webshop Sales Order for a succeeded wallee_web Payment Intent.
+
+	Mirror of the TWINT poller's finalize step. The /wallee/success www page
+	is the primary path; this is the fallback for when the buyer closed that
+	tab before the transaction settled. Idempotent — ``handle_payment_success``
+	short-circuits if the Payment Request is already Paid.
+	"""
+	if intent_doc.reference_doctype != "Payment Request" or not intent_doc.reference_name:
+		return
+	try:
+		from webshop.controllers.payment_handler import handle_payment_success
+
+		result = handle_payment_success(payment_request_id=intent_doc.reference_name)
+		extra = {}
+		if result and result.get("status") == "success" and result.get("redirect_to"):
+			extra["redirect_to"] = result["redirect_to"]
+		# Push the new state so any open POS/checkout tab can react.
+		frappe.publish_realtime(
+			event=f"payment.intent.{intent_doc.name}.updated",
+			message={"intent_name": intent_doc.name, "status": "succeeded", "channel": "wallee_web", **extra},
+			after_commit=True,
+		)
+	except ImportError:
+		pass  # webshop app not installed on this site
+	except Exception as exc:  # noqa: BLE001
+		frappe.log_error(
+			"Wallee web poll finalize failed",
+			f"intent={intent_doc.name} pr={intent_doc.reference_name}: {exc!r}",
+		)
+
+
 def poll_pending_transactions() -> dict[str, Any]:
 	"""Scheduler fallback: refresh Wallee transactions still in flight.
 
@@ -556,7 +588,10 @@ def poll_pending_transactions() -> dict[str, Any]:
 			continue
 		try:
 			driver = resolve_driver(row.provider, row.channel)
-			tx_service, _terminals, _refunds = driver._services()  # type: ignore[attr-defined]
+			# WalleeTerminalDriver._services() returns 3 (tx, terminals,
+			# refunds); WalleeWebDriver._services() returns 2 (tx, refunds).
+			# Take the first element either way — only tx_service is needed.
+			tx_service = driver._services()[0]  # type: ignore[attr-defined]
 			tx = tx_service.get_payment_transactions_id(
 				int(row.provider_intent_id), driver._wallee_provider.space_id  # type: ignore[attr-defined]
 			)
@@ -567,17 +602,55 @@ def poll_pending_transactions() -> dict[str, Any]:
 			intent_doc = frappe.get_doc("Payment Intent", row.name)
 			if intent_doc.status == target_status:
 				continue
-			intent_doc.transition_to(
+			moved = intent_doc.transition_to(
 				target_status,
-				event_source="scheduler",
+				event_source="poll",
 				payload_excerpt=f"poll: wallee tx {row.provider_intent_id} state={state_value}",
 				ignore_invalid=True,
 			)
-			stats["transitioned"] += 1
+			if moved:
+				stats["transitioned"] += 1
+			# For webshop (wallee_web) intents, the FSM transition alone does
+			# not create the Sales Order — the /wallee/success page normally
+			# does. When the buyer closed that tab, this scheduler is the only
+			# path left, so finalize the order here too. Idempotent: a second
+			# call when the SO already exists is a no-op.
+			if moved and target_status == "succeeded" and row.channel == "wallee_web":
+				_finalize_wallee_web_sales_order(intent_doc)
 		except Exception as exc:  # noqa: BLE001 — keep the loop alive
 			stats["errors"] += 1
 			frappe.log_error(
 				"Wallee poll_pending_transactions",
 				f"intent={row.name} tx={row.provider_intent_id}: {exc!r}",
 			)
+
+	# Self-heal: a wallee_web intent can be `succeeded` (transitioned by the
+	# /wallee/success page or a webhook) yet still have a Draft Payment
+	# Request — finalize failed or the buyer's tab closed mid-finalize.
+	# Recover those so the Sales Order always gets created.
+	orphans = frappe.get_all(
+		"Payment Intent",
+		filters={
+			"status": "succeeded",
+			"provider": ["in", wallee_providers],
+			"channel": "wallee_web",
+			"reference_doctype": "Payment Request",
+		},
+		fields=["name", "reference_name"],
+		limit=100,
+	)
+	for o in orphans:
+		if not o.reference_name:
+			continue
+		pr_state = frappe.db.get_value(
+			"Payment Request", o.reference_name, ["status", "docstatus"], as_dict=True
+		)
+		if pr_state and pr_state.docstatus == 0 and pr_state.status != "Paid":
+			try:
+				_finalize_wallee_web_sales_order(frappe.get_doc("Payment Intent", o.name))
+				stats["transitioned"] += 1
+			except Exception as exc:  # noqa: BLE001
+				stats["errors"] += 1
+				frappe.log_error("Wallee web orphan finalize", f"intent={o.name}: {exc!r}")
+
 	return stats
