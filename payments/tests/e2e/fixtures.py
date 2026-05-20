@@ -227,6 +227,22 @@ def reset_test_env() -> dict[str, Any]:
 
 
 @frappe.whitelist()
+def get_e2e_site_config() -> dict[str, Any]:
+	"""Expose the E2E site_config keys via HTTPS API.
+
+	Used by the Playwright suite to retrieve the test customer / user / password
+	without an SSH session. Returns ONLY the 4 e2e keys — no sensitive secrets
+	leak via this endpoint.
+	"""
+	return {
+		"e2e_test_customer": _cfg("e2e_test_customer", _DEFAULT_CUSTOMER),
+		"e2e_test_user_email": _cfg("e2e_test_user_email", _DEFAULT_EMAIL),
+		"e2e_test_user_password": frappe.conf.get("e2e_test_user_password"),
+		"enable_e2e_simulators": bool(frappe.conf.get("enable_e2e_simulators")),
+	}
+
+
+@frappe.whitelist()
 def get_test_item_for_checkout() -> dict[str, Any]:
 	"""Pick a published Website Item with a positive price for the cart test.
 

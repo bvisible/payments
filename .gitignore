@@ -6,3 +6,6 @@ tags
 payments/docs/current
 node_modules/
 __pycache__/
+
+# E2E test virtualenv (local, do not commit)
+.venv-e2e/
