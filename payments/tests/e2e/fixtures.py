@@ -278,6 +278,126 @@ def get_e2e_site_config() -> dict[str, Any]:
 
 
 @frappe.whitelist()
+def get_loyalty_balance() -> dict[str, Any]:
+	"""Return the test customer's loyalty program + redeemable point balance.
+
+	The webshop rounds the redeemable amount DOWN to the nearest 10 (see
+	webshop/templates/pages/checkout.py). Returns ``{loyalty_program,
+	available_points, redeemable_points, conversion_factor}``. If the customer
+	has no program / no points, ``available_points`` is 0 and the loyalty
+	test should skip.
+	"""
+	import math
+
+	customer = _cfg("e2e_test_customer", _DEFAULT_CUSTOMER)
+	program = frappe.db.get_value("Customer", customer, "loyalty_program")
+	if not program:
+		return {"loyalty_program": None, "available_points": 0, "redeemable_points": 0}
+
+	# The webshop checkout calls apply_loyalty_points with the quotation's
+	# company; ERPNext filters Loyalty Point Entries by company, so a customer
+	# can have a non-zero global balance but zero in the webshop's company.
+	# Resolve the company the webshop will use: Webshop Settings → system default.
+	company = frappe.db.get_single_value("Webshop Settings", "company")
+	if not company:
+		company = frappe.defaults.get_global_default("company")
+
+	from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
+		get_loyalty_program_details_with_points,
+	)
+
+	try:
+		details = get_loyalty_program_details_with_points(
+			customer, loyalty_program=program, company=company, silent=True
+		)
+		available = int(details.get("loyalty_points") or 0)
+	except Exception:
+		# Fallback: sum the Loyalty Point Entry rows directly (same company filter).
+		filters = {"customer": customer, "loyalty_program": program}
+		if company:
+			filters["company"] = company
+		rows = frappe.get_all(
+			"Loyalty Point Entry",
+			filters=filters,
+			fields=["loyalty_points"],
+		)
+		available = sum(int(r["loyalty_points"] or 0) for r in rows)
+
+	conversion = frappe.db.get_value("Loyalty Program", program, "conversion_factor") or 0
+	return {
+		"loyalty_program": program,
+		"company": company,
+		"available_points": available,
+		"redeemable_points": math.floor(available / 10) * 10,
+		"conversion_factor": float(conversion),
+	}
+
+
+@frappe.whitelist()
+def ensure_loyalty_points(min_points: int = 50) -> dict[str, Any]:
+	"""Make sure the test customer has at least ``min_points`` redeemable in
+	the webshop's company. Inserts a single positive Loyalty Point Entry if
+	needed — idempotent: re-running while the balance is already healthy is
+	a no-op.
+
+	Loyalty Point Entries are normally created from Sales Invoices via the
+	Loyalty Program collection rules. For E2E we top up directly so the test
+	does not depend on a prior purchase flow.
+	"""
+	from frappe.utils import add_days, today
+
+	min_points = int(min_points)
+	customer = _cfg("e2e_test_customer", _DEFAULT_CUSTOMER)
+	program = frappe.db.get_value("Customer", customer, "loyalty_program")
+	if not program:
+		frappe.throw(f"Customer {customer} has no Loyalty Program assigned")
+
+	company = frappe.db.get_single_value("Webshop Settings", "company")
+	if not company:
+		company = frappe.defaults.get_global_default("company")
+	if not company:
+		frappe.throw("No company resolvable for the webshop")
+
+	balance = get_loyalty_balance()
+	if balance.get("available_points", 0) >= min_points:
+		return {"action": "noop", "balance": balance}
+
+	tier = frappe.db.get_value("Customer", customer, "loyalty_program_tier")
+	if not tier:
+		tiers = frappe.get_all(
+			"Loyalty Program Collection",
+			filters={"parent": program},
+			fields=["tier_name"],
+			limit=1,
+		)
+		tier = tiers[0]["tier_name"] if tiers else None
+
+	expiry_days = frappe.db.get_value("Loyalty Program", program, "expiry_duration") or 365
+
+	entry = frappe.get_doc(
+		{
+			"doctype": "Loyalty Point Entry",
+			"loyalty_program": program,
+			"loyalty_program_tier": tier,
+			"customer": customer,
+			"company": company,
+			"loyalty_points": int(min_points),
+			"purchase_amount": 0,
+			"posting_date": today(),
+			"expiry_date": add_days(today(), int(expiry_days)),
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {
+		"action": "topped_up",
+		"entry": entry.name,
+		"added_points": int(min_points),
+		"balance": get_loyalty_balance(),
+	}
+
+
+@frappe.whitelist()
 def get_test_item_for_checkout() -> dict[str, Any]:
 	"""Pick a published Website Item with a positive price for the cart test.
 
