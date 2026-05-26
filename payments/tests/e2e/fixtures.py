@@ -403,6 +403,13 @@ def get_test_item_for_checkout() -> dict[str, Any]:
 
 	Returns ``{item_code, route, price}`` so the runbook can navigate directly
 	to the product page.
+
+	Deterministic + addable: we require the item to actually have an
+	"Add to cart" button, i.e. either a non-stock item (always purchasable) or
+	a stock item with positive on-hand quantity. Ordered by ``is_stock_item``
+	then name so the result is stable across runs (the previous ``modified
+	DESC`` ordering drifted to whatever item price was last edited — which
+	could be an out-of-stock product with no add-to-cart button).
 	"""
 	row = frappe.db.sql(
 		"""
@@ -412,20 +419,343 @@ def get_test_item_for_checkout() -> dict[str, Any]:
 		FROM `tabItem` i
 		JOIN `tabItem Price` ip ON ip.item_code = i.name
 		JOIN `tabWebsite Item` wi ON wi.item_code = i.name
+		LEFT JOIN (
+			SELECT item_code, SUM(actual_qty) AS qty
+			FROM `tabBin` GROUP BY item_code
+		) b ON b.item_code = i.name
 		WHERE ip.price_list_rate > 0
 		  AND i.has_variants = 0
+		  AND (i.variant_of IS NULL OR i.variant_of = '')
 		  AND i.disabled = 0
 		  AND wi.published = 1
-		ORDER BY ip.modified DESC
+		  AND (i.is_stock_item = 0 OR COALESCE(b.qty, 0) > 0)
+		ORDER BY i.is_stock_item ASC, i.name ASC
 		LIMIT 1
 		""",
 		as_dict=True,
 	)
 	if not row:
-		frappe.throw(_("No published Website Item with positive price found on this site"))
+		frappe.throw(_("No published, addable Website Item with positive price found on this site"))
 	r = row[0]
 	return {
 		"item_code": r["item_code"],
 		"route": r.get("route") or f"products/{r['item_code']}",
 		"price": float(r["price_list_rate"]),
 	}
+
+
+# ---------------------------------------------------------------------------
+# B2B checkout fixtures
+# ---------------------------------------------------------------------------
+#
+# The webshop redirects /checkout → /checkout_b2b when the logged-in
+# customer's Customer Group is listed in Webshop Settings.b2b_customer_group
+# AND activate_b2b_checkout is on (see webshop/templates/pages/checkout.py
+# lines 80-88 and webshop/shopping_cart/cart.py lines 158-170).
+#
+# The fixtures below create the Customer Group + Pricing Rule + Webshop
+# Settings mutation needed to drive the B2B branch, then let the Playwright
+# test drive an ephemeral signup and reassign the resulting Customer.
+
+_B2B_GROUP = "B2B"
+_B2B_PRICING_RULE = "B2B 10% E2E"
+
+
+@frappe.whitelist()
+def ensure_b2b_environment() -> dict[str, Any]:
+	"""Set up the minimum data + settings required for the B2B checkout flow.
+
+	Idempotent — re-running while everything exists is a no-op.
+
+	Creates / updates:
+	  1. Customer Group ``B2B`` (leaf, ``is_group=0``).
+	  2. Pricing Rule ``B2B 10% E2E`` — 10% discount on the whole transaction,
+	     scoped to Customer Group B2B, selling-side.
+	  3. Webshop Settings: ``activate_b2b_checkout=1`` and appends
+	     ``B2B`` to the ``b2b_customer_group`` child table.
+
+	Returns ``{customer_group, pricing_rule, discount_percentage,
+	settings_snapshot}`` where snapshot reflects the prior Webshop Settings
+	state (kept for diagnostics — restoration is intentionally NOT done so
+	the env stays B2B-ready between runs).
+	"""
+	# 1. Customer Group
+	if not frappe.db.exists("Customer Group", _B2B_GROUP):
+		frappe.get_doc(
+			{
+				"doctype": "Customer Group",
+				"customer_group_name": _B2B_GROUP,
+				"is_group": 0,
+			}
+		).insert(ignore_permissions=True)
+
+	# 2. Pricing Rule — 10% off transaction for Customer Group B2B
+	discount_pct = 10
+	if not frappe.db.exists("Pricing Rule", _B2B_PRICING_RULE):
+		frappe.get_doc(
+			{
+				"doctype": "Pricing Rule",
+				"title": _B2B_PRICING_RULE,
+				"apply_on": "Transaction",
+				"price_or_product_discount": "Price",
+				"selling": 1,
+				"buying": 0,
+				"applicable_for": "Customer Group",
+				"customer_group": _B2B_GROUP,
+				"rate_or_discount": "Discount Percentage",
+				"discount_percentage": discount_pct,
+				"min_qty": 0,
+				"priority": "1",
+			}
+		).insert(ignore_permissions=True)
+
+	# 3. Webshop Settings — capture snapshot, then mutate
+	ws = frappe.get_single("Webshop Settings")
+	snapshot = {
+		"activate_b2b_checkout": int(ws.activate_b2b_checkout or 0),
+		"b2b_customer_group": [r.customer_group for r in (ws.b2b_customer_group or [])],
+	}
+	changed = False
+	if not ws.activate_b2b_checkout:
+		ws.activate_b2b_checkout = 1
+		changed = True
+	if not any(r.customer_group == _B2B_GROUP for r in (ws.b2b_customer_group or [])):
+		ws.append("b2b_customer_group", {"customer_group": _B2B_GROUP})
+		changed = True
+	if changed:
+		ws.save(ignore_permissions=True)
+	frappe.db.commit()
+
+	return {
+		"customer_group": _B2B_GROUP,
+		"pricing_rule": _B2B_PRICING_RULE,
+		"discount_percentage": discount_pct,
+		"settings_snapshot": snapshot,
+	}
+
+
+def _resolve_customer_for_email(email: str) -> str | None:
+	"""Resolve the Customer linked to a Website User email.
+
+	Walks the standard webshop chain: ``Portal User → Customer``, then falls
+	back to ``Contact → Customer`` (the path ``cart.get_party`` actually uses).
+	"""
+	# Path 1 — Portal User row stored against the Customer
+	cust = frappe.db.get_value("Portal User", {"user": email}, "parent")
+	if cust and frappe.db.exists("Customer", cust):
+		return cust
+
+	# Path 2 — Contact email_id → Dynamic Link to Customer
+	contact_name = frappe.db.get_value(
+		"Contact Email", {"email_id": email, "is_primary": 1}, "parent"
+	)
+	if not contact_name:
+		contact_name = frappe.db.get_value("Contact Email", {"email_id": email}, "parent")
+	if contact_name:
+		link = frappe.db.get_value(
+			"Dynamic Link",
+			{"parent": contact_name, "link_doctype": "Customer"},
+			"link_name",
+		)
+		if link and frappe.db.exists("Customer", link):
+			return link
+
+	return None
+
+
+@frappe.whitelist()
+def wait_for_customer(email: str, timeout_s: int = 10) -> dict[str, Any]:
+	"""Poll the backend until a Customer record exists for ``email``.
+
+	The webshop creates the Customer lazily in ``get_party()`` — the first
+	time the logged-in user touches the cart (add_to_cart / load /cart).
+	Returns ``{customer, attempts}`` or throws if the timeout elapses.
+	"""
+	import time
+
+	timeout_s = int(timeout_s)
+	attempts = 0
+	start = time.time()
+	while time.time() - start < timeout_s:
+		attempts += 1
+		customer = _resolve_customer_for_email(email)
+		if customer:
+			return {"customer": customer, "attempts": attempts}
+		time.sleep(1)
+	frappe.throw(
+		_("No Customer found for {0} after {1}s ({2} attempts)").format(
+			email, timeout_s, attempts
+		)
+	)
+
+
+@frappe.whitelist()
+def assign_customer_to_b2b(email: str) -> dict[str, Any]:
+	"""Set the test user's Customer.customer_group to ``B2B`` and propagate
+	to any existing draft cart Quotation so its pricing rules get recomputed.
+
+	Required AFTER the webshop has lazily created the Customer (see
+	``wait_for_customer``). The propagation step is what actually triggers
+	the B2B Pricing Rule on the line items — the Customer.customer_group
+	change alone leaves a stale snapshot on the Quotation.
+	"""
+	customer = _resolve_customer_for_email(email)
+	if not customer:
+		frappe.throw(_("No Customer linked to user {0}").format(email))
+
+	previous = frappe.db.get_value("Customer", customer, "customer_group")
+	if previous != _B2B_GROUP:
+		doc = frappe.get_doc("Customer", customer)
+		doc.customer_group = _B2B_GROUP
+		doc.save(ignore_permissions=True)
+
+	# Force every draft cart Quotation linked to this customer to recompute
+	# its pricing — save() re-runs apply_pricing_rule with the new group.
+	quots_updated = []
+	for q in frappe.get_all(
+		"Quotation",
+		filters={
+			"party_name": customer,
+			"order_type": "Shopping Cart",
+			"docstatus": 0,
+		},
+		pluck="name",
+	):
+		quot = frappe.get_doc("Quotation", q)
+		quot.customer_group = _B2B_GROUP
+		quot.save(ignore_permissions=True)
+		quots_updated.append(quot.name)
+
+	frappe.db.commit()
+	return {
+		"customer": customer,
+		"customer_group": _B2B_GROUP,
+		"previous": previous,
+		"quotations_updated": quots_updated,
+	}
+
+
+@frappe.whitelist()
+def get_b2b_quotation_summary(email: str) -> dict[str, Any]:
+	"""Return the pricing breakdown of the user's latest cart Quotation.
+
+	Used by the B2B test to verify the Pricing Rule beyond the displayed
+	grand total (which shipping fees + taxes can obscure). For a
+	``Transaction``-scoped 10% discount rule, ERPNext stores the effect in
+	``additional_discount_percentage`` on the document — that's the
+	cleanest single attribute to assert against.
+	"""
+	customer = _resolve_customer_for_email(email)
+	if not customer:
+		frappe.throw(_("No Customer linked to user {0}").format(email))
+
+	quots = frappe.get_all(
+		"Quotation",
+		filters={
+			"party_name": customer,
+			"order_type": "Shopping Cart",
+			"docstatus": 0,
+		},
+		order_by="modified desc",
+		limit=1,
+		pluck="name",
+	)
+	if not quots:
+		frappe.throw(_("No cart Quotation found for {0}").format(customer))
+
+	doc = frappe.get_doc("Quotation", quots[0])
+	return {
+		"name": doc.name,
+		"customer": customer,
+		"customer_group": doc.customer_group,
+		"total": float(doc.total or 0),
+		"net_total": float(doc.net_total or 0),
+		"discount_amount": float(doc.discount_amount or 0),
+		"additional_discount_percentage": float(doc.additional_discount_percentage or 0),
+		"grand_total": float(doc.grand_total or 0),
+		"total_taxes_and_charges": float(doc.total_taxes_and_charges or 0),
+		"items": [
+			{
+				"item_code": it.item_code,
+				"qty": float(it.qty or 0),
+				"rate": float(it.rate or 0),
+				"amount": float(it.amount or 0),
+				"price_list_rate": float(it.price_list_rate or 0),
+				"discount_amount": float(it.discount_amount or 0),
+				"discount_percentage": float(it.discount_percentage or 0),
+				"pricing_rules": it.pricing_rules or "",
+			}
+			for it in (doc.items or [])
+		],
+	}
+
+
+@frappe.whitelist()
+def cleanup_b2b_user(email: str) -> dict[str, Any]:
+	"""Delete the ephemeral B2B test user + linked Customer / Contact / Quotations.
+
+	Best-effort: every step is wrapped so a partial run leaves the env in a
+	usable state. The shared B2B Customer Group / Pricing Rule / Webshop
+	Settings are deliberately preserved so the next run starts ready.
+
+	Returns counters per doctype for visibility.
+	"""
+	stats = {
+		"quotations": 0,
+		"contacts": 0,
+		"customers": 0,
+		"portal_users": 0,
+		"users": 0,
+	}
+
+	customer = _resolve_customer_for_email(email)
+
+	# 1. Draft cart-typed Quotations tied to the Customer
+	if customer:
+		for q in frappe.get_all(
+			"Quotation",
+			filters={"party_name": customer, "order_type": "Shopping Cart", "docstatus": 0},
+			pluck="name",
+		):
+			if _safe_cancel_and_delete("Quotation", q):
+				stats["quotations"] += 1
+
+	# 2. Portal User rows referencing this email
+	for pu in frappe.get_all("Portal User", filters={"user": email}, pluck="name"):
+		try:
+			frappe.delete_doc("Portal User", pu, force=True, ignore_permissions=True)
+			stats["portal_users"] += 1
+		except Exception:
+			pass
+
+	# 3. Contact(s) linked via Contact Email
+	contact_names = set()
+	for ce in frappe.get_all(
+		"Contact Email", filters={"email_id": email}, fields=["parent"]
+	):
+		contact_names.add(ce["parent"])
+	for cn in contact_names:
+		try:
+			frappe.delete_doc("Contact", cn, force=True, ignore_permissions=True)
+			stats["contacts"] += 1
+		except Exception:
+			pass
+
+	# 4. Customer
+	if customer and frappe.db.exists("Customer", customer):
+		try:
+			frappe.delete_doc("Customer", customer, force=True, ignore_permissions=True)
+			stats["customers"] += 1
+		except Exception:
+			pass
+
+	# 5. User
+	if frappe.db.exists("User", email):
+		try:
+			frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+			stats["users"] += 1
+		except Exception:
+			pass
+
+	frappe.db.commit()
+	return stats
