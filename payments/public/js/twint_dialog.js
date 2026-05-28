@@ -427,7 +427,10 @@ frappe.provide('frappe.twint');
                                     order_uuid: r.message.payment_intent,       // use intent name as dialog's order_uuid
                                     company_logo: null,
                                     company: null,
-                                    twint_order_id: r.message.transaction_id
+                                    twint_order_id: r.message.transaction_id,
+                                    // Dev-only: site_config.enable_e2e_simulators=true → show
+                                    // a "simulate success" button in the dialog.
+                                    simulators_enabled: !!r.message.simulators_enabled
                                 }
                             };
                         } else if (r.message) {
@@ -489,7 +492,48 @@ frappe.provide('frappe.twint');
                     
                     // Always display QR code first and start the status check
                     displayQRCode();
-                    
+
+                    // Dev-only "simulate success" button — only when the site
+                    // has `enable_e2e_simulators=true` in site_config. Lets a
+                    // human (or our Playwright tests) finalise the checkout
+                    // without scanning a real TWINT QR. The backend endpoint
+                    // is itself gated by the same flag, so this is safe by
+                    // construction in production.
+                    if (transactionData.simulators_enabled) {
+                        const qrSectionEl = $qrSection.elements && $qrSection.elements[0];
+                        if (qrSectionEl) {
+                            qrSectionEl.insertAdjacentHTML('beforeend', `
+                                <button type="button" class="btn btn-warning btn-sm twint-simulate-success-btn"
+                                    style="margin-top: 14px; width: 100%; padding: 10px;
+                                           background-color: #ffc107; color: #000;
+                                           border: 1px solid #c69500; border-radius: 4px;
+                                           font-weight: 600; cursor: pointer;">
+                                    ⚠️ [DEV] Simuler succès TWINT
+                                </button>
+                            `);
+                            const simBtn = qrSectionEl.querySelector('.twint-simulate-success-btn');
+                            if (simBtn) {
+                                simBtn.addEventListener('click', function () {
+                                    simBtn.disabled = true;
+                                    simBtn.textContent = 'Simulation…';
+                                    frappe.call({
+                                        method: 'payments.api.twint.simulate_consumer_success',
+                                        args: { intent_name: paymentDialog.orderUuid },
+                                        callback: function (sr) {
+                                            if (!(sr && sr.message && sr.message.ok)) {
+                                                simBtn.disabled = false;
+                                                simBtn.textContent = '⚠️ [DEV] Simuler succès TWINT';
+                                                console.error('TWINT simulate failed:', sr && sr.message);
+                                            }
+                                            // On success the existing status poller picks up the
+                                            // succeeded state and drives the redirect to /thank_you.
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    }
+
                     if (isMobile) {
                         // Create a deep link for mobile apps
                         if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {

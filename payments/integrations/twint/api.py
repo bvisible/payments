@@ -126,6 +126,10 @@ def create_web_transaction(
 		# Convenience for the JS overlay: when the buyer cancels in-app we
 		# also want a fallback URL for "back to cart".
 		"failed_url": frappe.utils.get_url() + "/cart",
+		# Dev-only hook: when the site has ``enable_e2e_simulators=True`` the
+		# overlay shows a "simulate success" button so a human (or automated
+		# test) can validate the post-payment flow without a real TWINT app.
+		"simulators_enabled": bool(frappe.conf.get("enable_e2e_simulators")),
 	}
 
 
