@@ -65,6 +65,12 @@ def reconcile_payment_intent(intent_name: str) -> dict[str, Any]:
 		result = _reconcile_pos_invoice(doc, ref_name, mode_of_payment)
 	elif ref_dt == "Sales Invoice":
 		result = _reconcile_sales_invoice(doc, ref_name, mode_of_payment)
+	elif ref_dt == "Payment Request":
+		# Webshop checkout intents point at a Payment Request; the webshop's
+		# own ``payment_handler.handle_payment_success`` is responsible for
+		# finalising the linked Sales Order. There is nothing for us to
+		# reconcile on this side — silently skip (no log_error noise).
+		result = {"action": "skipped_payment_request_webshop_owned", "reference_name": ref_name}
 	else:
 		frappe.log_error(
 			"reconcile_payment_intent unsupported reference",

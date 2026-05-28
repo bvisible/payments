@@ -15,7 +15,7 @@ no_cache = 1
 
 
 def get_context(context):  # noqa: ANN001
-	from payments.www.wallee_success import _find_intent_name, _refresh_status
+	from payments.www.wallee.success import _find_intent_name, _refresh_status
 
 	intent_name = _find_intent_name(frappe.form_dict)
 
