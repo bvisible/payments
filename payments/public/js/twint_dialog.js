@@ -502,27 +502,28 @@ frappe.provide('frappe.twint');
                     if (transactionData.simulators_enabled) {
                         const qrSectionEl = $qrSection.elements && $qrSection.elements[0];
                         if (qrSectionEl) {
+                            const simBtnLabel = '⚠️ ' + __('[DEV] Simulate TWINT success');
                             qrSectionEl.insertAdjacentHTML('beforeend', `
                                 <button type="button" class="btn btn-warning btn-sm twint-simulate-success-btn"
                                     style="margin-top: 14px; width: 100%; padding: 10px;
                                            background-color: #ffc107; color: #000;
                                            border: 1px solid #c69500; border-radius: 4px;
                                            font-weight: 600; cursor: pointer;">
-                                    ⚠️ [DEV] Simuler succès TWINT
+                                    ${frappe.utils.escape_html(simBtnLabel)}
                                 </button>
                             `);
                             const simBtn = qrSectionEl.querySelector('.twint-simulate-success-btn');
                             if (simBtn) {
                                 simBtn.addEventListener('click', function () {
                                     simBtn.disabled = true;
-                                    simBtn.textContent = 'Simulation…';
+                                    simBtn.textContent = __('Simulating…');
                                     frappe.call({
                                         method: 'payments.api.twint.simulate_consumer_success',
                                         args: { intent_name: paymentDialog.orderUuid },
                                         callback: function (sr) {
                                             if (!(sr && sr.message && sr.message.ok)) {
                                                 simBtn.disabled = false;
-                                                simBtn.textContent = '⚠️ [DEV] Simuler succès TWINT';
+                                                simBtn.textContent = simBtnLabel;
                                                 console.error('TWINT simulate failed:', sr && sr.message);
                                             }
                                             // On success the existing status poller picks up the
