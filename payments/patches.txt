@@ -3,3 +3,4 @@
 [post_model_sync]
 payments.patches.v15_03.merge_wallee_integration
 payments.patches.v15_04.merge_twint_integration
+payments.patches.v15_05.provision_wallee_web_channel
