@@ -184,38 +184,62 @@ def select_payment_method(page: Page, method_substr: str) -> None:
 
 	# Accept the CGV terms. The checkbox (#terms-acceptance) is CSS-hidden
 	# (custom-control styling) — the webshop handler listens on the
-	# .form-check-label click and toggles the checkbox itself. So we click
-	# the LABEL inside the selected card, then wait for the submit button to
-	# become enabled. Retry because the handler binds late on async cards.
+	# .form-check-label click and TOGGLES the checkbox itself.
+	#
+	# CRITICAL: because the label click is a toggle, we must click it ONLY when
+	# the box is currently unchecked. The previous version clicked it on every
+	# retry where the submit was still disabled; under load (handler binds late
+	# / is_enabled races) that flipped the box back OFF, so the final state
+	# depended on click parity and left the submit disabled at random — this was
+	# the TWINT flakiness. Reading the real checkbox state first makes it
+	# idempotent: check once, then just wait for the submit to enable.
 	submit = card.locator(".btn-submit-payment").first
-	for attempt in range(5):
+	for attempt in range(8):
 		try:
 			if submit.is_enabled():
 				return
 		except Exception:
 			pass
-		label = card.locator(".form-check-label, label[for='terms-acceptance']").first
-		if label.count() > 0:
-			try:
-				label.scroll_into_view_if_needed()
-				label.click(force=True)
-			except Exception:
-				pass
-		else:
-			# Fallback : toggle the checkbox directly via JS within this card.
-			page.evaluate(
-				"""
-				(methodSubstr) => {
-					const card = [...document.querySelectorAll('.payment-method-item')]
-						.find(c => (c.dataset.methodId||'').toLowerCase().includes(methodSubstr.toLowerCase()));
-					if (!card) return;
-					const cb = card.querySelector('#terms-acceptance, input[id*=terms]');
-					if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change', {bubbles:true})); }
-				}
-				""",
-				method_substr,
-			)
-		page.wait_for_timeout(900)
+		checked = page.evaluate(
+			"""
+			(methodSubstr) => {
+				const card = [...document.querySelectorAll('.payment-method-item')]
+					.find(c => (c.dataset.methodId||'').toLowerCase().includes(methodSubstr.toLowerCase()));
+				if (!card) return null;
+				const cb = card.querySelector('#terms-acceptance, input[id*=terms], input[type=checkbox]');
+				return cb ? !!cb.checked : null;
+			}
+			""",
+			method_substr,
+		)
+		if not checked:
+			label = card.locator(".form-check-label, label[for='terms-acceptance']").first
+			if label.count() > 0:
+				try:
+					label.scroll_into_view_if_needed()
+					label.click(force=True)
+				except Exception:
+					pass
+			else:
+				# Fallback : check the box directly via JS within this card
+				# (guarded by !cb.checked so it stays idempotent).
+				page.evaluate(
+					"""
+					(methodSubstr) => {
+						const card = [...document.querySelectorAll('.payment-method-item')]
+							.find(c => (c.dataset.methodId||'').toLowerCase().includes(methodSubstr.toLowerCase()));
+						if (!card) return;
+						const cb = card.querySelector('#terms-acceptance, input[id*=terms], input[type=checkbox]');
+						if (cb && !cb.checked) {
+							cb.checked = true;
+							cb.dispatchEvent(new Event('change', {bubbles:true}));
+							cb.dispatchEvent(new Event('click', {bubbles:true}));
+						}
+					}
+					""",
+					method_substr,
+				)
+		page.wait_for_timeout(800)
 	# Final state — caller's click_pay surfaces a clear error if still disabled.
 
 
