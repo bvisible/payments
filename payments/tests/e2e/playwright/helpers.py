@@ -335,3 +335,40 @@ def trigger_twint_simulate(page: Page, base_url: str, intent_name: str) -> dict:
 	)
 	assert resp.ok, f"simulate failed: {resp.status} {resp.text()[:200]}"
 	return resp.json().get("message", {})
+
+
+# ---------------------------------------------------------------------------
+# Signup
+# ---------------------------------------------------------------------------
+
+
+def signup_ephemeral_user(page: Page, base_url: str, email: str, fullname: str) -> None:
+	"""Drive the webshop signup form to create a fresh Website User.
+
+	Lands on /login, opens the signup pane, submits fullname + email, and
+	waits for Frappe's "account created" feedback. The caller still has to
+	set a password via ``frappe.client.set_value`` (Frappe sends a welcome
+	email instead of asking for one inline).
+	"""
+	if "/login" not in page.url:
+		page.goto(f"{base_url}/login", wait_until="domcontentloaded", timeout=60_000)
+
+	# Open the signup pane — Frappe's login page toggles to it via this link.
+	signup_link = page.locator(
+		"a:has-text(\"S'inscrire\"), a:has-text('Sign up')"
+	).first
+	signup_link.wait_for(state="visible", timeout=15_000)
+	signup_link.click()
+	page.wait_for_timeout(1_000)
+
+	fullname_input = page.locator("#signup_fullname")
+	fullname_input.wait_for(state="visible", timeout=15_000)
+	fullname_input.fill(fullname)
+	page.locator("#signup_email").fill(email)
+
+	page.click(
+		"button:has-text('Inscription'), button:has-text('Sign up'), "
+		"button:has-text(\"S'inscrire\")"
+	)
+	# Frappe shows a flash + the page reloads / redirects — give it a beat.
+	page.wait_for_timeout(3_000)
