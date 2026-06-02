@@ -26,21 +26,21 @@ def test_change_psp_mid_flow(logged_in_page, paying_item, base_url):
 	complete_information_step(page)
 	complete_shipping_step(page)
 
-	# Select Stripe first
+	# Select Stripe first. The data-method-id is a slug of the Payment Gateway
+	# Account name (e.g. "Stripe___CHF"), so the attribute selectors MUST be
+	# case-insensitive (`i` flag) — same as helpers.select_payment_method.
 	select_payment_method(page, "stripe")
-	expect(page.locator(".payment-method-item[data-method-id*='stripe'].selected")).to_be_visible()
+	expect(page.locator(".payment-method-item[data-method-id*='stripe' i].selected").first).to_be_visible()
 
 	# Switch to Wallee
 	select_payment_method(page, "wallee")
-	expect(page.locator(".payment-method-item[data-method-id*='wallee'].selected")).to_be_visible()
-	# Stripe form should be hidden now
-	stripe_form = page.locator("[id^='payment-form-stripe']")
-	if stripe_form.count() > 0:
-		expect(stripe_form.first).to_be_hidden()
+	expect(page.locator(".payment-method-item[data-method-id*='wallee' i].selected").first).to_be_visible()
+	# Stripe must no longer be the selected method.
+	expect(page.locator(".payment-method-item[data-method-id*='stripe' i].selected")).to_have_count(0)
 
 	# Switch to TWINT
 	select_payment_method(page, "twint")
-	expect(page.locator(".payment-method-item[data-method-id*='twint'].selected")).to_be_visible()
+	expect(page.locator(".payment-method-item[data-method-id*='twint' i].selected").first).to_be_visible()
 
 	# Final selection is TWINT. Submit button enabled if terms checked (already done by select_payment_method).
 	# We don't actually click pay here — just validate the state transitions cleanly.

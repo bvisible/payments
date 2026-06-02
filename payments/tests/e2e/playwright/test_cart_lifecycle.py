@@ -25,24 +25,35 @@ def test_cart_add_update_remove(logged_in_page, paying_item, base_url):
 	btn.click()
 	page.wait_for_timeout(3_000)
 
-	# 3. Open cart and check we have 1 line item with qty >= 2 OR 2 line items.
+	# 3. Open cart and assert it is NOT empty.
+	#    The empty-cart placeholder (``.cart-empty`` / "Votre panier est vide")
+	#    is ALWAYS in the DOM and merely hidden when the cart has items, so a
+	#    textContent-based check would match it even with a full cart. Assert on
+	#    visibility instead: ``.cart-empty`` hidden + the line item present.
 	page.goto(f"{base_url}/cart", wait_until="domcontentloaded")
-	expect(page.locator("body")).not_to_contain_text("Votre panier est vide")
+	page.wait_for_timeout(2_000)
+	expect(page.locator(".cart-empty").first).not_to_be_visible()
+	expect(
+		page.locator(f"tbody.cart-items [data-item-code='{paying_item['item_code']}']").first
+	).to_be_visible(timeout=10_000)
 
-	# 4. Find the quantity input — change to 1.
-	qty_input = page.locator(".cart-table input.item-qty, input.cart-qty, input[name='qty']").first
-	if qty_input.count() > 0:
-		qty_input.fill("1")
-		# Trigger update (theme-specific — try blur + dispatch input event).
-		page.evaluate(
-			"document.querySelector('.cart-table input.item-qty, input.cart-qty, input[name=qty]').dispatchEvent(new Event('change', {bubbles:true}))"
-		)
-		page.wait_for_timeout(2_000)
+	# 4. Remove the only line item via the theme's remove control
+	#    (``.remove-cart-item`` carries the item code).
+	remove = page.locator(
+		f".remove-cart-item[data-item-code='{paying_item['item_code']}']"
+	).first
+	if remove.count() == 0:
+		remove = page.locator(".remove-cart-item").first
+	expect(remove).to_be_visible(timeout=10_000)
+	remove.click()
+	page.wait_for_timeout(2_500)
 
-	# 5. Remove the item entirely via the × button.
-	close_btn = page.locator(".cart-table .remove-cart-item, button.btn-remove-cart, button:has-text('×')").first
-	if close_btn.count() > 0:
-		close_btn.click()
-		page.wait_for_timeout(2_500)
-		# Cart should be empty now
-		expect(page.locator("body")).to_contain_text("Votre panier est vide", timeout=10_000)
+	# 5. The cart is now empty. Reload /cart so the server-rendered empty state
+	#    is authoritative, then assert the empty-cart card is visible and the
+	#    line item is gone.
+	page.goto(f"{base_url}/cart", wait_until="domcontentloaded")
+	page.wait_for_timeout(1_500)
+	expect(page.locator(".cart-empty").first).to_be_visible(timeout=15_000)
+	expect(
+		page.locator(f"tbody.cart-items [data-item-code='{paying_item['item_code']}']")
+	).to_have_count(0)
