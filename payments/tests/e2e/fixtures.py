@@ -160,6 +160,15 @@ def ensure_test_customer() -> dict[str, Any]:
 			}
 		).insert(ignore_permissions=True)
 
+	# The webshop /addresses portal lists addresses filtered by
+	# ``owner == session user`` (frappe.contacts ... get_address_list). Fixtures
+	# run as Administrator, so the address would never show up in the test
+	# user's portal. Reassign ownership to the test user so it is visible and
+	# editable there.
+	for _addr in frappe.get_all("Address", {"address_title": addr_title}, pluck="name"):
+		if frappe.db.get_value("Address", _addr, "owner") != email:
+			frappe.db.set_value("Address", _addr, "owner", email, update_modified=False)
+
 	frappe.db.commit()
 	return {
 		"customer": customer_name,
