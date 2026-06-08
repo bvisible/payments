@@ -27,13 +27,12 @@ no_cache = 1
 
 
 def _debug(msg: str) -> None:
-	"""Persist a short debug line to Error Log table (committed immediately).
+	"""Emit a short Wallee debug line to the bench log (not the Error Log doctype).
 
-	The legacy ``wallee_integration`` page used the same pattern — keep it so
-	ops can correlate post-mortems with previous notes.
+	Previously this inserted an Error Log record per call, flooding the doctype with
+	non-error debug noise. Routed to the logger so it no longer pollutes Error Log.
 	"""
-	frappe.log_error(message=msg, title="Wallee Success Debug")
-	frappe.db.commit()  # noqa: T201 — explicit commit so log survives exceptions
+	frappe.logger("wallee").debug(msg)
 
 
 def _find_intent_name(form_dict) -> str | None:
