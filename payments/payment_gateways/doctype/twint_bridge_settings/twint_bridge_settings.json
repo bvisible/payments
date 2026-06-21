@@ -37,7 +37,7 @@
    "label": "Merchant UUID",
    "reqd": 1,
    "unique": 1,
-   "description": "Stable identifier for the merchant. Upload the .p12 via the \"P12 Certificate\" field below; it is stored on neoservice as /home/neoffice/twint-certs/<merchant_uuid>.p12 (one file per merchant)."
+   "description": "Auto-filled from the certificate file name when you attach the .p12 below — you normally don't type it. Stable identifier = the .p12 file name on neoservice (/home/neoffice/twint-certs/<merchant_uuid>.p12)."
   },
   {
    "fieldname": "display_label",

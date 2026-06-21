@@ -29,4 +29,19 @@ frappe.ui.form.on("Twint Bridge Settings", {
 			);
 		}
 	},
+
+	p12_certificate(frm) {
+		// Auto-fill Merchant UUID from the certificate file name — TWINT names the
+		// .p12 after the merchant/tech-user UUID, so the operator doesn't type it.
+		if (!frm.doc.p12_certificate || frm.doc.merchant_uuid) return;
+		const fname = decodeURIComponent(frm.doc.p12_certificate.split("/").pop() || "");
+		const base = fname.replace(/\.(p12|pfx)$/i, "");
+		if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(base)) {
+			frm.set_value("merchant_uuid", base);
+			frappe.show_alert({
+				message: __("Merchant UUID filled automatically from the certificate"),
+				indicator: "green",
+			});
+		}
+	},
 });
