@@ -2573,3 +2573,15 @@ msgstr "— Choisir un profil —"
 msgid "— Pick a profile first —"
 msgstr "— Sélectionnez d'abord un profil —"
 
+
+msgid "P12 Certificate"
+msgstr "Certificat P12"
+
+msgid "Certificate Deployed"
+msgstr "Certificat déployé"
+
+msgid "Deployed On"
+msgstr "Déployé le"
+
+msgid "Certificate Expires On"
+msgstr "Certificat expire le"
