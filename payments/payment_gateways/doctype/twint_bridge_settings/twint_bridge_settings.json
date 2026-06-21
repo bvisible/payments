@@ -15,6 +15,9 @@
   "environment",
   "section_break_creds",
   "p12_password",
+  "p12_certificate",
+  "certificate_deployed",
+  "certificate_deployed_on",
   "section_break_link",
   "linked_payment_provider",
   "linked_company"
@@ -27,7 +30,7 @@
    "label": "Merchant UUID",
    "reqd": 1,
    "unique": 1,
-   "description": "Stable identifier matching the P12 filename on neoservice: /home/frappe/twint-certs/<merchant_uuid>.p12"
+   "description": "Stable identifier for the merchant. Upload the .p12 via the \"P12 Certificate\" field below; it is stored on neoservice as /home/neoffice/twint-certs/<merchant_uuid>.p12 (one file per merchant)."
   },
   {
    "fieldname": "display_label",
@@ -82,6 +85,26 @@
    "description": "Password protecting the P12 certificate file stored on neoservice"
   },
   {
+   "fieldname": "p12_certificate",
+   "fieldtype": "Attach",
+   "label": "P12 Certificate",
+   "description": "Upload the merchant's .p12 certificate here. On save it is pushed to neoservice and removed from this instance (the certificate lives only on neoservice). Re-upload to rotate it."
+  },
+  {
+   "default": "0",
+   "fieldname": "certificate_deployed",
+   "fieldtype": "Check",
+   "label": "Certificate Deployed",
+   "read_only": 1,
+   "description": "Checked automatically once the P12 has been stored on neoservice."
+  },
+  {
+   "fieldname": "certificate_deployed_on",
+   "fieldtype": "Datetime",
+   "label": "Deployed On",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_link",
    "fieldtype": "Section Break",
    "label": "Links",
@@ -115,6 +138,13 @@
    "delete": 1,
    "read": 1,
    "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Admin",
    "write": 1
   }
  ],
