@@ -28,7 +28,7 @@
   {
    "fieldname": "setup_guide_html",
    "fieldtype": "HTML",
-   "options": "<div class='alert alert-info' style='margin-bottom:10px'><b>Setting up TWINT</b> — the certificate and identifiers are issued on the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a>:<ol style='margin:6px 0 0 18px'><li>Log in to the TWINT merchant portal (button top-right) and open your store.</li><li><b>Generate / download the certificate (.p12)</b> and note its <b>password</b>.</li><li>Copy the <b>Store UUID</b> shown in the portal.</li><li>Fill the fields below, upload the .p12 in <b>P12 Certificate</b>, then Save.</li></ol></div>"
+   "options": "<div class='alert alert-info' style='margin-bottom:10px'><b>Setting up TWINT</b> — the certificate and identifiers are issued on the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a>:<ol style='margin:6px 0 0 18px'><li>Log in to the TWINT merchant portal (button top-right) and open your store.</li><li><b>Generate / download the certificate (.p12)</b> and note its <b>password</b>.</li><li>Copy the <b>Store UUID</b> — portal menu <b>COMMERCES &rarr; Commerce en ligne</b>, edit the store.</li><li>Fill the fields below, upload the .p12 in <b>P12 Certificate</b>, then Save.</li></ol></div>"
   },
   {
    "fieldname": "merchant_uuid",
@@ -62,7 +62,7 @@
    "fieldtype": "Data",
    "label": "TWINT Store UUID",
    "reqd": 1,
-   "description": "StoreUUID provisioned by TWINT for the merchant store. Find it in the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a> (or the onboarding email / contract)."
+   "description": "StoreUUID provisioned by TWINT. Find it in the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a> &rarr; menu COMMERCES &rarr; Commerce en ligne &rarr; edit the store."
   },
   {
    "fieldname": "cash_register_id",
