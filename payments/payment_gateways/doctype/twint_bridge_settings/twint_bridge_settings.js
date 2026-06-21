@@ -3,6 +3,10 @@
 
 frappe.ui.form.on("Twint Bridge Settings", {
 	refresh(frm) {
+		frm.add_custom_button(__("TWINT merchant portal"), () => {
+			window.open("https://portal.twint.ch/partner/gui/?login", "_blank", "noopener");
+		});
+
 		const exp = frm.doc.certificate_expires_on;
 		if (!exp) return;
 		const days = moment(exp).diff(moment().startOf("day"), "days");

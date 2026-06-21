@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "setup_guide_html",
   "merchant_uuid",
   "display_label",
   "enabled",
@@ -24,6 +25,11 @@
   "linked_company"
  ],
  "fields": [
+  {
+   "fieldname": "setup_guide_html",
+   "fieldtype": "HTML",
+   "options": "<div class='alert alert-info' style='margin-bottom:10px'><b>Setting up TWINT</b> — the certificate and identifiers are issued on the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a>:<ol style='margin:6px 0 0 18px'><li>Log in to the TWINT merchant portal (button top-right) and open your store.</li><li><b>Generate / download the certificate (.p12)</b> and note its <b>password</b>.</li><li>Copy the <b>Store UUID</b> shown in the portal.</li><li>Fill the fields below, upload the .p12 in <b>P12 Certificate</b>, then Save.</li></ol></div>"
+  },
   {
    "fieldname": "merchant_uuid",
    "fieldtype": "Data",
@@ -56,7 +62,7 @@
    "fieldtype": "Data",
    "label": "TWINT Store UUID",
    "reqd": 1,
-   "description": "UUID provisioned by TWINT for the merchant store"
+   "description": "StoreUUID provisioned by TWINT for the merchant store. Find it in the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a> (or the onboarding email / contract)."
   },
   {
    "fieldname": "cash_register_id",
@@ -89,7 +95,7 @@
    "fieldname": "p12_certificate",
    "fieldtype": "Attach",
    "label": "P12 Certificate",
-   "description": "Upload the merchant's .p12 certificate here. On save it is pushed to neoservice and removed from this instance (the certificate lives only on neoservice). Re-upload to rotate it."
+   "description": "Generate / download this .p12 on the TWINT merchant portal, then upload it here. On save it is pushed to neoservice and removed from this instance (the certificate lives only on neoservice). Re-upload to rotate it."
   },
   {
    "default": "0",
