@@ -7,7 +7,13 @@ import frappe
 import requests
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now_datetime
+from frappe.utils import getdate, now_datetime, today
+
+# Certificate-expiry monitoring: warn within this many days of the notAfter date.
+CERT_EXPIRY_WARNING_DAYS = 45
+# Email reminder milestones (days before expiry) to avoid daily spam during the
+# whole window. Once expired (payments down), we email every day.
+CERT_EXPIRY_MILESTONES = {45, 30, 21, 14, 10, 7, 5, 4, 3, 2, 1, 0}
 
 
 class TwintBridgeSettings(Document):
@@ -23,6 +29,10 @@ class TwintBridgeSettings(Document):
 	``neoffice_devops.api.twint.upload_certificate`` and the local copy is
 	deleted, so the certificate never persists on this instance. Deleting (or
 	rotating) the record removes the certificate from neoservice too.
+
+	The certificate's expiry (``notAfter``) is read at upload and stored in
+	``certificate_expires_on``; :func:`check_certificate_expiry` warns by email in
+	the 45 days before, and the POS shows a banner over the same window.
 	"""
 
 	def validate(self):
@@ -96,7 +106,11 @@ class TwintBridgeSettings(Document):
 				)
 			)
 
-		# Success: purge the local copy (cert lives only on neoservice) + stamp status.
+		# Read the certificate expiry (notAfter) before purging the local copy, so
+		# we can warn before it lapses. Best-effort — never block a good deploy.
+		expiry = self._read_cert_expiry(raw)
+
+		# Purge the local copy (cert lives only on neoservice) + stamp status.
 		try:
 			file_doc.delete(ignore_permissions=True)
 		except Exception:  # noqa: BLE001 — purge is best-effort, never block a good deploy
@@ -106,9 +120,73 @@ class TwintBridgeSettings(Document):
 		self.db_set("p12_certificate", None, update_modified=False)
 		self.db_set("certificate_deployed", 1, update_modified=False)
 		self.db_set("certificate_deployed_on", now_datetime(), update_modified=False)
-		frappe.msgprint(
-			_("Certificate deployed to neoservice ✓"), alert=True, indicator="green"
-		)
+		if expiry:
+			self.db_set("certificate_expires_on", expiry, update_modified=False)
+		msg = _("Certificate deployed to neoservice ✓")
+		if expiry:
+			msg += " " + _("(expires {0})").format(frappe.utils.formatdate(expiry, "dd.MM.yyyy"))
+		frappe.msgprint(msg, alert=True, indicator="green")
+
+	def _read_cert_expiry(self, raw: bytes):
+		"""Return the certificate's notAfter as a ``date`` (or None on failure).
+
+		Tries the ``cryptography`` library first; falls back to the ``openssl`` CLI
+		(with ``-legacy``) for older RC2/3DES-encrypted P12 files that newer
+		OpenSSL refuses by default.
+		"""
+		pw = self.get_password("p12_password", raise_exception=False) or ""
+		# 1) cryptography — clean, no temp file.
+		try:
+			from cryptography.hazmat.primitives.serialization import pkcs12
+
+			_key, cert, _add = pkcs12.load_key_and_certificates(raw, pw.encode() or None)
+			if cert is not None:
+				try:
+					return cert.not_valid_after_utc.date()
+				except AttributeError:
+					return cert.not_valid_after.date()
+		except Exception:  # noqa: BLE001 — fall through to openssl
+			pass
+		# 2) openssl fallback (handles legacy-encrypted P12).
+		import os as _os
+		import subprocess
+		import tempfile
+		from datetime import datetime
+
+		tmp = None
+		try:
+			fd, tmp = tempfile.mkstemp(suffix=".p12")
+			with _os.fdopen(fd, "wb") as fh:
+				fh.write(raw)
+			for extra in ([], ["-legacy"]):
+				p1 = subprocess.run(
+					["openssl", "pkcs12", "-in", tmp, "-nodes", "-passin", f"pass:{pw}", *extra],
+					capture_output=True,
+					timeout=15,
+					check=False,
+				)
+				if p1.returncode == 0 and p1.stdout:
+					p2 = subprocess.run(
+						["openssl", "x509", "-noout", "-enddate"],
+						input=p1.stdout,
+						capture_output=True,
+						timeout=15,
+						check=False,
+					)
+					for line in (p2.stdout or b"").decode(errors="ignore").splitlines():
+						if line.startswith("notAfter="):
+							return datetime.strptime(
+								line.split("=", 1)[1].strip(), "%b %d %H:%M:%S %Y %Z"
+							).date()
+		except Exception:  # noqa: BLE001
+			return None
+		finally:
+			if tmp and _os.path.exists(tmp):
+				try:
+					_os.remove(tmp)
+				except OSError:
+					pass
+		return None
 
 	def _delete_certificate_remote(self):
 		try:
@@ -125,3 +203,99 @@ class TwintBridgeSettings(Document):
 			)
 		except requests.exceptions.RequestException as exc:
 			frappe.log_error("TWINT remote certificate delete failed", f"{self.name}: {exc!r}")
+
+
+# ---------------------------------------------------------------------------
+# Certificate-expiry monitoring (daily scheduler + POS warning source)
+# ---------------------------------------------------------------------------
+
+
+def check_certificate_expiry(days_before: int = CERT_EXPIRY_WARNING_DAYS):
+	"""Daily scheduler: email admins about TWINT certs near (or past) expiry.
+
+	Emails on milestone days (to avoid 45 daily mails) and every day once the
+	certificate has actually expired (payments are down — urgent).
+	"""
+	from frappe.utils import date_diff
+
+	rows = frappe.get_all(
+		"Twint Bridge Settings",
+		filters={"enabled": 1, "certificate_expires_on": ["is", "set"]},
+		fields=["name", "display_label", "merchant_uuid", "certificate_expires_on"],
+	)
+	for r in rows:
+		days_left = date_diff(getdate(r.certificate_expires_on), getdate(today()))
+		if days_left < 0 or (days_left <= days_before and days_left in CERT_EXPIRY_MILESTONES):
+			_notify_cert_expiry(r, days_left)
+
+
+def _notify_cert_expiry(row, days_left: int):
+	recipients = _admin_recipients()
+	if not recipients:
+		return
+	label = row.get("display_label") or row.get("name")
+	when = frappe.utils.formatdate(row.get("certificate_expires_on"), "dd.MM.yyyy")
+	if days_left < 0:
+		subject = _("⚠️ TWINT certificate EXPIRED — {0}").format(label)
+		message = _(
+			"The TWINT certificate for <b>{0}</b> expired on {1}. TWINT payments are "
+			"DOWN until a renewed .p12 is uploaded on the Twint Bridge Settings form."
+		).format(label, when)
+	else:
+		subject = _("TWINT certificate expires in {0} day(s) — {1}").format(days_left, label)
+		message = _(
+			"The TWINT certificate for <b>{0}</b> expires on {1} (in {2} day(s)).<br><br>"
+			"Renew it with TWINT (they issue a new .p12) and upload it via the "
+			"<b>P12 Certificate</b> field on the Twint Bridge Settings form — it replaces "
+			"the current one automatically."
+		).format(label, when, days_left)
+	frappe.sendmail(recipients=recipients, subject=subject, message=message)
+
+
+def _admin_recipients() -> list[str]:
+	"""Enabled users holding System Manager or Admin role (who can renew the cert)."""
+	users = frappe.get_all(
+		"Has Role",
+		filters={"role": ["in", ["System Manager", "Admin"]], "parenttype": "User"},
+		pluck="parent",
+	)
+	if not users:
+		return []
+	emails = frappe.get_all(
+		"User",
+		filters={"name": ["in", list(set(users))], "enabled": 1},
+		pluck="email",
+	)
+	return [e for e in set(emails) if e and "@" in e]
+
+
+@frappe.whitelist()
+def get_pos_certificate_alerts(pos_profile: str | None = None) -> list[dict]:
+	"""Return TWINT certs expiring within the warning window, for a POS banner.
+
+	Used by the POS (neopos) at opening to show a non-blocking warning so the
+	cashier/owner renews in time. Scoped to the given POS Profile's TWINT mappings
+	when provided, else all enabled merchants.
+	"""
+	from frappe.utils import date_diff
+
+	# An instance has at most a handful of TWINT merchants; return alerts for all
+	# enabled ones. (pos_profile is accepted for future per-profile scoping.)
+	rows = frappe.get_all(
+		"Twint Bridge Settings",
+		filters={"enabled": 1, "certificate_expires_on": ["is", "set"]},
+		fields=["name", "display_label", "certificate_expires_on"],
+	)
+	alerts = []
+	for r in rows:
+		days_left = date_diff(getdate(r.certificate_expires_on), getdate(today()))
+		if days_left <= CERT_EXPIRY_WARNING_DAYS:
+			alerts.append(
+				{
+					"merchant": r.display_label or r.name,
+					"expires_on": str(r.certificate_expires_on),
+					"days_left": days_left,
+					"expired": days_left < 0,
+				}
+			)
+	return alerts

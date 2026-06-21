@@ -144,6 +144,12 @@ scheduler_events["cron"]["* * * * *"].append(
 	"payments.drivers.wallee.terminal_driver.poll_pending_transactions"
 )
 
+# TWINT: daily certificate-expiry check → reminder email in the 45 days before
+# the cert's notAfter (TWINT certs last ~3 years and expire silently).
+scheduler_events["daily"] = [
+	"payments.payment_gateways.doctype.twint_bridge_settings.twint_bridge_settings.check_certificate_expiry",
+]
+
 # Testing
 # -------
 
