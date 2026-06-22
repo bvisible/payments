@@ -157,10 +157,22 @@ def _capture_after_action_succeeded(log, driver) -> None:  # noqa: ANN001
 
 	obj = raw.get("data", {}).get("object", {}) or {}
 	action = obj.get("action") or {}
-	# In Stripe webhooks, action.payment_intent is the bare PI id string.
-	pi_id = action.get("payment_intent")
-	if not pi_id and isinstance(action.get("payment_intent"), dict):
-		pi_id = action["payment_intent"].get("id")
+	# Stripe nests the PI id under `action.process_payment_intent.payment_intent`
+	# (not directly under `action.payment_intent` as one might expect from the
+	# field naming). Also tolerate `action.payment_intent` for forward-compat
+	# in case Stripe ever flattens the structure or for other action types.
+	pi_id: str | None = None
+	process_pi = action.get("process_payment_intent")
+	if isinstance(process_pi, dict):
+		pi_id = process_pi.get("payment_intent") or process_pi.get("id")
+	elif isinstance(process_pi, str) and process_pi:
+		pi_id = process_pi
+	if not pi_id:
+		direct = action.get("payment_intent")
+		if isinstance(direct, dict):
+			pi_id = direct.get("id")
+		elif isinstance(direct, str) and direct:
+			pi_id = direct
 	if not pi_id:
 		return
 
