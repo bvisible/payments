@@ -89,14 +89,31 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 		md = json.loads(intent.get("metadata_json") or "{}")
 	except (ValueError, TypeError):
 		md = {}
+
+	try:
+		driver = resolve_driver(intent["provider"], intent["channel"])
+	except Exception as exc:  # noqa: BLE001
+		stats["errors"] += 1
+		frappe.log_error(
+			"poll_pending_twint resolve_driver error",
+			f"intent={intent['name']} {intent['provider']}/{intent['channel']}: {exc!r}",
+		)
+		return
+
+	# Resolve the merchant. Webshop (twint_web) intents carry twint_merchant_uuid
+	# in their metadata; POS (qr_bridge) intents carry only the provider default,
+	# so resolve it the SAME way the driver does at create time (metadata →
+	# binding → provider default). Without this fallback the poll skipped — and
+	# therefore NEVER confirmed — every POS TWINT payment.
 	merchant_uuid = (md.get("twint_merchant_uuid") or "").strip()
+	if not merchant_uuid and hasattr(driver, "_resolve_merchant_uuid"):
+		merchant_uuid = (driver._resolve_merchant_uuid(md) or "").strip()  # noqa: SLF001
 	if not merchant_uuid:
 		stats["skipped"] += 1
 		return
 
 	stats["checked"] += 1
 	try:
-		driver = resolve_driver(intent["provider"], intent["channel"])
 		result = driver._call_bridge(  # noqa: SLF001 — internal scheduler reuse
 			"monitor_status",
 			merchant_uuid,
