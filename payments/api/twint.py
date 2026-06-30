@@ -237,9 +237,9 @@ def poll_pending_twint_transactions() -> dict[str, Any]:
 # to keep workers responsive for other jobs. Total horizon ~15min — past that,
 # the every-minute cron + 10-min timeout in _process_one_intent take over.
 _FAST_POLL_DELAYS: list[int] = (
-	[5] * 60 +   # 5min @ 5s     = 60 iterations
-	[15] * 40 +  # 10min @ 15s   = 40 iterations
-	[]
+	[3] * 50 +   # first ~2.5min @ 3s — near-instant POS/webshop validation
+	[8] * 30 +   # next ~4min @ 8s
+	[15] * 20    # tail @ 15s
 )
 
 

@@ -199,6 +199,26 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 			"merchant_reference": request.intent_name,
 			"pairing_token": pairing_token,
 		}
+
+		# POS: enqueue a fast-poll loop so the till validates within a few seconds
+		# of the customer confirming in their app — TWINT has no webhook for the
+		# qr_bridge flow, and the per-minute cron is only the safety net. Same
+		# mechanism the webshop (twint_web) already uses.
+		try:
+			frappe.enqueue(
+				"payments.api.twint.fast_poll_intent",
+				intent_name=request.intent_name,
+				queue="short",
+				job_id=f"twint-fast-poll-{request.intent_name}",
+				deduplicate=True,
+				enqueue_after_commit=True,
+			)
+		except Exception as exc:  # noqa: BLE001 — non-fatal, the cron will catch it
+			frappe.log_error(
+				"twint POS fast_poll_intent enqueue failed",
+				f"intent={request.intent_name}: {exc!r}",
+			)
+
 		return DriverResponse(
 			status="requires_action",
 			provider_intent_id=order_id,
