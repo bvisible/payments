@@ -135,6 +135,29 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 		)
 		return
 
+	# TWINT POS (qr_bridge): once the client confirms in their app the order is
+	# ORDER_CONFIRMATION_PENDING and the MERCHANT must CAPTURE it (confirm_payment).
+	# Without this the payment never settles and the POS never reaches "succeeded".
+	# The webshop (twint_web) flow captures elsewhere — scope this to the POS channel.
+	if intent.get("channel") == "qr_bridge" and (
+		(result.get("transaction_status") or "").upper() == "ORDER_CONFIRMATION_PENDING"
+	):
+		try:
+			capture = driver._call_bridge(  # noqa: SLF001
+				"confirm_payment",
+				merchant_uuid,
+				{"order_id": intent["provider_intent_id"], "amount": intent.get("amount")},
+			)
+		except Exception as exc:  # noqa: BLE001
+			stats["errors"] += 1
+			frappe.log_error(
+				"poll_pending_twint confirm_payment error",
+				f"intent={intent['name']} order_id={intent['provider_intent_id']}: {exc!r}",
+			)
+			return
+		if (capture or {}).get("success"):
+			result = capture  # ORDER_OK / SUCCESS now
+
 	target = driver._map_status(result.get("transaction_status"))  # noqa: SLF001
 	if not target or target == "processing":
 		# Timeout intents that have been pending > 10 min (cron path only;
@@ -189,7 +212,15 @@ def poll_pending_twint_transactions() -> dict[str, Any]:
 			"channel": ["in", list(_TWINT_CHANNELS)],
 			"status": ["in", ["requires_action", "processing"]],
 		},
-		fields=["name", "provider", "channel", "provider_intent_id", "metadata_json", "created_at"],
+		fields=[
+			"name",
+			"provider",
+			"channel",
+			"amount",
+			"provider_intent_id",
+			"metadata_json",
+			"created_at",
+		],
 		order_by="creation asc",
 		limit_page_length=50,
 	)
@@ -288,7 +319,7 @@ def fast_poll_intent(intent_name: str) -> dict[str, Any]:
 			row = frappe.db.get_value(
 				"Payment Intent",
 				intent_name,
-				["name", "provider", "channel", "provider_intent_id", "metadata_json", "created_at", "status"],
+				["name", "provider", "channel", "amount", "provider_intent_id", "metadata_json", "created_at", "status"],
 				as_dict=True,
 			)
 		except Exception as exc:  # noqa: BLE001

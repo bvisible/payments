@@ -45,13 +45,20 @@ from payments.drivers.twint.provider import TwintProvider
 # The TWINT SDK exposes a state machine that broadly groups into these buckets.
 # Values are lower-cased and compared loosely (case-insensitive substring match).
 _STATUS_BUCKETS: list[tuple[str, str]] = [
-	# (substring to match, target unified status)
+	# (substring to match (lowercased), target unified status). First match wins.
+	# --- final success ---
+	("order_ok", "succeeded"),  # POS: captured & settled (transaction_status after confirm)
 	("success", "succeeded"),
 	("merchant_completed", "succeeded"),
+	# --- terminal failures (no money captured) ---
+	("merchant_abort", "canceled"),  # MERCHANT_ABORT / MERCHANT_ABORTED
+	("client_abort", "canceled"),  # CLIENT_ABORT / CLIENT_ABORTED
+	("timeout", "canceled"),  # CLIENT_TIMEOUT
 	("client_failed", "failed"),
-	("merchant_aborted", "canceled"),
-	("client_aborted", "canceled"),
 	("failure", "failed"),
+	# --- in flight (client not done yet, or awaiting merchant capture) ---
+	("confirmation_pending", "processing"),  # ORDER_CONFIRMATION_PENDING → poll captures
+	("order_received", "processing"),
 	("ordering", "processing"),
 	("in_progress", "processing"),
 	("pending", "processing"),
