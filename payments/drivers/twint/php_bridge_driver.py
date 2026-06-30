@@ -346,4 +346,7 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 			md = json.loads(md_json)
 		except (ValueError, TypeError):
 			md = {}
-		return (md.get("twint_merchant_uuid") or "").strip() or None
+		# metadata first (webshop carries twint_merchant_uuid), then binding /
+		# provider default — POS (qr_bridge) intents don't store it in metadata,
+		# so reading metadata alone made refunds fail with "no_merchant_uuid".
+		return (self._resolve_merchant_uuid(md) or "").strip() or None
