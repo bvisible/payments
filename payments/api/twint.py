@@ -313,7 +313,15 @@ def fast_poll_intent(intent_name: str) -> dict[str, Any]:
 	stats = {"iterations": 0, "checked": 0, "advanced": 0, "errors": 0, "skipped": 0}
 	terminal = {"succeeded", "failed", "canceled", "refunded"}
 
+	# Stay under the short queue's 300s RQ timeout: hand over to the per-minute
+	# cron (the designed safety net) instead of getting killed mid-loop, which
+	# logged a JobTimeoutException on every payment that wasn't near-instant.
+	budget = 280
+	started = time.monotonic()
+
 	for delay in _FAST_POLL_DELAYS:
+		if time.monotonic() - started + delay > budget:
+			return stats  # cron takes over past this point (by design)
 		stats["iterations"] += 1
 		try:
 			row = frappe.db.get_value(
@@ -332,8 +340,14 @@ def fast_poll_intent(intent_name: str) -> dict[str, Any]:
 		if row["status"] in terminal:
 			return stats  # already done — nothing to poll
 
-		_process_one_intent(dict(row), stats)
-		frappe.db.commit()
+		try:
+			_process_one_intent(dict(row), stats)
+			frappe.db.commit()
+		except frappe.TimestampMismatchError:
+			# another poller (per-minute cron) advanced the same intent first —
+			# fine, pick up the fresh state on the next tick
+			frappe.db.rollback()
+			stats["skipped"] += 1
 
 		# Re-read post-process to check for terminal status reached this tick.
 		new_status = frappe.db.get_value("Payment Intent", intent_name, "status")
