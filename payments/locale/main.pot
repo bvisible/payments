@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Payments VERSION\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
-"POT-Creation-Date: 2026-05-28 14:16+0034\n"
-"PO-Revision-Date: 2026-05-28 14:16+0034\n"
+"POT-Creation-Date: 2026-07-06 20:24+0000\n"
+"PO-Revision-Date: 2026-07-06 20:24+0000\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: hello@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -21,8 +21,18 @@ msgstr ""
 msgid " Online PassKey"
 msgstr ""
 
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:127
+msgid "(expires {0})"
+msgstr ""
+
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:172
 msgid "+ New location"
+msgstr ""
+
+#. Content of the 'setup_guide_html' (HTML) field in DocType 'Twint Bridge
+#. Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "<div class='alert alert-info' style='margin-bottom:10px'><b>Setting up TWINT</b> — the certificate and identifiers are issued on the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a>:<ol style='margin:6px 0 0 18px'><li>Log in to the TWINT merchant portal (button top-right) and open your store.</li><li><b>Generate / download the certificate (.p12)</b> and note its <b>password</b>.</li><li>Copy the <b>Store UUID</b> — portal menu <b>COMMERCES &rarr; Commerce en ligne</b>, edit the store.</li><li>Fill the fields below, upload the .p12 in <b>P12 Certificate</b>, then Save.</li></ol></div>"
 msgstr ""
 
 #: payments/payments/doctype/provider_channel_settings/provider_channel_settings.py:32
@@ -102,6 +112,11 @@ msgstr ""
 msgid "Address line 1"
 msgstr ""
 
+#. Name of a role
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Admin"
+msgstr ""
+
 #. Label of a Section Break field in DocType 'Wallee Settings'
 #: payments/payments/doctype/wallee_settings/wallee_settings.json
 msgid "Advanced Settings"
@@ -161,6 +176,12 @@ msgstr ""
 #. Channel Settings'
 #: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
 msgid "Auto-computed: /api/method/payments.api.webhook_{provider}.handle"
+msgstr ""
+
+#. Description of the 'Merchant UUID' (Data) field in DocType 'Twint Bridge
+#. Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Auto-filled from the certificate file name when you attach the .p12 below — you normally don't type it. Stable identifier = the .p12 file name on neoservice (/home/neoffice/twint-certs/<merchant_uuid>.p12)."
 msgstr ""
 
 #. Description of the 'Auto Capture' (Check) field in DocType 'Wallee Settings'
@@ -237,6 +258,24 @@ msgstr ""
 msgid "Cash Register ID"
 msgstr ""
 
+#. Label of a Check field in DocType 'Twint Bridge Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Certificate Deployed"
+msgstr ""
+
+#. Label of a Date field in DocType 'Twint Bridge Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Certificate Expires On"
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:125
+msgid "Certificate deployed to neoservice ✓"
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:104
+msgid "Certificate upload failed: {0}"
+msgstr ""
+
 #. Label of a Link field in DocType 'Payment Intent'
 #. Label of a Link field in DocType 'Provider Channel Settings'
 #: payments/payments/doctype/payment_intent/payment_intent.json
@@ -275,6 +314,12 @@ msgstr ""
 #. Description of the 'Use Sandbox' (Check) field in DocType 'PayPal Settings'
 #: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
 msgid "Check this if you are testing your payment using the Sandbox API"
+msgstr ""
+
+#. Description of the 'Certificate Deployed' (Check) field in DocType 'Twint
+#. Bridge Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Checked automatically once the P12 has been stored on neoservice."
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:116
@@ -373,6 +418,10 @@ msgstr ""
 
 #: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:564
 msgid "Could not create Razorpay order. Please contact Administrator"
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:95
+msgid "Could not reach the certificate service on neoservice: {0}"
 msgstr ""
 
 #. Label of a Link field in DocType 'Wallee Location'
@@ -512,6 +561,11 @@ msgstr ""
 msgid "Default location for new terminals"
 msgstr ""
 
+#. Label of a Datetime field in DocType 'Twint Bridge Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Deployed On"
+msgstr ""
+
 #. Label of a Small Text field in DocType 'Payment Provider'
 #. Label of a Small Text field in DocType 'Wallee Terminal Configuration'
 #: payments/payments/doctype/payment_provider/payment_provider.json
@@ -591,7 +645,7 @@ msgstr ""
 msgid "Driver Provider Class"
 msgstr ""
 
-#: payments/api/twint.py:223
+#: payments/api/twint.py:271
 msgid "E2E simulators not enabled on this site"
 msgstr ""
 
@@ -663,7 +717,7 @@ msgstr ""
 msgid "Error cancelling payment"
 msgstr ""
 
-#: payments/www/wallee/success.py:174
+#: payments/www/wallee/success.py:173
 msgid "Error creating order. Please contact support."
 msgstr ""
 
@@ -671,7 +725,7 @@ msgstr ""
 msgid "Error creating payment request"
 msgstr ""
 
-#: payments/www/wallee/success.py:164
+#: payments/www/wallee/success.py:163
 msgid "Error finalising order"
 msgstr ""
 
@@ -765,6 +819,12 @@ msgstr ""
 #. Label of a Link field in DocType 'Payment Gateway'
 #: payments/payments/doctype/payment_gateway/payment_gateway.json
 msgid "Gateway Settings"
+msgstr ""
+
+#. Description of the 'P12 Certificate' (Attach) field in DocType 'Twint Bridge
+#. Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Generate / download this .p12 on the TWINT merchant portal, then upload it here. On save it is pushed to neoservice and removed from this instance (the certificate lives only on neoservice). Re-upload to rotate it."
 msgstr ""
 
 #. Label of a Button field in DocType 'Mpesa Settings'
@@ -1062,11 +1122,15 @@ msgstr ""
 msgid "Merchant UUID"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:21
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.js:42
+msgid "Merchant UUID filled automatically from the certificate"
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:41
 msgid "Merchant UUID is required"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:24
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:44
 msgid "Merchant UUID must not contain path separators (got: {0})"
 msgstr ""
 
@@ -1098,7 +1162,7 @@ msgstr ""
 msgid "Missing ERPNext App"
 msgstr ""
 
-#: payments/www/wallee/failed.py:27 payments/www/wallee/success.py:111
+#: payments/www/wallee/failed.py:27 payments/www/wallee/success.py:110
 msgid "Missing payment reference"
 msgstr ""
 
@@ -1164,11 +1228,11 @@ msgstr ""
 msgid "Next Action Type"
 msgstr ""
 
-#: payments/tests/e2e/fixtures.py:586
+#: payments/tests/e2e/fixtures.py:595
 msgid "No Customer found for {0} after {1}s ({2} attempts)"
 msgstr ""
 
-#: payments/tests/e2e/fixtures.py:604 payments/tests/e2e/fixtures.py:650
+#: payments/tests/e2e/fixtures.py:613 payments/tests/e2e/fixtures.py:659
 msgid "No Customer linked to user {0}"
 msgstr ""
 
@@ -1196,7 +1260,7 @@ msgstr ""
 msgid "No Wallee Settings row found for Payment Provider {0}. Create one at /app/wallee-settings/new?provider={0}."
 msgstr ""
 
-#: payments/tests/e2e/fixtures.py:664
+#: payments/tests/e2e/fixtures.py:673
 msgid "No cart Quotation found for {0}"
 msgstr ""
 
@@ -1220,6 +1284,10 @@ msgstr ""
 msgid "No enabled TWINT Payment Provider found"
 msgstr ""
 
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:75
+msgid "No enabled TWINT Payment Provider found. Create the TWINT Payment Provider first so the certificate can be pushed to neoservice."
+msgstr ""
+
 #: payments/integrations/wallee/api.py:57
 msgid "No enabled Wallee Payment Provider found"
 msgstr ""
@@ -1228,7 +1296,7 @@ msgstr ""
 msgid "No enabled Wallee provider found"
 msgstr ""
 
-#: payments/tests/e2e/fixtures.py:438
+#: payments/tests/e2e/fixtures.py:447
 msgid "No published, addable Website Item with positive price found on this site"
 msgstr ""
 
@@ -1283,6 +1351,11 @@ msgstr ""
 
 #: payments/public/js/twint_dialog.js:752
 msgid "Other applications"
+msgstr ""
+
+#. Label of a Attach field in DocType 'Twint Bridge Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "P12 Certificate"
 msgstr ""
 
 #. Label of a Password field in DocType 'Twint Bridge Settings'
@@ -1487,7 +1560,7 @@ msgstr ""
 msgid "Payment failed or was cancelled"
 msgstr ""
 
-#: payments/www/wallee/failed.py:31 payments/www/wallee/success.py:115
+#: payments/www/wallee/failed.py:31 payments/www/wallee/success.py:114
 msgid "Payment reference not found"
 msgstr ""
 
@@ -1496,7 +1569,7 @@ msgstr ""
 msgid "Payment successful"
 msgstr ""
 
-#: payments/www/wallee/success.py:177
+#: payments/www/wallee/success.py:176
 msgid "Payment was declined"
 msgstr ""
 
@@ -1726,6 +1799,12 @@ msgstr ""
 msgid "Razorpay Signature Verification Failed"
 msgstr ""
 
+#. Description of the 'Certificate Expires On' (Date) field in DocType 'Twint
+#. Bridge Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "Read automatically from the certificate. A reminder email is sent and a POS warning shows in the 45 days before this date."
+msgstr ""
+
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:379
 msgid "Reader registered: {0}"
 msgstr ""
@@ -1934,12 +2013,6 @@ msgstr ""
 msgid "Space ID"
 msgstr ""
 
-#. Description of the 'Merchant UUID' (Data) field in DocType 'Twint Bridge
-#. Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
-msgid "Stable identifier matching the P12 filename on neoservice: /home/frappe/twint-certs/<merchant_uuid>.p12"
-msgstr ""
-
 #. Description of the 'Channel Code' (Data) field in DocType 'Payment Channel'
 #: payments/payments/doctype/payment_channel/payment_channel.json
 msgid "Stable identifier, e.g. 'web', 'terminal', 'qr_bridge', 'billing'"
@@ -1965,6 +2038,12 @@ msgstr ""
 #: payments/www/wallee/failed.html:28 payments/www/wallee/success.html:24
 #: payments/www/wallee/success.html:47
 msgid "Status"
+msgstr ""
+
+#. Description of the 'TWINT Store UUID' (Data) field in DocType 'Twint Bridge
+#. Settings'
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+msgid "StoreUUID provisioned by TWINT. Find it in the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a> &rarr; menu COMMERCES &rarr; Commerce en ligne &rarr; edit the store."
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
@@ -2056,6 +2135,14 @@ msgstr ""
 msgid "TWINT Store UUID"
 msgstr ""
 
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:245
+msgid "TWINT certificate expires in {0} day(s) — {1}"
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.js:6
+msgid "TWINT merchant portal"
+msgstr ""
+
 #: payments/integrations/twint/api.py:113
 msgid "TWINT transaction creation failed"
 msgstr ""
@@ -2104,6 +2191,14 @@ msgstr ""
 
 #: payments/public/js/twint_dialog.js:939
 msgid "The QR code has expired. Please refresh the page to generate a new code."
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:240
+msgid "The TWINT certificate for <b>{0}</b> expired on {1}. TWINT payments are DOWN until a renewed .p12 is uploaded on the Twint Bridge Settings form."
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:246
+msgid "The TWINT certificate for <b>{0}</b> expires on {1} (in {2} day(s)).<br><br>Renew it with TWINT (they issue a new .p12) and upload it via the <b>P12 Certificate</b> field on the Twint Bridge Settings form — it replaces the current one automatically."
 msgstr ""
 
 #. Description of the 'Space ID' (Int) field in DocType 'Wallee Settings'
@@ -2164,19 +2259,13 @@ msgstr ""
 msgid "Twint Bridge Settings"
 msgstr ""
 
-#: payments/drivers/twint/php_bridge_driver.py:114
+#: payments/drivers/twint/php_bridge_driver.py:121
 msgid "Twint Bridge Settings record not found for merchant_uuid {0}"
 msgstr ""
 
 #. Label of a Select field in DocType 'Payment Channel'
 #: payments/payments/doctype/payment_channel/payment_channel.json
 msgid "UI Kind"
-msgstr ""
-
-#. Description of the 'TWINT Store UUID' (Data) field in DocType 'Twint Bridge
-#. Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
-msgid "UUID provisioned by TWINT for the merchant store"
 msgstr ""
 
 #: payments/payment_gateways/doctype/mpesa_settings/account_balance.html:10
@@ -2569,5 +2658,17 @@ msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:452
 msgid "— Pick a profile first —"
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:239
+msgid "⚠️ TWINT certificate EXPIRED — {0}"
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.js:16
+msgid "⚠️ The TWINT certificate EXPIRED on {0} — TWINT payments are down until you upload a renewed .p12 in the field above."
+msgstr ""
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.js:24
+msgid "⚠️ The TWINT certificate expires on {0} (in {1} days). Renew it with TWINT and upload the new .p12 in the field above — it replaces the current one automatically."
 msgstr ""
 
