@@ -110,10 +110,11 @@ def _ensure_payment_provider() -> str:
 	provider_doc = frappe.get_doc(
 		{
 			"doctype": "Payment Provider",
-			"name": "twint_migrated",
+			"provider_name": "twint_migrated",
+			"display_label": "TWINT",
 			"driver_class": "payments.drivers.twint.php_bridge_driver.TwintPHPBridgeDriver",
 			"enabled": 1,
-			"mode": "production",
+			"mode": "live",
 		}
 	).insert(ignore_permissions=True)
 	print(f"[v15_04] created Payment Provider {provider_doc.name}")
