@@ -135,13 +135,14 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 		)
 		return
 
-	# TWINT POS (qr_bridge): once the client confirms in their app the order is
+	# Once the client confirms in their app the order sits in
 	# ORDER_CONFIRMATION_PENDING and the MERCHANT must CAPTURE it (confirm_payment).
-	# Without this the payment never settles and the POS never reaches "succeeded".
-	# The webshop (twint_web) flow captures elsewhere — scope this to the POS channel.
-	if intent.get("channel") == "qr_bridge" and (
-		(result.get("transaction_status") or "").upper() == "ORDER_CONFIRMATION_PENDING"
-	):
+	# This is a property of the TWINT order, not of the channel: TwintWebDriver
+	# subclasses TwintPHPBridgeDriver and registers the very same order, so the
+	# webshop needs the capture exactly like the POS does. Scoping this to
+	# qr_bridge left every webshop payment stuck in "processing" until the 10-min
+	# timeout cancelled it — the buyer had confirmed and paid nothing.
+	if (result.get("transaction_status") or "").upper() == "ORDER_CONFIRMATION_PENDING":
 		try:
 			capture = driver._call_bridge(  # noqa: SLF001
 				"confirm_payment",
