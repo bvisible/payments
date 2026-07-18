@@ -28,7 +28,7 @@
   {
    "fieldname": "setup_guide_html",
    "fieldtype": "HTML",
-   "options": "<div class='alert alert-info' style='margin-bottom:10px'><b>Setting up TWINT</b> — the certificate and identifiers are issued on the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a>:<ol style='margin:6px 0 0 18px'><li>Log in to the TWINT merchant portal (button top-right) and open your store.</li><li><b>Generate / download the certificate (.p12)</b> and note its <b>password</b>.</li><li>Copy the <b>Store UUID</b> — portal menu <b>COMMERCES &rarr; Commerce en ligne</b>, edit the store.</li><li>Fill the fields below, upload the .p12 in <b>P12 Certificate</b>, then Save.</li></ol></div>"
+   "options": "<div class='alert alert-info' style='margin-bottom:10px'><b>Configurer TWINT</b> — le certificat et les identifiants sont délivrés sur le <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>portail marchand TWINT</a> :<ol style='margin:6px 0 0 18px'><li>Connectez-vous au portail marchand TWINT (bouton en haut à droite) et ouvrez votre boutique.</li><li><b>Générez / téléchargez le certificat (.p12)</b> et notez son <b>mot de passe</b>.</li><li>Copiez le <b>Store UUID</b> — menu du portail <b>COMMERCES &rarr; Commerce en ligne</b>, éditez la boutique.</li><li>Remplissez les champs ci-dessous, téléversez le .p12 dans <b>Certificat P12</b>, puis Enregistrez.</li></ol></div>"
   },
   {
    "fieldname": "merchant_uuid",
