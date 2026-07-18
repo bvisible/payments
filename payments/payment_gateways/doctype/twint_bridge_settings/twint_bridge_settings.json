@@ -62,7 +62,7 @@
    "fieldtype": "Data",
    "label": "TWINT Store UUID",
    "reqd": 1,
-   "description": "StoreUUID provisioned by TWINT. Find it in the <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>TWINT merchant portal</a> &rarr; menu COMMERCES &rarr; Commerce en ligne &rarr; edit the store."
+   "description": "Store UUID provided by TWINT. Find it in the TWINT merchant portal → menu COMMERCES → Commerce en ligne → edit the store."
   },
   {
    "fieldname": "cash_register_id",
