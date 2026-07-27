@@ -132,6 +132,12 @@ class PaymentIntent(Document):
 			self.error_code = error_code
 		if error_message is not None:
 			self.error_message = error_message
+		if new_status == "succeeded" and error_code is None and error_message is None:
+			# A settled intent must not keep the decline reason of an earlier
+			# attempt: it would read as "paid AND refused" in the desk and in
+			# any reconciliation query filtering on error_code.
+			self.error_code = None
+			self.error_message = None
 		if new_status in TERMINAL_STATUSES:
 			# Always re-stamp: a `failed` intent that the PSP later settles must
 			# carry the time of the SETTLEMENT, not of the earlier decline.
