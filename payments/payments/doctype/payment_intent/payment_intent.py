@@ -11,12 +11,21 @@ from frappe.utils import now_datetime
 # Allowed FSM transitions. Maps current_status -> set of acceptable next statuses.
 # Terminal states (succeeded, canceled, refunded) cannot transition further except:
 #   succeeded -> refunded (after a successful refund call)
-# Failed is terminal except for explicit operator override (not allowed via the API).
+#   failed -> succeeded/processing (PSP retried on the same intent, see below)
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
 	"requires_action": {"processing", "succeeded", "failed", "canceled"},
 	"processing": {"succeeded", "failed", "canceled"},
 	"succeeded": {"refunded"},
-	"failed": set(),
+	# `failed` is NOT final. Card-present declines are often SOFT: a reader that
+	# answers `online_or_offline_pin_required` re-prompts the cardholder for the
+	# PIN and the PSP retries on the SAME provider intent. Stripe then emits
+	# `payment_intent.succeeded` AFTER `payment_intent.payment_failed`. While
+	# `failed` was terminal we dropped that second event: the card was charged,
+	# the cashier saw "declined" and rang the sale again -> double charge, and
+	# the captured amount never reached the books.
+	"failed": {"processing", "succeeded", "canceled"},
+	# `canceled` stays final: cancelling is merchant/cardholder initiated and the
+	# PSP will not capture afterwards.
 	"canceled": set(),
 	"refunded": set(),
 }
@@ -100,6 +109,16 @@ class PaymentIntent(Document):
 		allowed = ALLOWED_TRANSITIONS.get(current, set())
 		if new_status not in allowed:
 			if ignore_invalid:
+				# Never drop a rejected transition silently: a swallowed
+				# `succeeded` means money captured by the PSP that nobody
+				# booked. Callers pass ignore_invalid to survive replays, not
+				# to hide state loss.
+				frappe.log_error(
+					"Payment Intent: rejected FSM transition",
+					f"intent={self.name} {current} -> {new_status} "
+					f"(source={event_source}, webhook_event_log={webhook_event_log})\n"
+					f"payload={payload_excerpt or ''}",
+				)
 				return False
 			frappe.throw(
 				_("Invalid FSM transition for Payment Intent {0}: {1} -> {2}").format(
@@ -113,7 +132,9 @@ class PaymentIntent(Document):
 			self.error_code = error_code
 		if error_message is not None:
 			self.error_message = error_message
-		if new_status in TERMINAL_STATUSES and not self.completed_at:
+		if new_status in TERMINAL_STATUSES:
+			# Always re-stamp: a `failed` intent that the PSP later settles must
+			# carry the time of the SETTLEMENT, not of the earlier decline.
 			self.completed_at = now_datetime()
 		self.save(ignore_permissions=True)
 
