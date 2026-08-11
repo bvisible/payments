@@ -1,0 +1,90 @@
+{% extends "templates/web.html" %}
+
+{#
+	Return page for a Payrexx hosted checkout. All three Payrexx return URLs point
+	here, so the state below comes from the Payment Intent — never from which URL
+	the shopper arrived on. On success we normally redirect to /thank_you; the
+	success block is a safety net for when there is no Sales Order to finalise.
+#}
+
+{% block page_content %}
+<div class="container py-5">
+	<div class="row justify-content-center">
+		<div class="col-md-6 text-center">
+
+			{% if error %}
+			<div class="payment-error">
+				<div class="error-icon mb-4" style="display:flex; justify-content:center;">
+					<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{ _("Error") }}">
+						<circle cx="40" cy="40" r="40" fill="#dc3545"/>
+						<path d="M40 25V45M40 55V55.01" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<h2 class="mb-3">{{ _("Payment Error") }}</h2>
+				<p class="text-muted mb-4">{{ error }}</p>
+				<div class="payment-details card mb-4">
+					<div class="card-body">
+						{% if intent %}
+						<p><strong>{{ _("Reference") }}:</strong> {{ intent.name }}</p>
+						<p><strong>{{ _("Status") }}:</strong> {{ intent.status }}</p>
+						{% endif %}
+					</div>
+				</div>
+				<a href="/cart" class="btn btn-primary">{{ _("Return to Cart") }}</a>
+				<a href="/contact" class="btn btn-outline-secondary ml-2">{{ _("Contact Support") }}</a>
+			</div>
+
+			{% elif status == "pending" %}
+			<div class="payment-pending">
+				<div class="pending-icon mb-4" style="display:flex; justify-content:center;">
+					<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{ _("Processing") }}">
+						<circle cx="40" cy="40" r="40" fill="#ffc107"/>
+						<path d="M40 25V45L50 50" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<h2 class="mb-3">{{ _("Payment Processing") }}</h2>
+				<p class="text-muted mb-4">{{ _("Your payment is being processed. Please wait...") }}</p>
+				<div class="payment-details card mb-4">
+					<div class="card-body">
+						{% if intent %}
+						<p><strong>{{ _("Reference") }}:</strong> {{ intent.name }}</p>
+						<p><strong>{{ _("Status") }}:</strong> {{ intent.status }}</p>
+						<p><strong>{{ _("Amount") }}:</strong> {{ frappe.format_value(intent.amount / 100, {"fieldtype": "Currency", "options": intent.currency}) }}</p>
+						{% endif %}
+					</div>
+				</div>
+				{#
+					The server polls for ~18 s before rendering. This reload covers a
+					settlement slower than that without holding the request open, and
+					the webhook remains the real backstop.
+				#}
+				<script>setTimeout(function(){ window.location.reload(); }, 3000);</script>
+				<p class="text-muted small">{{ _("This page will refresh automatically.") }}</p>
+			</div>
+
+			{% else %}
+			<div class="payment-success">
+				<div class="success-icon mb-4" style="display:flex; justify-content:center;">
+					<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{ _("Success") }}">
+						<circle cx="40" cy="40" r="40" fill="#28a745"/>
+						<path d="M25 42L36 53L57 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<h2 class="mb-3">{{ _("Payment Successful") }}</h2>
+				<p class="text-muted mb-4">{{ _("Thank you. Your payment has been processed.") }}</p>
+				{% if intent %}
+				<div class="payment-details card mb-4">
+					<div class="card-body">
+						<p><strong>{{ _("Reference") }}:</strong> {{ intent.name }}</p>
+						<p><strong>{{ _("Amount") }}:</strong> {{ frappe.format_value(intent.amount / 100, {"fieldtype": "Currency", "options": intent.currency}) }}</p>
+					</div>
+				</div>
+				{% endif %}
+				<a href="/" class="btn btn-primary">{{ _("Continue") }}</a>
+			</div>
+			{% endif %}
+
+		</div>
+	</div>
+</div>
+{% endblock %}

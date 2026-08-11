@@ -15,6 +15,9 @@ dependencies = [
     "pycryptodome>=3.18.0,<4.0.0",
     "gocardless-pro~=1.22.0",
     "wallee>=6.4.0",
+    # Payrexx client — no official Python SDK exists, so this is ours:
+    # https://github.com/neoserviceai/payrexx-python
+    "payrexx @ git+https://github.com/neoserviceai/payrexx-python.git@main",
 ]
 
 [build-system]

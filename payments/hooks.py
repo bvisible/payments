@@ -144,6 +144,15 @@ scheduler_events["cron"]["* * * * *"].append(
 	"payments.drivers.wallee.terminal_driver.poll_pending_transactions"
 )
 
+# Payrexx: the webhook is primary (one stream covers web, terminal and Tap to Pay).
+# This poll only rescues web intents left non-final for 5+ minutes — a lost webhook,
+# or a shopper who closed the tab before the return page ran. Kept every 5 minutes
+# rather than every minute because Payrexx rate-limits at ~600 requests / 5 min per
+# account, which a fleet of tills would otherwise burn through.
+scheduler_events["cron"]["*/5 * * * *"].append(
+	"payments.api.webhook_payrexx.poll_pending_payrexx_transactions"
+)
+
 # TWINT: daily certificate-expiry check → reminder email in the 45 days before
 # the cert's notAfter (TWINT certs last ~3 years and expire silently).
 scheduler_events["daily"] = [
