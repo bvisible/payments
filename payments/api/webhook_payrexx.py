@@ -201,7 +201,16 @@ def _derive_event_id(tx, raw_status: str, payload: bytes) -> str:  # noqa: ANN00
 
 
 def process_event(log_name: str) -> None:
-	"""RQ job — apply a verified delivery to the Payment Intent FSM."""
+	"""RQ job — apply a verified delivery to the Payment Intent FSM.
+
+	Field names here follow the ``Webhook Event Log`` doctype exactly: the error
+	field is ``error`` (not ``error_message``), and ``status`` is a Select limited to
+	``Queued`` / ``Processed`` / ``Failed`` / ``Skipped`` — there is no ``Ignored``.
+	Writing outside that set leaves the row stuck at ``Queued``, which is precisely
+	what happened before this was tested against a real delivery.
+	"""
+	from frappe.utils import now_datetime
+
 	log = frappe.get_doc("Webhook Event Log", log_name)
 
 	try:
@@ -212,15 +221,20 @@ def process_event(log_name: str) -> None:
 		)
 
 		if not result.intent_name or not frappe.db.exists("Payment Intent", result.intent_name):
-			log.status = "Ignored"
-			log.error_message = _("No matching Payment Intent for reference {0}").format(
+			# Not an error: Payrexx also delivers for payments that never went
+			# through this app — a link paid from the back office, or a test
+			# delivery whose referenceId is empty.
+			log.status = "Skipped"
+			log.error = _("No matching Payment Intent for reference {0}").format(
 				result.intent_name or "-"
 			)
+			log.processed_at = now_datetime()
 			log.save(ignore_permissions=True)
 			frappe.db.commit()
 			return
 
 		intent = frappe.get_doc("Payment Intent", result.intent_name)
+		log.intent = intent.name
 
 		if result.target_status:
 			intent.transition_to(
@@ -234,10 +248,11 @@ def process_event(log_name: str) -> None:
 			# A status our FSM has no state for. Do not guess.
 			_record_needs_human(intent, result)
 			log.status = "Processed"
-			log.error_message = _("Status {0} recorded without an FSM transition").format(
+			log.error = _("Status {0} recorded without an FSM transition").format(
 				result.error_code or "unknown"
 			)
 
+		log.processed_at = now_datetime()
 		log.save(ignore_permissions=True)
 		frappe.db.commit()
 
@@ -248,7 +263,8 @@ def process_event(log_name: str) -> None:
 		)
 	except Exception as exc:  # noqa: BLE001 - a job failure must not retry forever
 		log.status = "Failed"
-		log.error_message = str(exc)[:2000]
+		log.error = str(exc)[:2000]
+		log.processed_at = now_datetime()
 		log.save(ignore_permissions=True)
 		frappe.db.commit()
 		frappe.log_error("Payrexx webhook processing failed", f"{log_name}: {frappe.get_traceback()}")
