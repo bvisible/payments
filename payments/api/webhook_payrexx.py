@@ -256,9 +256,15 @@ def process_event(log_name: str) -> None:
 		log.save(ignore_permissions=True)
 		frappe.db.commit()
 
+		extra = {}
+		if intent.status == "succeeded" and intent.channel == "payrexx_web":
+			redirect_to = _finalize_webshop_sales_order(intent)
+			if redirect_to:
+				extra["redirect_to"] = redirect_to
+
 		frappe.publish_realtime(
 			f"payment.intent.{intent.name}.updated",
-			{"intent_name": intent.name, "status": intent.status},
+			{"intent_name": intent.name, "status": intent.status, **extra},
 			after_commit=True,
 		)
 	except Exception as exc:  # noqa: BLE001 - a job failure must not retry forever
@@ -268,6 +274,52 @@ def process_event(log_name: str) -> None:
 		log.save(ignore_permissions=True)
 		frappe.db.commit()
 		frappe.log_error("Payrexx webhook processing failed", f"{log_name}: {frappe.get_traceback()}")
+
+
+def _finalize_webshop_sales_order(intent) -> str | None:  # noqa: ANN001
+	"""Create the webshop Sales Order for a succeeded ``payrexx_web`` intent.
+
+	``/payrexx/success`` is the primary path, but it only runs if the shopper comes
+	back: closing the tab on the Payrexx page leaves a paid transaction with the
+	Payment Request still ``Draft`` and no Sales Order — money in, no order. The
+	webhook is the one signal that always arrives, so it finalises too. Same shape as
+	the TWINT poller's finalize step and Wallee's
+	``_finalize_wallee_web_sales_order`` — with the difference that those two only
+	run from the scheduler, so a webhook-driven success is never finalised there.
+
+	Idempotent, which is what makes running both paths safe: on a Payment Request
+	already ``Paid``, ``handle_payment_success`` short-circuits, so whichever gets
+	there first wins and the other is a no-op.
+
+	Returns the redirect target when the webshop produced one, for the realtime
+	message an open checkout tab may be listening to.
+	"""
+	if intent.reference_doctype != "Payment Request" or not intent.reference_name:
+		return None
+
+	try:
+		from webshop.controllers.payment_handler import handle_payment_success
+
+		result = handle_payment_success(payment_request_id=intent.reference_name)
+	except ImportError:
+		return None  # webshop app not installed on this site
+	except Exception as exc:  # noqa: BLE001 - the payment stands even if the order fails
+		frappe.log_error(
+			"Payrexx webhook finalize failed",
+			f"intent={intent.name} pr={intent.reference_name}: {exc!r}\n\n{frappe.get_traceback()}",
+		)
+		return None
+
+	if result and result.get("status") == "success":
+		return result.get("redirect_to")
+
+	# Not an exception, so nothing reaches Error Log on its own — but a paid
+	# transaction with no order is exactly what someone has to look at.
+	frappe.log_error(
+		"Payrexx webhook finalize refused",
+		f"intent={intent.name} pr={intent.reference_name} result={result!r}",
+	)
+	return None
 
 
 def _record_needs_human(intent, result: WebhookResult) -> None:  # noqa: ANN001
@@ -380,3 +432,44 @@ def poll_pending_payrexx_transactions() -> None:
 				frappe.db.commit()
 		except Exception as exc:  # noqa: BLE001 - one bad row must not stop the sweep
 			frappe.log_error("Payrexx poll failed", f"{row.name}: {exc!r}")
+
+	_retry_unfinalized_orders(cutoff)
+
+
+def _retry_unfinalized_orders(cutoff) -> None:  # noqa: ANN001
+	"""Retry order creation for paid intents whose Sales Order never materialised.
+
+	Both finalisation paths — the return page and the webhook — can fail after the
+	money has moved: webshop raising, a validation refusing the order, the site
+	restarting mid-job. The intent is then ``succeeded``, which the sweep above no
+	longer looks at since it only scans non-final states. Without this pass such a
+	payment stays invisible until a customer complains.
+
+	Costs no Payrexx request: the payment is already known-good, only the local
+	document is missing.
+	"""
+	paid = frappe.get_all(
+		"Payment Intent",
+		filters={
+			"provider": ["like", "payrexx%"],
+			"channel": "payrexx_web",
+			"status": "succeeded",
+			"reference_doctype": "Payment Request",
+			"modified": ["<", cutoff],
+		},
+		fields=["name", "reference_name"],
+		order_by="modified desc",
+		limit_page_length=40,
+	)
+
+	for row in paid:
+		if not row.reference_name:
+			continue
+		pr_status = frappe.db.get_value("Payment Request", row.reference_name, "status")
+		if pr_status in ("Paid", "Completed", "Cancelled"):
+			continue
+		try:
+			_finalize_webshop_sales_order(frappe.get_doc("Payment Intent", row.name))
+			frappe.db.commit()
+		except Exception as exc:  # noqa: BLE001
+			frappe.log_error("Payrexx finalize retry failed", f"{row.name}: {exc!r}")
