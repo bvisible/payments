@@ -29,8 +29,12 @@ wrong charges a customer twice:
    the transaction webhook (``type == "POS-Terminal"``), whose statuses are
    documented.
 
-There is also no documented ECR simulator, so this driver is not exercisable
-without physical hardware — unit tests below stub the library.
+Payrexx documents no ECR sandbox, so a terminal payment cannot be exercised at
+all until a NexGo arrives. To unblock that, a ``Payment Device`` whose
+``device_type`` starts with ``simulated`` short-circuits every ECR call: the
+driver returns a synthetic ``sim_<intent>`` payment id and POSNext's simulator
+panel drives the state machine. Guarded on the device type **and** on the
+provider being in ``test`` mode — see :meth:`PayrexxTerminalDriver._is_simulator`.
 """
 
 from __future__ import annotations
@@ -86,6 +90,42 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 	def _client(self):  # noqa: ANN202
 		return build_client(self._payrexx_provider.provider_doc)
 
+	def _is_simulator(self, device_id: str | None) -> bool:
+		"""Whether this Payment Device stands in for hardware we do not have yet.
+
+		Payrexx documents no ECR sandbox — unlike Stripe, which hands out
+		``simulated-wpe`` readers — so a terminal payment cannot be exercised at all
+		until a NexGo arrives. A device whose ``device_type`` starts with
+		``simulated`` therefore short-circuits the ECR call: the driver returns a
+		synthetic payment id and the till's simulator panel (POSNext's
+		``pos_simulate_terminal_outcome``) drives the FSM from there.
+
+		Guarded twice over, because a simulator that leaked into production would
+		mark real invoices paid without any money moving:
+
+		- the device must be explicitly typed ``simulated*``
+		- the Payment Provider must be in ``test`` mode
+
+		Both must hold; a ``simulated`` device on a live provider is refused.
+		"""
+		if not device_id:
+			return False
+		device_type = frappe.db.get_value("Payment Device", device_id, "device_type") or ""
+		if not device_type.lower().startswith("simulated"):
+			return False
+
+		mode = frappe.db.get_value(
+			"Payment Provider", self._payrexx_provider.provider_doc.name, "mode"
+		)
+		if mode != "test":
+			raise frappe.ValidationError(
+				_(
+					"Payment Device {0} is a simulator but Payment Provider {1} is in "
+					"'{2}' mode. Simulated terminals are only allowed in test mode."
+				).format(device_id, self._payrexx_provider.provider_doc.name, mode)
+			)
+		return True
+
 	def _serial(self, device_id: str | None) -> str:
 		"""Resolve the terminal serial number from a Payment Device id.
 
@@ -128,6 +168,30 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 
 		metadata = request.metadata or {}
 		tip = metadata.get("tip_amount")
+
+		# Simulated device: skip the ECR call entirely and hand the till something
+		# it can act on. Without this the payment dies on 404 Terminal not found,
+		# because Payrexx offers no sandbox terminal to talk to.
+		try:
+			if self._is_simulator(request.device_id):
+				return DriverResponse(
+					status="requires_action",
+					provider_intent_id=f"sim_{request.intent_name}",
+					next_action_type="display_card_present_modal",
+					next_action_payload={
+						"device_id": request.device_id,
+						"serial_number": serial,
+						"terminal_status": "simulated_waiting",
+						"simulated": True,
+						"slip": [],
+					},
+					raw={"simulated": True, "amount": request.amount, "currency": request.currency},
+				)
+		except frappe.ValidationError as exc:
+			# A simulator on a live provider — refuse loudly rather than charge nothing.
+			return DriverResponse(
+				status="failed", error_code="simulator_not_allowed", error_message=str(exc)
+			)
 
 		try:
 			with self._client() as client:
@@ -174,6 +238,18 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		reports, because ``payment_status`` has no documented vocabulary. The raw
 		value travels in ``next_action_payload`` for the till to display.
 		"""
+		# A simulated payment has no ECR counterpart to read; the till's simulator
+		# panel owns its state. Reported as still processing so the dialog keeps
+		# waiting for the operator to accept or decline.
+		if str(provider_intent_id).startswith("sim_"):
+			return DriverResponse(
+				status="processing",
+				provider_intent_id=provider_intent_id,
+				next_action_type="display_card_present_modal",
+				next_action_payload={"terminal_status": "simulated_waiting", "simulated": True},
+				raw={"simulated": True},
+			)
+
 		try:
 			serial = self._serial(device_id or self._device_for_intent(provider_intent_id))
 			with self._client() as client:
@@ -194,6 +270,14 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 
 	def cancel_intent(self, provider_intent_id: str) -> DriverResponse:
 		"""Cancel a payment still in progress on the terminal."""
+		if str(provider_intent_id).startswith("sim_"):
+			return DriverResponse(
+				status="canceled",
+				provider_intent_id=provider_intent_id,
+				next_action_payload={"terminal_status": "simulated_cancelled", "simulated": True},
+				raw={"simulated": True},
+			)
+
 		try:
 			serial = self._serial(self._device_for_intent(provider_intent_id))
 			with self._client() as client:
@@ -221,6 +305,17 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		refunds. Getting this backwards means the till offers an action the terminal
 		refuses, which is exactly the regression our POS return flow must not have.
 		"""
+		if str(provider_intent_id).startswith("sim_"):
+			# No Payrexx transaction exists behind a simulated payment, so there is
+			# nothing to void or refund provider-side. Reported as refunded so the
+			# till's return flow can be exercised end to end.
+			return DriverResponse(
+				status="refunded",
+				provider_intent_id=provider_intent_id,
+				next_action_payload={"method": "simulated", "simulated": True},
+				raw={"simulated": True, "amount": amount},
+			)
+
 		intent = frappe.db.get_value(
 			"Payment Intent",
 			{"provider_intent_id": provider_intent_id},
