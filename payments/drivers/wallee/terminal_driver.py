@@ -628,6 +628,13 @@ def poll_pending_transactions() -> dict[str, Any]:
 	# /wallee/success page or a webhook) yet still have a Draft Payment
 	# Request — finalize failed or the buyer's tab closed mid-finalize.
 	# Recover those so the Sales Order always gets created.
+	#
+	# Bounded to the last 24 hours, like the Payrexx and TWINT equivalents. Without
+	# an upper bound, a first run on a site with history settles old requests in
+	# silence — TWINT did exactly that on osiris, marking two Payment Requests from
+	# May as Paid. Past a day, an unfinalised payment is a human's call: it may have
+	# been refunded, keyed in by hand, or its order cancelled.
+	horizon = frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-24)
 	orphans = frappe.get_all(
 		"Payment Intent",
 		filters={
@@ -635,6 +642,7 @@ def poll_pending_transactions() -> dict[str, Any]:
 			"provider": ["in", wallee_providers],
 			"channel": "wallee_web",
 			"reference_doctype": "Payment Request",
+			"modified": [">", horizon],
 		},
 		fields=["name", "reference_name"],
 		limit=100,

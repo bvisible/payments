@@ -447,7 +447,15 @@ def _retry_unfinalized_orders(cutoff) -> None:  # noqa: ANN001
 
 	Costs no Payrexx request: the payment is already known-good, only the local
 	document is missing.
+
+	Bounded on both sides. The lower bound (``cutoff``, five minutes) keeps this from
+	racing the webhook that is probably finalising right now. The upper bound of 24
+	hours keeps it from reaching back through a site's whole history and settling old
+	requests in silence — the same guard TWINT needed after it marked two Payment
+	Requests from May as Paid on its first run. Past a day, an unfinalised payment is
+	a human's call, not a background job's.
 	"""
+	horizon = frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-24)
 	paid = frappe.get_all(
 		"Payment Intent",
 		filters={
@@ -455,7 +463,7 @@ def _retry_unfinalized_orders(cutoff) -> None:  # noqa: ANN001
 			"channel": "payrexx_web",
 			"status": "succeeded",
 			"reference_doctype": "Payment Request",
-			"modified": ["<", cutoff],
+			"modified": ["between", [horizon, cutoff]],
 		},
 		fields=["name", "reference_name"],
 		order_by="modified desc",

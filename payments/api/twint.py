@@ -250,13 +250,23 @@ def _retry_unfinalized_web_orders(stats: dict[str, int]) -> None:
 	Wallee has had this self-heal for a while; TWINT was the one channel of the
 	ontology without it. Costs no bridge call: the payment is already known-good,
 	only the local document is missing.
+
+	**Bounded to the last 24 hours on purpose.** Without an upper bound the first run
+	on an existing site reaches back through all of its history and silently settles
+	old requests — observed on osiris, where it marked two Payment Requests from May
+	as Paid. Nothing was double-charged there (no Payment Entry, no GL entry), but a
+	payment left unfinalised for a day is no longer something to repair quietly: a
+	human may have refunded it, entered it by hand, or cancelled the order. Past the
+	window it is logged for someone to look at instead.
 	"""
+	horizon = now_datetime() - timedelta(hours=24)
 	orphans = frappe.get_all(
 		"Payment Intent",
 		filters={
 			"channel": "twint_web",
 			"status": "succeeded",
 			"reference_doctype": "Payment Request",
+			"modified": [">", horizon],
 		},
 		fields=["name", "reference_name"],
 		order_by="modified desc",
@@ -280,6 +290,25 @@ def _retry_unfinalized_web_orders(stats: dict[str, int]) -> None:
 		except Exception as exc:  # noqa: BLE001 — one bad row must not stop the sweep
 			stats["errors"] += 1
 			frappe.log_error("twint web orphan finalize", f"intent={row.name}: {exc!r}")
+
+	# Anything past the window still needs a human — the bound must not turn the
+	# original gap back on, only stop the automatic repair from acting silently on
+	# old money. Reported through stats rather than Error Log: this cron runs every
+	# minute, and one row per minute would bury the log it is meant to draw attention
+	# to. The count surfaces in Scheduled Job Log.
+	stale = frappe.db.sql(
+		"""select count(pi.name) from `tabPayment Intent` pi
+		   join `tabPayment Request` pr on pr.name = pi.reference_name
+		   where pi.channel = 'twint_web' and pi.status = 'succeeded'
+		     and pi.reference_doctype = 'Payment Request'
+		     and pi.modified <= %s and pr.docstatus = 0 and pr.status != 'Paid'""",
+		horizon,
+	)[0][0]
+	if stale:
+		stats["stale_unfinalized"] = stale
+		frappe.logger("twint").warning(
+			f"{stale} twint_web payment(s) succeeded but unfinalised for over 24h — needs review"
+		)
 
 
 # Fast-poll cadence (seconds). Hugged tight for the first 5min, then loosens
