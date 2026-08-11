@@ -147,28 +147,25 @@ def _driver():  # noqa: ANN202
 	simulator is how you find out it runs before the hardware is on the counter. What
 	matters is that the report says which it was — see :func:`_simulated`.
 	"""
+	from payments.drivers.payrexx._common import resolve_provider_name
 	from payments.drivers.registry import resolve_driver
 
-	provider = frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.payrexx.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
+	provider = resolve_provider_name("terminal")
 	if not provider:
-		raise frappe.ValidationError("no enabled Payrexx Payment Provider on this site")
+		raise frappe.ValidationError(
+			"no enabled Payrexx Payment Provider with a terminal binding on this site"
+		)
 	return resolve_driver(provider, "terminal")
 
 
 def _client():  # noqa: ANN202
-	from payments.drivers.payrexx._common import build_client
+	from payments.drivers.payrexx._common import build_client, resolve_provider_name
 
-	provider = frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.payrexx.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
+	provider = resolve_provider_name("terminal")
+	if not provider:
+		raise frappe.ValidationError(
+			"no enabled Payrexx Payment Provider with a terminal binding on this site"
+		)
 	return build_client(frappe.get_doc("Payment Provider", provider))
 
 
@@ -257,6 +254,7 @@ def step3_pay(amount: int = _AMOUNT) -> None:
 	``payment_status`` values get captured.
 	"""
 	from payments.api.intent import create_intent
+	from payments.drivers.payrexx._common import resolve_provider_name
 
 	serial = _load().get("serial")
 	device = frappe.db.get_value("Payment Device", {"serial_number": serial}, "name")
@@ -266,11 +264,7 @@ def step3_pay(amount: int = _AMOUNT) -> None:
 		return
 
 	result = create_intent(
-		provider=frappe.db.get_value(
-			"Payment Provider",
-			{"driver_class": ["like", "payments.drivers.payrexx.%"], "enabled": 1},
-			"name", order_by="modified desc",
-		),
+		provider=resolve_provider_name("terminal"),
 		channel="terminal",
 		amount=amount,
 		currency=_CURRENCY,

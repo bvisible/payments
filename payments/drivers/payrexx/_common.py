@@ -144,3 +144,69 @@ def error_response(exc: Exception, *, provider_intent_id: str | None = None) -> 
 		error_code=code,
 		error_message=str(exc),
 	)
+
+
+def resolve_provider_name(channel: str | None = None) -> str | None:
+	"""Pick which Payrexx ``Payment Provider`` to act as, deterministically.
+
+	Detected by driver class rather than record name, so ``payrexx_test`` and
+	``payrexx_live`` can cohabit on one site.
+
+	The order matters, and the previous ``order_by="modified desc"`` was a real
+	hazard: it made the answer depend on which record was touched last, so merely
+	opening and saving the test provider would silently route live customer payments
+	to the test account — and running the base smoke, which provisions its own
+	``payrexx_smoke`` provider, did exactly that on osiris.
+
+	The rules, in order:
+
+	1. Only providers that are enabled.
+	2. When a channel is named, only those with an enabled binding for it — a
+	   provider wired for the terminal alone cannot serve the web checkout.
+	3. ``live`` beats ``test``. If both exist, the site takes real money; picking the
+	   test account would accept a payment that never settles.
+	4. Then by name, so the answer is stable and reproducible rather than incidental.
+
+	Ambiguity past that is logged: with two live providers on one channel, whichever
+	is chosen is a guess, and someone should say which one is meant.
+	"""
+	candidates = frappe.get_all(
+		"Payment Provider",
+		filters={"driver_class": ["like", "payments.drivers.payrexx.%"], "enabled": 1},
+		fields=["name", "mode"],
+		order_by="name asc",
+	)
+	if not candidates:
+		return None
+
+	if channel:
+		bound = {
+			row.provider
+			for row in frappe.get_all(
+				"Provider Channel Settings",
+				filters={
+					"provider": ["in", [c.name for c in candidates]],
+					"channel": channel,
+					"enabled": 1,
+				},
+				fields=["provider"],
+			)
+		}
+		# Only narrow if it leaves something: a site with no binding rows at all
+		# should still resolve, rather than break every payment over configuration
+		# that used to be optional.
+		if bound:
+			candidates = [c for c in candidates if c.name in bound]
+
+	live = [c for c in candidates if (c.mode or "").lower() == "live"]
+	pool = live or candidates
+
+	if len(pool) > 1:
+		frappe.log_error(
+			"Payrexx provider is ambiguous",
+			f"channel={channel or '-'} candidates={[c.name for c in pool]} — using "
+			f"{pool[0].name}. Disable the ones this site must not use, or pass the "
+			f"provider explicitly; leaving several enabled makes the choice a guess.",
+		)
+
+	return pool[0].name

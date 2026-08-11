@@ -146,16 +146,15 @@ def is_payrexx_enabled() -> bool:
 
 
 def _resolve_provider_name(provider: str | None) -> str | None:
-	"""Resolve a Payrexx provider by name, or the first enabled one.
+	"""Resolve a Payrexx provider by name, or pick one for the web channel.
 
-	Detected by driver class rather than record name so ``payrexx_test`` and
-	``payrexx_live`` can cohabit on one site.
+	Delegates to :func:`payments.drivers.payrexx._common.resolve_provider_name`, which
+	prefers a live provider over a test one and is stable across saves — the previous
+	"most recently modified" rule let a test provider capture live payments.
 	"""
 	if provider:
 		return provider
-	return frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.payrexx.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
+
+	from payments.drivers.payrexx._common import resolve_provider_name
+
+	return resolve_provider_name(CHANNEL)

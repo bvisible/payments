@@ -355,17 +355,16 @@ def _record_needs_human(intent, result: WebhookResult) -> None:  # noqa: ANN001
 
 
 def _payrexx_provider_name() -> str | None:
-	"""First enabled Payment Provider record with a Payrexx driver class.
+	"""Which Payrexx provider this delivery belongs to.
 
-	Detected by driver class rather than record name, so ``payrexx_test`` and
-	``payrexx_live`` can cohabit.
+	No channel is passed: Payrexx sends one webhook stream for every channel, so the
+	provider cannot be narrowed by the one being served. See
+	:func:`payments.drivers.payrexx._common.resolve_provider_name` for why the choice
+	is not simply "the most recently modified record".
 	"""
-	return frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.payrexx.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
+	from payments.drivers.payrexx._common import resolve_provider_name
+
+	return resolve_provider_name()
 
 
 def _signing_key(provider_name: str) -> str | None:
