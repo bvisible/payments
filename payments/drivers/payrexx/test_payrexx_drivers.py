@@ -27,7 +27,7 @@ from payments.drivers.payrexx.web_driver import PayrexxWebDriver
 PROVIDER_NAME = "payrexx_test_unit"
 WEB_CHANNEL = "payrexx_web"
 TERMINAL_CHANNEL = "terminal"
-DEVICE_NAME = "payrexx-terminal-unit"
+DEVICE_LABEL = "Payrexx Terminal (unit-tests)"
 SERIAL = "SN-N86-UNIT"
 
 
@@ -79,17 +79,29 @@ def _ensure_fixtures() -> None:
 				}
 			).insert(ignore_permissions=True)
 
-	if not frappe.db.exists("Payment Device", DEVICE_NAME):
+	# Payment Device is autonamed from a naming series, so it is looked up by its
+	# label rather than by a fixed name.
+	if not frappe.db.exists("Payment Device", {"device_label": DEVICE_LABEL}):
+		binding = frappe.db.get_value(
+			"Provider Channel Settings",
+			{"provider": PROVIDER_NAME, "channel": TERMINAL_CHANNEL},
+			"name",
+		)
 		frappe.get_doc(
 			{
 				"doctype": "Payment Device",
-				"device_name": DEVICE_NAME,
-				"provider": PROVIDER_NAME,
-				"channel": TERMINAL_CHANNEL,
+				"device_label": DEVICE_LABEL,
+				"provider_channel_settings": binding,
+				"serial_number": SERIAL,
 				"provider_device_id": SERIAL,
 				"enabled": 1,
 			}
 		).insert(ignore_permissions=True)
+
+
+def _device_name() -> str:
+	"""The autonamed Payment Device record name for our fixture."""
+	return frappe.db.get_value("Payment Device", {"device_label": DEVICE_LABEL}, "name")
 
 
 def _fake_gateway(**overrides):
@@ -302,7 +314,7 @@ class TestPayrexxTerminalDriver(FrappeTestCase):
 					intent_name="PI-TERM-0001",
 					amount=1500,
 					currency="CHF",
-					device_id=DEVICE_NAME,
+					device_id=_device_name(),
 					metadata={"payment_method": "twint", "purpose": "Table 4"},
 				)
 			)
@@ -329,7 +341,7 @@ class TestPayrexxTerminalDriver(FrappeTestCase):
 
 		with (
 			patch.object(PayrexxTerminalDriver, "_client", return_value=client),
-			patch.object(PayrexxTerminalDriver, "_device_for_intent", return_value=DEVICE_NAME),
+			patch.object(PayrexxTerminalDriver, "_device_for_intent", return_value=_device_name()),
 		):
 			response = self.driver.get_status("pay_unit_1")
 
@@ -349,7 +361,7 @@ class TestPayrexxTerminalDriver(FrappeTestCase):
 					intent_name="PI-TERM-0003",
 					amount=1500,
 					currency="CHF",
-					device_id=DEVICE_NAME,
+					device_id=_device_name(),
 				)
 			)
 

@@ -89,16 +89,24 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 	def _serial(self, device_id: str | None) -> str:
 		"""Resolve the terminal serial number from a Payment Device id.
 
-		Accepts either the ``Payment Device`` record name or the serial itself, so
-		a caller holding only the serial (a till reading it off the hardware) does
-		not need a round trip.
+		``Payment Device`` carries both a dedicated ``serial_number`` field and the
+		generic ``provider_device_id`` (where the Stripe driver stores ``tmr_xxx``).
+		``serial_number`` wins because that is what it is for; ``provider_device_id``
+		is the fallback so a device enrolled through the generic wizard still works.
+
+		A value that matches no record is returned as-is, so a caller holding only
+		the serial — a till reading it off the hardware — needs no round trip.
 		"""
 		if not device_id:
 			raise frappe.ValidationError(
 				_("Payrexx terminal payments require a Payment Device (terminal serial number)")
 			)
-		serial = frappe.db.get_value("Payment Device", device_id, "provider_device_id")
-		return str(serial or device_id)
+		row = frappe.db.get_value(
+			"Payment Device", device_id, ["serial_number", "provider_device_id"], as_dict=True
+		)
+		if not row:
+			return str(device_id)
+		return str(row.get("serial_number") or row.get("provider_device_id") or device_id)
 
 	# ------------------------------------------------------------------------
 	# Driver contract
