@@ -218,7 +218,12 @@ def on_payment_intent_after_update(doc, method=None):  # noqa: ANN001 — Frappe
 	try:
 		reconcile_payment_intent(doc.name)
 	except Exception as exc:  # noqa: BLE001 — never break the save
+		# The traceback matters more than the message here: this runs inside a
+		# doc_event, so the failing write is usually several frames away from the
+		# reconcile call, and "Cannot edit cancelled document" says nothing about
+		# which document. Logging only repr(exc) cost a diagnosis already.
 		frappe.log_error(
 			"reconcile_payment_intent failed in doc_event",
-			f"intent={doc.name}: {exc!r}",
+			f"intent={doc.name} status={getattr(doc, 'status', '?')} "
+			f"docstatus={getattr(doc, 'docstatus', '?')}: {exc!r}\n\n{frappe.get_traceback()}",
 		)
