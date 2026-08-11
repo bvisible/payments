@@ -27,6 +27,11 @@ genuine state change. The residual risk is a legitimate re-emission of an
 identical status being swallowed as a duplicate; that is the right trade, since
 swallowing a redundant event is harmless and processing a retry twice is not.
 
+The uuid can also be **absent**: the back office's *Send test data* button posts a
+transaction with ``uuid: null``. Observed on 2026-08-11 — without a fallback every
+test delivery of a given status collapses onto one id, and the second looks like a
+duplicate. :func:`_derive_event_id` falls back to a payload fingerprint.
+
 **Statuses with no FSM equivalent.** ``chargeback``, ``disputed``, ``insecure``
 and ``uncaptured`` do not map onto any of our six states — a chargeback is not a
 refund, and pretending otherwise misstates the books. They are recorded and
@@ -34,6 +39,8 @@ surfaced to an operator instead of driving a transition.
 """
 
 from __future__ import annotations
+
+import hashlib
 
 import frappe
 from frappe import _
@@ -144,7 +151,7 @@ def parse_delivery(
 		# A subscription or payout delivery: valid, signed, but not something the
 		# Payment Intent FSM models. Recorded, not acted upon.
 		return WebhookResult(
-			event_id=f"payrexx_nontransaction_{abs(hash(payload)) % (10**16)}",
+			event_id=f"payrexx_nontransaction_{_payload_fingerprint(payload)}",
 			event_type="non_transaction",
 			signature_valid=True,
 			payload_excerpt=_safe_truncate(payload, 2_000),
@@ -154,7 +161,7 @@ def parse_delivery(
 	target = map_status(raw_status)
 
 	return WebhookResult(
-		event_id=event.event_id or f"payrexx_{tx.uuid}_{raw_status}",
+		event_id=_derive_event_id(tx, raw_status, payload),
 		event_type=f"transaction.{raw_status}",
 		signature_valid=True,
 		# referenceId carries the Payment Intent name — set by both drivers.
@@ -163,6 +170,34 @@ def parse_delivery(
 		error_code=None if target else (raw_status or None),
 		payload_excerpt=_safe_truncate(payload, 2_000),
 	)
+
+
+def _payload_fingerprint(payload: bytes, length: int = 16) -> str:
+	"""A stable fingerprint of a raw payload.
+
+	``hashlib`` rather than the builtin ``hash()``: Python randomises string hashing
+	per process unless ``PYTHONHASHSEED`` is fixed, so ``hash()`` would give a
+	different id in every worker — and the whole point of the id is that a redelivery
+	of the same bytes deduplicates against the first one.
+	"""
+	return hashlib.sha256(payload).hexdigest()[:length]
+
+
+def _derive_event_id(tx, raw_status: str, payload: bytes) -> str:  # noqa: ANN001
+	"""Build a de-duplication id for a transaction delivery.
+
+	Payrexx sends no event id, so one is derived from the transaction uuid and its
+	status: stable across the up-to-10 redeliveries, distinct per genuine state
+	change.
+
+	When the uuid is absent the payload fingerprint is used instead. That is not
+	hypothetical — the back office's *Send test data* button posts a transaction
+	with ``uuid: null``, which would otherwise collapse every test of a given status
+	onto one id and make the second delivery look like a duplicate of the first.
+	"""
+	if tx.uuid:
+		return f"payrexx_{tx.uuid}_{raw_status}"
+	return f"payrexx_nouuid_{raw_status}_{_payload_fingerprint(payload)}"
 
 
 def process_event(log_name: str) -> None:
