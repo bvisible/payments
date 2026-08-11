@@ -208,6 +208,13 @@ def on_payment_intent_after_update(doc, method=None):  # noqa: ANN001 — Frappe
 	"""Wired in ``hooks.py`` ``doc_events``. Reconciles on every save where status=succeeded."""
 	if not getattr(doc, "status", None) == "succeeded":
 		return
+	# A cancelled intent has nothing to reconcile, and reconcile_payment_intent ends
+	# with db_update() to stamp its flag — which Frappe refuses on a cancelled
+	# document ("Cannot edit cancelled document"). Without this guard, every
+	# cancellation of a paid order logs an error that is pure noise, and noise in
+	# Error Log is what hides the entries that matter.
+	if getattr(doc, "docstatus", 0) == 2:
+		return
 	try:
 		reconcile_payment_intent(doc.name)
 	except Exception as exc:  # noqa: BLE001 — never break the save
