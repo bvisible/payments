@@ -90,6 +90,27 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 	def _client(self):  # noqa: ANN202
 		return build_client(self._payrexx_provider.provider_doc)
 
+	def _device_row(self, device_id: str | None) -> dict[str, Any] | None:
+		"""Resolve a Payment Device from either its record name or its serial.
+
+		``payments.api.intent.create_intent`` hands the driver the device's
+		``provider_device_id`` rather than the record name, while a caller reaching
+		the driver directly usually holds the name. Both must work: assuming the
+		name silently broke simulator detection for every payment coming through the
+		till, since the lookup found no record and fell through to a real ECR call.
+		"""
+		if not device_id:
+			return None
+		fields = ["name", "device_type", "serial_number", "provider_device_id"]
+		row = frappe.db.get_value("Payment Device", device_id, fields, as_dict=True)
+		if row:
+			return row
+		for field in ("provider_device_id", "serial_number"):
+			row = frappe.db.get_value("Payment Device", {field: device_id}, fields, as_dict=True)
+			if row:
+				return row
+		return None
+
 	def _is_simulator(self, device_id: str | None) -> bool:
 		"""Whether this Payment Device stands in for hardware we do not have yet.
 
@@ -108,10 +129,10 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 
 		Both must hold; a ``simulated`` device on a live provider is refused.
 		"""
-		if not device_id:
+		row = self._device_row(device_id)
+		if not row:
 			return False
-		device_type = frappe.db.get_value("Payment Device", device_id, "device_type") or ""
-		if not device_type.lower().startswith("simulated"):
+		if not str(row.get("device_type") or "").lower().startswith("simulated"):
 			return False
 
 		mode = frappe.db.get_value(
@@ -141,10 +162,10 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			raise frappe.ValidationError(
 				_("Payrexx terminal payments require a Payment Device (terminal serial number)")
 			)
-		row = frappe.db.get_value(
-			"Payment Device", device_id, ["serial_number", "provider_device_id"], as_dict=True
-		)
+		row = self._device_row(device_id)
 		if not row:
+			# Not a known device: assume the caller handed us the serial itself, which
+			# a till reading it off the hardware legitimately does.
 			return str(device_id)
 		return str(row.get("serial_number") or row.get("provider_device_id") or device_id)
 
