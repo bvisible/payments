@@ -113,6 +113,33 @@ def _note_status(raw_status: str | None) -> None:
 		print(f"  status '{raw_status}' -> {mapped}")
 
 
+def _find_status(raw: Any, _depth: int = 0) -> str | None:
+	"""Dig ``payment_status`` out of a response, wherever Payrexx nested it.
+
+	The ECR responses wrap their payload differently per endpoint (sometimes under
+	``data``, sometimes a bare object, sometimes a single-element list). Searching
+	rather than hard-coding a path means an unexpected shape still yields the value —
+	and the value is the whole point of this run.
+	"""
+	if _depth > 6 or raw is None:
+		return None
+	if isinstance(raw, dict):
+		for key in ("payment_status", "paymentStatus", "status"):
+			value = raw.get(key)
+			if isinstance(value, str) and value:
+				return value
+		for value in raw.values():
+			found = _find_status(value, _depth + 1)
+			if found:
+				return found
+	elif isinstance(raw, (list, tuple)):
+		for item in raw:
+			found = _find_status(item, _depth + 1)
+			if found:
+				return found
+	return None
+
+
 def _driver():  # noqa: ANN202
 	"""The Payrexx terminal driver for this site.
 
@@ -301,28 +328,31 @@ def step4_poll(rounds: int = 20, delay: int = 3) -> None:
 	final = {"succeeded", "failed", "canceled", "refunded"}
 	for i in range(rounds):
 		response = driver.get_status(state["provider_intent_id"])
-		raw = (response.raw or {}) if isinstance(response.raw, dict) else {}
-		raw_status = (
-			raw.get("payment_status")
-			or raw.get("status")
-			or (raw.get("data", [{}])[0].get("payment_status") if raw.get("data") else None)
-		)
+		raw_status = _find_status(response.raw)
 		_note_status(raw_status)
-		print(f"  round {i + 1}: fsm={response.status} raw_status={raw_status}")
-		if response.status in final:
+
+		# The terminal is the source of truth for the payment, but the webhook can
+		# land first and move the intent before a poll sees the change — so either
+		# reaching a final state ends the wait. Checking only the driver would also
+		# never converge against the simulator, whose get_status has no state to read.
+		intent_status = frappe.db.get_value("Payment Intent", intent_name, "status")
+		print(f"  round {i + 1}: driver={response.status} intent={intent_status} "
+		      f"raw_status={raw_status}")
+		if response.status in final or intent_status in final:
 			intent = frappe.get_doc("Payment Intent", intent_name)
 			_record("4. poll to final state", True, {
-				"fsm": response.status,
+				"driver": response.status,
 				"raw_status": raw_status,
 				"intent_status": intent.status,
-				"raw": raw,
+				"raw": response.raw,
 			})
 			print("\n  NEXT: step5_void  (voids the payment you just took)")
 			return
 		time.sleep(delay)
 
 	_record("4. poll to final state", False,
-	        f"still {response.status} after {rounds * delay}s — record what the screen shows")
+	        f"driver still {response.status} after {rounds * delay}s — write down what the "
+	        f"terminal screen shows, that is the value the driver could not read")
 
 
 def step5_void() -> None:
@@ -433,12 +463,17 @@ def report() -> None:
 		flag = "  ⚠️ UNMAPPED" if s["maps_to"] is None else ""
 		print(f"  {s['status']:<24} -> {s['maps_to']}{flag}")
 
-	if unmapped:
+	if not seen:
+		print("\nNo payment_status was observed at all — either the run never reached a "
+		      "live payment, or the value sits somewhere _find_status does not look. "
+		      "Open question 1 stays open until this list is non-empty.")
+	elif unmapped:
 		print(f"\n⚠️  {len(unmapped)} status value(s) have no FSM mapping. Add them to "
 		      f"payments/drivers/payrexx/_common.py::_STATUS_TO_FSM before go-live — "
 		      f"an intent that reaches one of these stalls rather than resolving.")
 	else:
 		print("\nEvery observed status maps onto the FSM.")
+
 
 	ok = sum(1 for e in state.get("steps", []) if e["ok"])
 	print(f"\n=== {ok}/{len(state.get('steps', []))} steps passed ===")
