@@ -101,9 +101,10 @@ class PayrexxProvider(PaymentProviderBase):
 	def list_supported_channels(self) -> list[str]:
 		"""Channels this provider can serve.
 
-		``payrexx_tap_to_pay`` is absent on purpose: Tap to Pay is an Android
-		app-to-app integration over Intents, not a REST channel, so it cannot be
-		driven server-side. Its transactions still arrive through the same webhook
-		(``type == "Tap to Pay"``) and are recorded, but no driver initiates them.
+		``payrexx_tap_to_pay`` is listed, with one caveat worth knowing: unlike the
+		other two, its driver cannot **initiate** a payment. Tap to Pay is an Android
+		app-to-app integration over Intents, so the phone starts it and the webhook
+		records it; the driver exists to hold the intent, read the transaction back and
+		refund it. See :mod:`payments.drivers.payrexx.tap_to_pay_driver`.
 		"""
-		return ["payrexx_web", "terminal"]
+		return ["payrexx_web", "terminal", "payrexx_tap_to_pay"]

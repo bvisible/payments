@@ -145,7 +145,8 @@
    "fieldname": "next_action_type",
    "fieldtype": "Select",
    "label": "Next Action Type",
-   "options": "none\ndisplay_card_present_modal\ndisplay_qr_payload\nredirect_to_url\nrequires_confirmation"
+   "options": "none\ndisplay_card_present_modal\ndisplay_qr_payload\nredirect_to_url\nrequires_confirmation\nnative_app_handoff",
+   "description": "What the caller must do next. native_app_handoff means another app on the device initiates the payment (Payrexx Tap to Pay), not us \u2014 the payload carries what to hand over."
   },
   {
    "fieldname": "next_action_payload",

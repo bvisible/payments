@@ -11,10 +11,12 @@ Channels:
 
 - ``payrexx_web`` — hosted payment page, for the webshop
 - ``terminal`` — card present on a NexGo terminal (ECR), shared with Stripe/Wallee
+- ``payrexx_tap_to_pay`` — NFC on the operator's own Android phone
 
-Tap to Pay is intentionally absent: it is an Android app-to-app integration over
-Intents, not a REST channel, so no server-side driver can initiate it. Its
-transactions still arrive through the shared webhook and are recorded.
+Tap to Pay is the odd one out: it is an Android app-to-app integration over Intents,
+so **no server-side call can initiate it**. Its driver holds the intent, hands the
+phone what it needs, then reads the transaction back and refunds it; the payment
+itself is started by the Payrexx app and reported by the shared webhook.
 """
 
 from payments.drivers.payrexx.provider import PayrexxProvider
