@@ -133,6 +133,22 @@ def process_event(log_name: str) -> None:
 				ignore_invalid=True,
 			)
 			log.intent = result.intent_name
+
+			# A wallee_web success has to produce the Sales Order here as well.
+			# /wallee/success does it when the buyer comes back, and the scheduler
+			# self-heals stragglers, but that leaves up to five minutes where the
+			# money is in and the order does not exist — long enough for a buyer to
+			# call and be told nothing was ordered. The webhook is the one signal
+			# that always arrives, so it finalises immediately.
+			# Idempotent: handle_payment_success short-circuits on a Paid request,
+			# so this and the two other paths cannot double up.
+			if intent_doc.status == "succeeded" and intent_doc.channel == "wallee_web":
+				from payments.drivers.wallee.terminal_driver import (
+					_finalize_wallee_web_sales_order,
+				)
+
+				_finalize_wallee_web_sales_order(intent_doc)
+
 			frappe.publish_realtime(
 				event=f"payment.intent.{result.intent_name}.updated",
 				message={

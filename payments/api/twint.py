@@ -21,10 +21,11 @@ from __future__ import annotations
 
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 import frappe
+from frappe import _
 from frappe.utils import now_datetime
 
 
@@ -230,8 +231,55 @@ def poll_pending_twint_transactions() -> dict[str, Any]:
 	for intent in intents:
 		_process_one_intent(intent, stats)
 
+	_retry_unfinalized_web_orders(stats)
+
 	frappe.db.commit()
 	return stats
+
+
+def _retry_unfinalized_web_orders(stats: dict[str, int]) -> None:
+	"""Recover ``twint_web`` payments that succeeded but produced no Sales Order.
+
+	Every TWINT path to ``succeeded`` finalises on the way through, so the order is
+	normally created immediately. But finalisation can still fail after the money
+	moved — webshop raising, a validation refusing the order, the site restarting
+	mid-job — and once the intent is ``succeeded`` the sweep above no longer looks at
+	it, since it only selects non-final states. Without this pass such a payment is
+	invisible until the customer asks where their order is.
+
+	Wallee has had this self-heal for a while; TWINT was the one channel of the
+	ontology without it. Costs no bridge call: the payment is already known-good,
+	only the local document is missing.
+	"""
+	orphans = frappe.get_all(
+		"Payment Intent",
+		filters={
+			"channel": "twint_web",
+			"status": "succeeded",
+			"reference_doctype": "Payment Request",
+		},
+		fields=["name", "reference_name"],
+		order_by="modified desc",
+		limit_page_length=50,
+	)
+
+	for row in orphans:
+		if not row.reference_name:
+			continue
+		pr_state = frappe.db.get_value(
+			"Payment Request", row.reference_name, ["status", "docstatus"], as_dict=True
+		)
+		# docstatus 0 + not Paid is the signature of a finalisation that never ran:
+		# handle_payment_success submits the request as part of creating the order.
+		if not pr_state or pr_state.docstatus != 0 or pr_state.status == "Paid":
+			continue
+		try:
+			result = _finalize_webshop_sales_order(frappe.get_doc("Payment Intent", row.name))
+			if result and result.get("status") == "success":
+				stats["advanced"] += 1
+		except Exception as exc:  # noqa: BLE001 — one bad row must not stop the sweep
+			stats["errors"] += 1
+			frappe.log_error("twint web orphan finalize", f"intent={row.name}: {exc!r}")
 
 
 # Fast-poll cadence (seconds). Hugged tight for the first 5min, then loosens

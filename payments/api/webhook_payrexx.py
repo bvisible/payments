@@ -465,8 +465,15 @@ def _retry_unfinalized_orders(cutoff) -> None:  # noqa: ANN001
 	for row in paid:
 		if not row.reference_name:
 			continue
-		pr_status = frappe.db.get_value("Payment Request", row.reference_name, "status")
-		if pr_status in ("Paid", "Completed", "Cancelled"):
+		pr_state = frappe.db.get_value(
+			"Payment Request", row.reference_name, ["status", "docstatus"], as_dict=True
+		)
+		# docstatus 0 + not Paid is the signature of a finalisation that never ran:
+		# handle_payment_success submits the request as part of creating the order.
+		# Testing docstatus rather than the status alone matters — a submitted but
+		# unpaid request is a different situation, and retrying it every five minutes
+		# would just log the same failure forever. Same criterion as Wallee and TWINT.
+		if not pr_state or pr_state.docstatus != 0 or pr_state.status == "Paid":
 			continue
 		try:
 			_finalize_webshop_sales_order(frappe.get_doc("Payment Intent", row.name))
