@@ -106,6 +106,19 @@ def run(instance, api_secret, pos_secret):
     frappe.db.commit()
     check("12. test Payment Intent cleaned up", not frappe.db.exists("Payment Intent", name))
 
+    # Disable the provider this smoke provisioned. Leaving it enabled makes it a
+    # candidate for real payments: provider resolution prefers a live provider but
+    # otherwise picks by name, so a second enabled test provider is at best ambiguity
+    # logged on every payment, and on a site whose real provider sorts after
+    # "payrexx_smoke" it would serve customers from this smoke's credentials.
+    # Disabled rather than deleted — re-running the smoke re-enables it, and the record
+    # keeps its credentials so nobody has to paste them again.
+    frappe.db.set_value("Payment Provider", PROVIDER, "enabled", 0)
+    frappe.db.commit()
+    check("13. smoke provider disabled again",
+          not frappe.db.get_value("Payment Provider", PROVIDER, "enabled"),
+          f"{PROVIDER} left disabled so it cannot capture a real payment")
+
     passed = sum(1 for _, ok, _ in results if ok)
     print(f"\n=== {passed}/{len(results)} checks passed ===")
     return passed == len(results)
