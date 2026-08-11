@@ -178,8 +178,23 @@ def step1_pair(serial: str, pairing_code: str = "") -> None:
 		except Exception as exc:  # noqa: BLE001
 			# An already-paired terminal is not a failure — read it back instead.
 			print(f"  pair raised {exc!r} — reading the existing pairing instead")
-			pairing = client.ecr.get_pairing(serial)
-			_record("1. pair (already paired)", True, {"serial": serial, "raw": pairing.raw})
+			try:
+				pairing = client.ecr.get_pairing(serial)
+				_record("1. pair (already paired)", True, {"serial": serial, "raw": pairing.raw})
+			except Exception as read_exc:  # noqa: BLE001
+				# Neither pairing nor reading worked. Record it and stop cleanly rather
+				# than raising: this script is run from a till, and a raw traceback
+				# there tells the operator nothing about what to do next.
+				_record("1. pair", False, {
+					"serial": serial,
+					"pair_error": repr(exc),
+					"read_error": repr(read_exc),
+					"what_to_do": (
+						"check the serial on the device label, that the terminal is on "
+						"the network, and read a fresh pairing code from its ECR menu"
+					),
+				})
+				return
 
 	print("\n  NEXT: bench --site <site> execute "
 	      "payments.tests.payrexx_terminal_acceptance.step2_methods")
@@ -192,9 +207,18 @@ def step2_methods() -> None:
 	taken on this device no matter what the POS profile says.
 	"""
 	serial = _load().get("serial")
-	with _client() as client:
-		methods = client.ecr.payment_methods(serial)
-	_record("2. terminal payment methods", bool(methods), methods.raw if hasattr(methods, "raw") else methods)
+	try:
+		with _client() as client:
+			methods = client.ecr.payment_methods(serial)
+	except Exception as exc:  # noqa: BLE001
+		_record("2. terminal payment methods", False, {
+			"serial": serial,
+			"error": repr(exc),
+			"what_to_do": "step 1 has to succeed first — an unpaired serial has no methods",
+		})
+		return
+	_record("2. terminal payment methods", bool(methods),
+	        methods.raw if hasattr(methods, "raw") else methods)
 	print("\n  NEXT: step3_pay  (have a test card ready)")
 
 
