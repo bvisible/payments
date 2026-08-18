@@ -172,8 +172,13 @@ def get_intent_status(intent_name: str) -> dict[str, Any]:
 
 
 @frappe.whitelist()
-def cancel_intent(intent_name: str) -> dict[str, Any]:
-	"""Cancel a Payment Intent. No-op if already in a terminal state."""
+def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]:
+	"""Cancel a Payment Intent. No-op if already in a terminal state.
+
+	``reason`` records WHY it was cancelled. Without it, a cancellation the
+	cashier deliberately triggered and one that merely ran out of time are
+	indistinguishable afterwards — and they call for opposite follow-ups.
+	"""
 	intent_doc = frappe.get_doc("Payment Intent", intent_name)
 	if intent_doc.status in {"succeeded", "failed", "canceled", "refunded"}:
 		return _serialize_intent_for_client(intent_doc)
@@ -207,7 +212,12 @@ def cancel_intent(intent_name: str) -> dict[str, Any]:
 			intent_doc.reload()
 			return _serialize_intent_for_client(intent_doc)
 
-	intent_doc.transition_to("canceled", event_source="api", ignore_invalid=True)
+	intent_doc.transition_to(
+		"canceled",
+		event_source="api",
+		error_code=reason or None,
+		ignore_invalid=True,
+	)
 	intent_doc.reload()
 	return _serialize_intent_for_client(intent_doc)
 
