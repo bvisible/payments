@@ -314,17 +314,22 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		)
 
 	def refund(self, provider_intent_id: str, amount: int | None = None) -> DriverResponse:
-		"""Return money for a terminal payment, choosing void or refund.
+		"""Return money for a terminal payment, preferring a void, falling back to refund.
 
-		Payrexx offers two distinct gestures and they are not interchangeable:
+		Payrexx offers two gestures that are not interchangeable, and their limits were
+		confirmed by Payrexx support on 2026-08-18:
 
-		- **void** — all-or-nothing, only before settlement (same day in practice)
-		- **refund** — partial or full, but **not available over ECR on NexGo**, so
-		  it goes through the merchant transaction API
+		- **void** — all-or-nothing, guaranteed for **three months**, with one exception:
+		  on TWINT it only holds while the customer still has the same app and phone.
+		- **refund** — partial or full, but ``POST /ecr/{sn}/payment/{id}/refund``
+		  answers **501 Not Implemented on NexGo**, so it goes through the merchant
+		  transaction API instead.
 
-		A full return on a same-day payment therefore voids, and anything else
-		refunds. Getting this backwards means the till offers an action the terminal
-		refuses, which is exactly the regression our POS return flow must not have.
+		Hence: a full return inside the window **tries** the void and falls back to a
+		refund if the terminal refuses. Trying and falling back beats predicting, because
+		the one documented exception — a TWINT customer who changed phones — is invisible
+		from here. The earlier rule ("same day") was our guess before the answer, and it
+		sent perfectly voidable payments down the refund path.
 		"""
 		if str(provider_intent_id).startswith("sim_"):
 			# No Payrexx transaction exists behind a simulated payment, so there is
@@ -344,19 +349,35 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			as_dict=True,
 		)
 		is_full = amount is None or (intent and amount >= (intent.amount or 0))
-		same_day = bool(intent) and frappe.utils.getdate(intent.creation) == frappe.utils.getdate()
+		# Three months is what Payrexx guarantees; 89 days keeps a day of slack rather
+		# than racing the boundary on the last afternoon.
+		within_void_window = bool(intent) and frappe.utils.date_diff(
+			frappe.utils.nowdate(), frappe.utils.getdate(intent.creation)
+		) <= 89
+		void_error: str | None = None
 
 		try:
 			with self._client() as client:
-				if is_full and same_day:
-					serial = self._serial(intent.get("device") if intent else None)
-					payment = client.ecr.void_payment(serial, provider_intent_id)
-					return DriverResponse(
-						status="refunded",
-						provider_intent_id=provider_intent_id,
-						next_action_payload={"method": "void", "terminal_status": payment.status},
-						raw=payment.raw,
-					)
+				if is_full and within_void_window:
+					try:
+						serial = self._serial(intent.get("device") if intent else None)
+						payment = client.ecr.void_payment(serial, provider_intent_id)
+						return DriverResponse(
+							status="refunded",
+							provider_intent_id=provider_intent_id,
+							next_action_payload={"method": "void", "terminal_status": payment.status},
+							raw=payment.raw,
+						)
+					except Exception as exc:  # noqa: BLE001 - a refused void is not the end
+						# The money still has to come back. Recorded rather than swallowed:
+						# a void that starts failing systematically means the window or the
+						# TWINT rule changed, and that should be visible.
+						void_error = repr(exc)
+						frappe.log_error(
+							"Payrexx void refused, falling back to refund",
+							f"intent={intent['name'] if intent else '?'} "
+							f"payment={provider_intent_id}: {exc!r}",
+						)
 
 				transactions = (
 					client.transaction.find_by_reference(intent["name"]) if intent else []
@@ -379,7 +400,7 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		return DriverResponse(
 			status=status or "processing",
 			provider_intent_id=provider_intent_id,
-			next_action_payload={"method": "refund"},
+			next_action_payload={"method": "refund", "void_error": void_error},
 			raw=refunded.raw,
 		)
 

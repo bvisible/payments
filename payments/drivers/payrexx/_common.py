@@ -40,6 +40,16 @@ _STATUS_TO_FSM: dict[str, str] = {
 	"error": "failed",
 	"refunded": "refunded",
 	"partially-refunded": "refunded",
+	# --- ECR / terminal `payment_status`, confirmed by Payrexx on 2026-08-18 -------
+	# A different vocabulary from the transaction statuses above, and in upper case on
+	# the wire — map_status folds the case. Two of the nine deliberately have no entry
+	# and live in NEEDS_HUMAN instead.
+	"in_progress": "processing",
+	"success": "succeeded",
+	"terminated": "canceled",
+	"reverted": "refunded",
+	# `declined`, `expired` and `failed` already appear above with the same meaning.
+	"failed": "failed",
 }
 
 #: Statuses that must NOT drive an automatic FSM transition.
@@ -51,7 +61,14 @@ _STATUS_TO_FSM: dict[str, str] = {
 #: Payment Event and surfaced to an operator instead. ``uncaptured`` is terminal
 #: but ambiguous: the hold lapsed without a capture, which is closer to an
 #: operational miss than to a customer-facing failure.
-NEEDS_HUMAN: frozenset[str] = frozenset({"chargeback", "disputed", "insecure", "uncaptured"})
+#: ``underpaid`` and ``unknown`` join them from the ECR vocabulary. Underpaid means
+#: money did arrive but not enough — neither a success nor a failure, and settling it
+#: is a commercial decision, not a state transition. ``unknown`` is what it says: the
+#: terminal could not tell us, so inventing an outcome would be the one thing worse
+#: than stalling.
+NEEDS_HUMAN: frozenset[str] = frozenset(
+	{"chargeback", "disputed", "insecure", "uncaptured", "underpaid", "unknown"}
+)
 
 
 def map_status(payrexx_status: str | None) -> str | None:
@@ -65,7 +82,10 @@ def map_status(payrexx_status: str | None) -> str | None:
 	"""
 	if not payrexx_status:
 		return None
-	return _STATUS_TO_FSM.get(str(payrexx_status))
+	# Folded to lower case because the two vocabularies disagree on it: transaction
+	# statuses arrive lower case ("confirmed"), ECR payment statuses upper case
+	# ("SUCCESS"). Without this, every terminal payment would look unmappable.
+	return _STATUS_TO_FSM.get(str(payrexx_status).strip().lower())
 
 
 def build_client(provider_doc) -> PayrexxClient:  # noqa: ANN001

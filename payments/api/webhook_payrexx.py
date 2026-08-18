@@ -164,12 +164,56 @@ def parse_delivery(
 		event_id=_derive_event_id(tx, raw_status, payload),
 		event_type=f"transaction.{raw_status}",
 		signature_valid=True,
-		# referenceId carries the Payment Intent name — set by both drivers.
-		intent_name=tx.reference_id,
+		intent_name=_resolve_intent_name(tx),
 		target_status=target,
 		error_code=None if target else (raw_status or None),
 		payload_excerpt=_safe_truncate(payload, 2_000),
 	)
+
+
+def _resolve_intent_name(tx) -> str | None:  # noqa: ANN001
+	"""Find which Payment Intent a delivery belongs to.
+
+	The reference does not arrive in the same field on every channel, which Payrexx
+	confirmed on 2026-08-18:
+
+	- **Hosted checkout** round-trips ``referenceId`` — verified against the live
+	  account, and it is the intent name exactly.
+	- **Terminal (ECR) and Tap to Pay** return the reference as ``invoice.purpose``
+	  instead. ``referenceId`` is still present on those deliveries but is **not
+	  reserved for the merchant** — TWINT puts its own identifier there — so matching
+	  on it would silently attach a payment to the wrong intent, or to none.
+
+	Rather than branch on ``transaction.type`` (whose exact strings we have not
+	observed for Tap to Pay), each candidate is checked against the database and the
+	first one that names a real Payment Intent wins. That is both channel-agnostic and
+	safe: a value that matches nothing cannot be mistaken for a match.
+
+	``purpose`` also carries a human label on the web channel ("Payment PI-…"), so it
+	is tried both whole and with a trailing intent name extracted — but only ever
+	accepted when it resolves to an existing record.
+	"""
+	candidates: list[str] = []
+	for value in (tx.reference_id, getattr(tx, "purpose", None)):
+		if not value:
+			continue
+		text = str(value).strip()
+		if text and text not in candidates:
+			candidates.append(text)
+		# "Payment PI-2026-00000052" → "PI-2026-00000052". Only a suffix is taken; a
+		# label that merely mentions an intent still has to exist to be accepted.
+		tail = text.rsplit(" ", 1)[-1] if " " in text else ""
+		if tail and tail not in candidates:
+			candidates.append(tail)
+
+	for candidate in candidates:
+		if frappe.db.exists("Payment Intent", candidate):
+			return candidate
+
+	# Nothing matched. Return the first candidate anyway so the log row says what came
+	# in — process_event turns that into a "Skipped" with the reference quoted, which is
+	# far more useful than a bare "no intent".
+	return candidates[0] if candidates else None
 
 
 def _payload_fingerprint(payload: bytes, length: int = 16) -> str:
