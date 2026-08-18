@@ -183,8 +183,29 @@ def cancel_intent(intent_name: str) -> dict[str, Any]:
 		try:
 			driver.cancel_intent(intent_doc.provider_intent_id)
 		except Exception as exc:  # noqa: BLE001
-			frappe.log_error("cancel_intent driver error", f"Intent {intent_name}: {exc!r}")
-			# Surface but still attempt to flip our local state to canceled to avoid orphans.
+			# The PSP refused to cancel. The commonest reason is the one that
+			# costs money: the intent settled a moment ago and the webhook has
+			# not landed yet — a PSP will not cancel a paid transaction.
+			#
+			# We used to mark it `canceled` anyway "to avoid orphans". That is
+			# backwards: `canceled` is TERMINAL, so it buries a real payment as
+			# cancelled — money taken, sale never recorded, and the till tells
+			# the cashier to start over, charging the customer twice. An orphan
+			# is merely untidy and gets flagged within the hour by
+			# `pos_next.tasks.detect_uncollected_payments`; a wrongly-cancelled
+			# payment is invisible.
+			#
+			# So: leave the status alone and let the webhook/poll settle it.
+			# The caller must check the returned status rather than assume the
+			# cancellation happened.
+			frappe.log_error(
+				"cancel_intent refused by PSP — status left untouched",
+				f"Intent {intent_name} (status={intent_doc.status}, "
+				f"provider_intent_id={intent_doc.provider_intent_id}): {exc!r}\n\n"
+				"NOT marked canceled on purpose: the intent may have just been paid.",
+			)
+			intent_doc.reload()
+			return _serialize_intent_for_client(intent_doc)
 
 	intent_doc.transition_to("canceled", event_source="api", ignore_invalid=True)
 	intent_doc.reload()
