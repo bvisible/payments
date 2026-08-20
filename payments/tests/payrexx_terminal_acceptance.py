@@ -265,8 +265,14 @@ def step2_methods() -> None:
 	print("\n  NEXT: step3_pay  (have a test card ready)")
 
 
-def step3_pay(amount: int = _AMOUNT) -> None:
+def step3_pay(amount: int = _AMOUNT, payment_method: str = "") -> None:
 	"""Start a real payment and stop, leaving the terminal waiting for the card.
+
+	Pass ``payment_method`` to pin one and skip the chooser on the device. Left
+	empty, the terminal asks the customer to pick between everything it offers —
+	on this N86 that is Card, TWINT **and GoCrypto**. At a till that is usually the
+	wrong experience: the cashier has already chosen on their own screen, and
+	re-asking invites the customer to pick a method the register did not expect.
 
 	Creates a Payment Intent through the normal API so the whole chain is exercised —
 	not a bare client call. Then step4_poll watches it, which is where the unknown
@@ -288,6 +294,7 @@ def step3_pay(amount: int = _AMOUNT) -> None:
 		amount=amount,
 		currency=_CURRENCY,
 		device=device,
+		metadata={"payment_method": payment_method} if payment_method else {},
 	)
 	state = _load()
 	state["intent"] = result.get("intent_name")
