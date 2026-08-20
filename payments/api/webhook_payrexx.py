@@ -253,6 +253,16 @@ def _match_terminal_intent(tx) -> str | None:  # noqa: ANN001
 	if not device:
 		return None
 
+	# The status the intent must be in for this delivery to plausibly belong to it.
+	# Without this, a refund attaches to whichever same-amount intent was touched
+	# last — which on 2026-08-20 meant a refund landing on a *cancelled* payment
+	# instead of the one it reversed. A cancelled intent has nothing to refund, and a
+	# settled one is not awaiting confirmation.
+	if int(amount) < 0:
+		plausible = ["succeeded"]
+	else:
+		plausible = ["requires_action", "processing"]
+
 	horizon = frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-6)
 	rows = frappe.get_all(
 		"Payment Intent",
@@ -260,13 +270,25 @@ def _match_terminal_intent(tx) -> str | None:  # noqa: ANN001
 			"channel": "terminal",
 			"device": device,
 			"amount": abs(int(amount)),
+			"status": ["in", plausible],
 			"modified": [">", horizon],
 		},
 		fields=["name"],
 		order_by="modified desc",
-		limit_page_length=1,
+		limit_page_length=2,
 	)
-	return rows[0].name if rows else None
+	# Two equally plausible candidates means the guess is not safe to make: same
+	# device, same amount, same window, same state. Refusing beats a coin toss on
+	# someone's invoice.
+	if len(rows) != 1:
+		if rows:
+			frappe.log_error(
+				"Payrexx terminal webhook is ambiguous",
+				f"serial={serial} amount={amount} candidates={[r.name for r in rows]} — "
+				f"left unattached rather than guessed",
+			)
+		return None
+	return rows[0].name
 
 
 def _payload_fingerprint(payload: bytes, length: int = 16) -> str:
