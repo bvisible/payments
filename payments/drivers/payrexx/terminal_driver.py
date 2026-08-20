@@ -386,6 +386,22 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 					try:
 						serial = self._serial(intent.get("device") if intent else None)
 						payment = client.ecr.void_payment(serial, provider_intent_id)
+						# A void that did nothing still answers 200 with the untouched
+						# payment — verified on a NexGo N86, where the call returned
+						# status SUCCESS, type CHARGE and no reversalStatus while the
+						# money stayed exactly where it was. "No exception" is not
+						# evidence, and reporting a refund that never happened is worse
+						# than failing: the till would mark the sale returned while the
+						# customer got nothing back.
+						reversed_ok = bool(payment.reversal_status) or (
+							str(payment.type or "").upper() not in ("", "CHARGE")
+						)
+						if not reversed_ok:
+							raise ValueError(
+								f"void left the payment untouched "
+								f"(status={payment.status!r} type={payment.type!r} "
+								f"reversalStatus={payment.reversal_status!r})"
+							)
 						return DriverResponse(
 							status="refunded",
 							provider_intent_id=provider_intent_id,
