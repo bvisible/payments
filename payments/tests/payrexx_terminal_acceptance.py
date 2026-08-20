@@ -204,6 +204,22 @@ def step1_pair(serial: str, pairing_code: str = "") -> None:
 			print(f"  pair raised {exc!r} — reading the existing pairing instead")
 			try:
 				pairing = client.ecr.get_pairing(serial)
+				# Reading the pairing back is not the same as being paired. The endpoint
+				# answers happily for a known-but-unpaired device — reporting that as OK
+				# would send the operator to step 2, which then fails with a 403 that
+				# explains nothing.
+				state = str((pairing.raw or {}).get("pairingStatus") or "").upper()
+				if state and state != "PAIRED":
+					_record("1. pair", False, {
+						"serial": serial,
+						"pairing_status": state,
+						"what_to_do": (
+							"the terminal is known but NOT paired — open its ECR/cash-register "
+							"menu, read the pairing code, and re-run step1_pair with "
+							"pairing_code=<code>"
+						),
+					})
+					return
 				_record("1. pair (already paired)", True, {"serial": serial, "raw": pairing.raw})
 			except Exception as read_exc:  # noqa: BLE001
 				# Neither pairing nor reading worked. Record it and stop cleanly rather
