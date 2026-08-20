@@ -210,10 +210,63 @@ def _resolve_intent_name(tx) -> str | None:  # noqa: ANN001
 		if frappe.db.exists("Payment Intent", candidate):
 			return candidate
 
-	# Nothing matched. Return the first candidate anyway so the log row says what came
-	# in — process_event turns that into a "Skipped" with the reference quoted, which is
-	# far more useful than a bare "no intent".
+	# No usable reference. That is the normal case for a terminal payment: Payrexx
+	# echoes neither referenceId nor invoice.purpose on POS-Terminal deliveries —
+	# verified on a NexGo N86 — so without a fallback every till payment and every
+	# till refund lands as "Skipped" and the Payment Intent never learns what
+	# happened. Match on what the payload does carry.
+	matched = _match_terminal_intent(tx)
+	if matched:
+		return matched
+
+	# Still nothing. Return the first candidate so the log says what came in —
+	# process_event turns that into a "Skipped" quoting the reference, which is more
+	# useful than a bare "no intent".
 	return candidates[0] if candidates else None
+
+
+def _match_terminal_intent(tx) -> str | None:  # noqa: ANN001
+	"""Attach a POS-Terminal delivery to an intent by serial, amount and recency.
+
+	A heuristic, and deliberately a narrow one — attaching a payment to the wrong
+	invoice is worse than attaching it to none. All of these must line up:
+
+	- the delivery is a POS-Terminal one and names a serial;
+	- a ``Payment Device`` carries that serial;
+	- an intent on the ``terminal`` channel used that device;
+	- the amounts match, compared in absolute value so a refund (which arrives
+      negative) finds the payment it reverses;
+	- the intent moved within the last six hours.
+
+	The most recent match wins. This exists because Payrexx does not echo our
+	reference on this channel; if that ever changes, the reference path above takes
+	precedence again and this is never reached.
+	"""
+	serial = getattr(tx, "pos_serial_number", None)
+	amount = getattr(tx, "amount", None)
+	if not serial or amount in (None, 0):
+		return None
+	if "pos" not in str(getattr(tx, "type", "") or "").lower():
+		return None
+
+	device = frappe.db.get_value("Payment Device", {"serial_number": serial}, "name")
+	if not device:
+		return None
+
+	horizon = frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-6)
+	rows = frappe.get_all(
+		"Payment Intent",
+		filters={
+			"channel": "terminal",
+			"device": device,
+			"amount": abs(int(amount)),
+			"modified": [">", horizon],
+		},
+		fields=["name"],
+		order_by="modified desc",
+		limit_page_length=1,
+	)
+	return rows[0].name if rows else None
 
 
 def _payload_fingerprint(payload: bytes, length: int = 16) -> str:
