@@ -253,11 +253,19 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 	def get_status(
 		self, provider_intent_id: str, device_id: str | None = None
 	) -> DriverResponse:
-		"""Read a terminal payment back.
+		"""Read a terminal payment back and map its status onto the FSM.
 
-		The returned FSM status stays ``processing`` regardless of what the terminal
-		reports, because ``payment_status`` has no documented vocabulary. The raw
-		value travels in ``next_action_payload`` for the till to display.
+		This used to return ``processing`` no matter what the terminal reported,
+		because ``payment_status`` had no documented vocabulary and guessing at one
+		would have been worse than stalling. Payrexx confirmed the nine values in
+		writing on 2026-08-18, so that caution is now debt rather than prudence: with
+		it in place, a payment the terminal had already ended stayed ``requires_action``
+		forever and the till waited on nothing. Observed on the real N86 — a cancelled
+		payment reported ``TERMINATED`` while the driver still said ``processing``.
+
+		An **unmapped** value still yields ``processing``: that part was right, and is
+		what keeps an unexpected status from being reported as an outcome we cannot
+		back up. The raw value always travels in ``next_action_payload`` for the till.
 		"""
 		# A simulated payment has no ECR counterpart to read; the till's simulator
 		# panel owns its state. Reported as still processing so the dialog keeps
@@ -278,10 +286,26 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		except Exception as exc:  # noqa: BLE001
 			return error_response(exc, provider_intent_id=provider_intent_id)
 
+		target = map_status(str(payment.status) if payment.status else None)
+		if target is None and payment.status:
+			# Worth knowing about: either Payrexx added a value, or the firmware
+			# reports one their support did not list. Either way the payment stalls
+			# until someone maps it, and a stalled payment nobody hears about is how
+			# a till ends up waiting on a screen that will never change.
+			frappe.log_error(
+				"Payrexx terminal: unmapped payment_status",
+				f"payment={provider_intent_id} status={payment.status!r} — add it to "
+				f"_STATUS_TO_FSM in payments/drivers/payrexx/_common.py",
+			)
+
 		return DriverResponse(
-			status="processing",
+			status=target or "processing",
 			provider_intent_id=provider_intent_id,
-			next_action_type="display_card_present_modal",
+			# Once the payment is over, the till has nothing left to display.
+			next_action_type=(
+				"none" if target in ("succeeded", "failed", "canceled", "refunded")
+				else "display_card_present_modal"
+			),
 			next_action_payload={
 				"terminal_status": payment.status,
 				"slip": list(payment.slip),
