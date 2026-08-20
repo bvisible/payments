@@ -265,7 +265,22 @@ def step2_methods() -> None:
 	print("\n  NEXT: step3_pay  (have a test card ready)")
 
 
-def step3_pay(amount: int = _AMOUNT, payment_method: str = "") -> None:
+def _sale_metadata(payment_method: str, print_slip: bool | None) -> dict[str, Any]:
+	"""Only send what was actually asked for.
+
+	`print_slip=False` stops the terminal printing its own receipt, which is how you
+	keep the acquirer's branding off the paper the customer takes away — Neoffice
+	prints its own. Left unset, the terminal does whatever it is configured to do.
+	"""
+	metadata: dict[str, Any] = {}
+	if payment_method:
+		metadata["payment_method"] = payment_method
+	if print_slip is not None:
+		metadata["print_slip"] = print_slip
+	return metadata
+
+
+def step3_pay(amount: int = _AMOUNT, payment_method: str = "", print_slip: bool | None = None) -> None:
 	"""Start a real payment and stop, leaving the terminal waiting for the card.
 
 	Pass ``payment_method`` to pin one and skip the chooser on the device. Left
@@ -294,7 +309,7 @@ def step3_pay(amount: int = _AMOUNT, payment_method: str = "") -> None:
 		amount=amount,
 		currency=_CURRENCY,
 		device=device,
-		metadata={"payment_method": payment_method} if payment_method else {},
+		metadata=_sale_metadata(payment_method, print_slip),
 	)
 	state = _load()
 	state["intent"] = result.get("intent_name")
