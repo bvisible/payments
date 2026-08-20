@@ -208,8 +208,11 @@ def step1_pair(serial: str, pairing_code: str = "") -> None:
 				# answers happily for a known-but-unpaired device — reporting that as OK
 				# would send the operator to step 2, which then fails with a 403 that
 				# explains nothing.
+				# A successful pairing reports AUTHORIZED, not PAIRED — observed on the real
+				# N86 the day it was connected. Testing for "PAIRED" alone rejected a
+				# terminal that had just been paired correctly.
 				state = str((pairing.raw or {}).get("pairingStatus") or "").upper()
-				if state and state != "PAIRED":
+				if state and state not in ("PAIRED", "AUTHORIZED"):
 					_record("1. pair", False, {
 						"serial": serial,
 						"pairing_status": state,
