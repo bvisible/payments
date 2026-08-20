@@ -428,8 +428,19 @@ def step6_refund(amount: int | None = None) -> None:
 	is under test, not the endpoint.
 	"""
 	state = _load()
-	driver = _driver()
-	response = driver.refund(state.get("provider_intent_id"), amount=amount)
+	# Through the API, not the driver directly: that is the path a till takes, and it
+	# is what records the refund on the Payment Intent. Calling the driver alone
+	# returns a refund nobody wrote down.
+	from payments.api.intent import refund_intent
+
+	intent_name = state.get("intent")
+	try:
+		refunded = refund_intent(intent_name, amount=amount)
+		response = type("R", (), {"status": refunded.get("status"), "error_code": None,
+		                          "error_message": None, "raw": refunded})()
+	except Exception as exc:  # noqa: BLE001 - a refused refund is a result, not a crash
+		response = type("R", (), {"status": "failed", "error_code": "refund_refused",
+		                          "error_message": str(exc)[:300], "raw": {}})()
 	_record("6. refund via driver", response.status in ("refunded", "succeeded", "processing"), {
 		"status": response.status,
 		"error_code": response.error_code,

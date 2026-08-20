@@ -21,7 +21,7 @@ import frappe
 from frappe import _
 
 from payments.drivers.base import IntentRequest
-from payments.drivers.registry import DriverResolutionError, resolve_driver
+from payments.drivers.registry import resolve_driver
 
 
 def _serialize_intent_for_client(intent_doc) -> dict[str, Any]:  # noqa: ANN001
@@ -233,11 +233,31 @@ def refund_intent(intent_name: str, amount: int | None = None) -> dict[str, Any]
 
 	driver = resolve_driver(intent_doc.provider, intent_doc.channel)
 	response = driver.refund(intent_doc.provider_intent_id, amount=int(amount) if amount else None)
+
+	# Only record a refund the provider actually performed. Transitioning on the call
+	# merely returning would mark money as returned that never left — and a customer
+	# holding a receipt that says "refunded" while their account says otherwise is the
+	# one outcome worse than a plain failure. A Payrexx void demonstrated exactly this
+	# on 2026-08-20: it answered 200 with the payment untouched.
+	if response.status not in ("refunded", "succeeded"):
+		frappe.log_error(
+			"Refund refused by provider",
+			f"intent={intent_doc.name} provider={intent_doc.provider} "
+			f"channel={intent_doc.channel} status={response.status!r} "
+			f"code={response.error_code!r} message={response.error_message!r}",
+		)
+		frappe.throw(
+			_("The provider did not perform the refund: {0}").format(
+				response.error_message or response.error_code or response.status
+			)
+		)
+
 	intent_doc.transition_to(
 		"refunded",
 		event_source="api",
 		error_code=response.error_code,
 		error_message=response.error_message,
+		payload_excerpt=f"{intent_doc.provider} refund -> {response.status}",
 		ignore_invalid=True,
 	)
 	intent_doc.reload()
