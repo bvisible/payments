@@ -419,19 +419,16 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 							f"payment={provider_intent_id}: {exc!r}",
 						)
 
-				transactions = (
-					client.transaction.find_by_reference(intent["name"]) if intent else []
-				)
-				if not transactions:
+				target = self._locate_transaction(client, intent, provider_intent_id)
+				if target is None:
 					return DriverResponse(
 						status="failed",
 						provider_intent_id=provider_intent_id,
 						error_code="transaction_not_found",
 						error_message=_(
-							"No Payrexx transaction found for reference {0}"
-						).format(intent["name"] if intent else provider_intent_id),
+							"No Payrexx transaction found for terminal payment {0}"
+						).format(provider_intent_id),
 					)
-				target = max(transactions, key=lambda t: t.id or 0)
 				refunded = client.transaction.refund(target.id, amount=amount)
 		except Exception as exc:  # noqa: BLE001
 			return error_response(exc, provider_intent_id=provider_intent_id)
@@ -443,6 +440,36 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			next_action_payload={"method": "refund", "void_error": void_error},
 			raw=refunded.raw,
 		)
+
+	def _locate_transaction(self, client, intent, provider_intent_id):  # noqa: ANN001, ANN202
+		"""Find the Payrexx transaction behind a terminal payment.
+
+		Looking it up by ``referenceId`` is the obvious way and does not work here:
+		a POS-Terminal delivery comes back with ``referenceId`` **and**
+		``invoice.purpose`` both empty — our ``paymentReference`` is not echoed
+		anywhere in the payload. Verified on a NexGo N86 on 2026-08-20, contradicting
+		what Payrexx support wrote two days earlier.
+
+		So the transaction is matched on what *is* present: the terminal's serial and
+		the amount, taking the most recent. That is sound in practice — one device,
+		one amount, within the lifetime of a single intent — but it is a heuristic,
+		and it is why the reference question is worth pressing with Payrexx.
+		"""
+		if intent:
+			by_reference = client.transaction.find_by_reference(intent["name"])
+			if by_reference:
+				return max(by_reference, key=lambda t: t.id or 0)
+
+		serial = self._serial(intent.get("device") if intent else None)
+		amount = (intent or {}).get("amount")
+		candidates = [
+			t
+			for t in client.transaction.list(limit=50)
+			if t.pos_serial_number == serial and (amount is None or t.amount == amount)
+		]
+		if not candidates:
+			return None
+		return max(candidates, key=lambda t: t.id or 0)
 
 	def handle_webhook(self, payload: bytes, headers: dict[str, str]) -> WebhookResult:
 		"""Verify and parse a transaction webhook. Shared with the web driver."""
