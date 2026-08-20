@@ -437,10 +437,17 @@ def poll_pending_payrexx_transactions() -> None:
 	the return page ran.
 
 	Kept deliberately narrow because of the rate limit (~600 requests / 5 minutes
-	per account): only ``payrexx_web`` intents, only those older than five minutes,
-	newest first, capped per run. Terminal intents are excluded — reading an ECR
-	payment needs its serial and the terminal itself, and a till is watched live by
-	the operator anyway.
+	per account): only those older than five minutes, newest first, capped per run.
+
+	**Terminal intents are included, and have to be.** They were excluded on the
+	assumption that a till is watched live and that the webhook would carry the
+	reference. The hardware disproved both halves on 2026-08-20: a real POS-Terminal
+	delivery arrives with ``referenceId`` **and** ``invoice.purpose`` both empty, so
+	the webhook cannot tell which intent a terminal payment belongs to — our
+	``paymentReference`` is simply not echoed back, whatever Payrexx support told us
+	in writing. Polling is therefore the only mechanism that can resolve a terminal
+	payment, and without it a customer pays while the intent sits in
+	``requires_action`` for ever.
 	"""
 	from payments.drivers.registry import resolve_driver
 
@@ -449,11 +456,11 @@ def poll_pending_payrexx_transactions() -> None:
 		"Payment Intent",
 		filters={
 			"provider": ["like", "payrexx%"],
-			"channel": "payrexx_web",
+			"channel": ["in", ["payrexx_web", "terminal"]],
 			"status": ["in", ["requires_action", "processing"]],
 			"modified": ["<", cutoff],
 		},
-		fields=["name", "provider", "channel", "provider_intent_id"],
+		fields=["name", "provider", "channel", "provider_intent_id", "device"],
 		order_by="modified desc",
 		limit_page_length=40,
 	)
@@ -463,13 +470,18 @@ def poll_pending_payrexx_transactions() -> None:
 			continue
 		try:
 			driver = resolve_driver(row.provider, row.channel)
-			response = driver.get_status(row.provider_intent_id)
+			# The terminal driver needs to know which device to ask; the web one
+			# takes no such argument.
+			if row.channel == "terminal":
+				response = driver.get_status(row.provider_intent_id, device_id=row.device)
+			else:
+				response = driver.get_status(row.provider_intent_id)
 			if response.status in ("succeeded", "failed", "canceled", "refunded"):
 				intent = frappe.get_doc("Payment Intent", row.name)
 				intent.transition_to(
 					response.status,
 					event_source="poll",
-					payload_excerpt=f"payrexx gateway {row.provider_intent_id}",
+					payload_excerpt=f"payrexx {row.channel} {row.provider_intent_id}",
 					ignore_invalid=True,
 				)
 				frappe.db.commit()
