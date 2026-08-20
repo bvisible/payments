@@ -7,6 +7,15 @@ has to be answered. Written to be run by one person standing at the till, one st
 per command, because each step needs a card tapped or a button pressed on the
 device between calls.
 
+.. warning::
+   ``bench execute --kwargs`` runs its argument through ``eval()``, **not** through a
+   JSON parser. Python literals therefore, not JSON: ``False`` and not ``false``,
+   ``None`` and not ``null``. Passing JSON gets you ``NameError: name 'false' is not
+   defined`` from deep inside Frappe's CLI, which reads like a bug in this script and
+   is not. Single quotes around the whole argument keep the shell out of it::
+
+       bench --site <site> execute ...step3_pay --kwargs "{'print_slip': False}"
+
 Usage — one step at a time, on the site where the terminal is registered::
 
     bench --site <site> execute payments.tests.payrexx_terminal_acceptance.step1_pair \
