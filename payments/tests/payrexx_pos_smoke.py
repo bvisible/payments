@@ -25,8 +25,15 @@ PROVIDER = "payrexx"
 TERMINAL_CHANNEL = "terminal"
 POS_PROFILE = "Caisse"
 MODE = "Payrexx Terminal"
-SERIAL = "SN-N86-NOT-PAIRED"
-DEVICE_LABEL = "Payrexx N86 (test)"
+
+# The simulated device, never the real terminal. This smoke calls pos_start_payment,
+# which on paired hardware sends a genuine payment request to the counter — a test
+# suite must not put a live amount on a device someone might tap a card against.
+# Before the N86 arrived this was academic; the day it was paired, this smoke started
+# addressing it for real.
+SIMULATED_SERIAL = "SIM-N86-0001"
+SERIAL = SIMULATED_SERIAL
+DEVICE_LABEL = "Payrexx N86 SIMULATEUR"
 
 
 def run():
@@ -55,6 +62,9 @@ def run():
             "doctype": "Payment Device", "device_label": DEVICE_LABEL,
             "provider_channel_settings": binding, "serial_number": SERIAL,
             "provider_device_id": SERIAL, "enabled": 1,
+            # device_type starting with "simulated" is what routes the driver down
+            # its simulated path — without it this smoke would address real hardware.
+            "device_type": "simulated-nexgo",
         }).insert(ignore_permissions=True).name
         frappe.db.commit()
     check("2. Payment Device created", bool(device), f"{device} serial={SERIAL}")
@@ -105,7 +115,7 @@ def run():
         reference_doctype="POS Invoice" if frappe.db.exists("POS Invoice", invoice) else "Sales Invoice",
         reference_name=invoice, pos_profile=POS_PROFILE, mode_of_payment=MODE,
         amount=1500, currency="CHF", device=device,
-        metadata=json.dumps({"payment_method": "twint", "purpose": "POS test"}))
+        metadata=json.dumps({"payment_method": "TWINT", "purpose": "POS test"}))
     name = intent["intent_name"]
     check("6. pos_start_payment ran through the Payrexx driver", bool(name),
           f"{name} status={intent['status']}")
