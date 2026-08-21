@@ -186,6 +186,33 @@ def print_receipt(
 
 
 @frappe.whitelist()
+def preview_text(intent_name: str) -> str:
+	"""The receipt as it would come off the roll, markup stripped.
+
+	Star markup is unreadable on screen — ``[magnify: width 2]`` tells you nothing
+	about whether a line fits on 42 characters or wraps into an ugly mess. This
+	renders what the paper will actually show, so the layout can be judged before a
+	customer is the one judging it.
+	"""
+	import re
+
+	markup = build_markup(_receipt_from_intent(intent_name))
+	lines: list[str] = []
+	centre = False
+	for raw in markup.split("\n"):
+		if "[align: centre]" in raw:
+			centre = True
+		if "[align: left]" in raw:
+			centre = False
+		text = re.sub(r"\[[^\]]*\]", "", raw)
+		if not text.strip() and "[cut" in raw:
+			continue
+		lines.append(text.center(_WIDTH).rstrip() if centre and text.strip() else text)
+	border = "+" + "-" * (_WIDTH + 2) + "+"
+	return "\n".join([border] + [f"| {line:<{_WIDTH}} |" for line in lines] + [border])
+
+
+@frappe.whitelist()
 def preview_receipt(intent_name: str) -> str:
 	"""The markup that would be printed, without printing it.
 
