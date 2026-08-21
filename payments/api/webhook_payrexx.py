@@ -560,6 +560,20 @@ def poll_pending_payrexx_transactions() -> None:
 					ignore_invalid=True,
 				)
 				frappe.db.commit()
+			elif row.channel == "terminal":
+				# Still live after five minutes with nobody watching. On a web intent
+				# that is merely untidy; on a reader it means the hardware is frozen on
+				# "present your card" — a till nobody can use, and a customer who can
+				# still tap and be charged for a sale that was abandoned.
+				#
+				# Five minutes is far longer than any real card interaction, and the
+				# status was just read as non-final immediately above, so this cannot
+				# cancel a payment in progress or one already settled.
+				frappe.enqueue(
+					"payments.api.intent.release_stuck_terminal",
+					queue="short",
+					intent_name=row.name,
+				)
 		except Exception as exc:  # noqa: BLE001 - one bad row must not stop the sweep
 			frappe.log_error("Payrexx poll failed", f"{row.name}: {exc!r}")
 

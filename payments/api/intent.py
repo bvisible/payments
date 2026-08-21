@@ -15,6 +15,7 @@ Endpoints:
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 import frappe
@@ -209,6 +210,18 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 				f"provider_intent_id={intent_doc.provider_intent_id}): {exc!r}\n\n"
 				"NOT marked canceled on purpose: the intent may have just been paid.",
 			)
+			# Leaving the status alone protects the books, but on a card terminal it
+			# leaves the *hardware* frozen on "present your card" — the reader is not
+			# released until someone cancels it, and the cashier has already pressed
+			# the only button there is. So keep insisting in the background instead of
+			# waiting up to five minutes for the scheduler.
+			if intent_doc.channel == "terminal":
+				frappe.enqueue(
+					"payments.api.intent.release_stuck_terminal",
+					queue="short",
+					intent_name=intent_name,
+					enqueue_after_commit=True,
+				)
 			intent_doc.reload()
 			return _serialize_intent_for_client(intent_doc)
 
@@ -220,6 +233,102 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 	)
 	intent_doc.reload()
 	return _serialize_intent_for_client(intent_doc)
+
+
+#: How hard to insist on releasing a frozen reader, and how long between tries.
+#:
+#: A NexGo N86 on 4G took 8 s to ~40 s to acknowledge a cancellation (measured
+#: 2026-08-21), and sometimes ignored the first one outright. Six rounds of 10 s
+#: covers that with room to spare while staying far below any job timeout.
+_RELEASE_ROUNDS = 6
+_RELEASE_INTERVAL_SECONDS = 10.0
+
+
+def release_stuck_terminal(intent_name: str) -> None:
+	"""Keep cancelling until the reader is actually free.
+
+	A card terminal that was asked for a payment stays frozen on "present your
+	card" until something cancels it. Cancelling is a *request*: the reply carries
+	the payment's current state rather than the outcome, an early one can be
+	dropped, and confirmation is slow. One attempt is therefore not a cancellation
+	— it is the start of one.
+
+	Left alone, the till shows a finished sale while the reader in front of the
+	customer still takes cards. That is the whole reason this exists.
+
+	Runs in the background, checks before acting (a payment that settled in the
+	meantime must never be cancelled), and gives up quietly — the five-minute
+	sweep in :func:`payments.api.webhook_payrexx.poll_pending_payrexx_transactions`
+	is the backstop.
+	"""
+	final = {"succeeded", "failed", "canceled", "refunded"}
+	for _round in range(_RELEASE_ROUNDS):
+		intent_doc = frappe.get_doc("Payment Intent", intent_name)
+		if intent_doc.status in final or not intent_doc.provider_intent_id:
+			return
+
+		driver = resolve_driver(intent_doc.provider, intent_doc.channel)
+		try:
+			status = driver.get_status(
+				intent_doc.provider_intent_id, device_id=intent_doc.device
+			).status
+		except Exception:  # noqa: BLE001 - a failed read is not a reason to stop
+			status = None
+
+		if status in final:
+			# It resolved on its own — record that and leave the reader alone.
+			intent_doc.transition_to(
+				status,
+				event_source="poll",
+				payload_excerpt=f"terminal released ({status})",
+				ignore_invalid=True,
+			)
+			frappe.db.commit()
+			return
+
+		try:
+			response = driver.cancel_intent(intent_doc.provider_intent_id)
+		except Exception:  # noqa: BLE001 - unconfirmed; that is what the loop is for
+			time.sleep(_RELEASE_INTERVAL_SECONDS)
+			continue
+
+		intent_doc.reload()
+		intent_doc.transition_to(
+			response.status,
+			event_source="api",
+			payload_excerpt="terminal released after retry",
+			ignore_invalid=True,
+		)
+		_set_device_status(intent_doc.device, "online")
+		frappe.db.commit()
+		return
+
+	# Out of tries. A reader that acknowledges nothing over this long is not merely
+	# slow — it is very likely asleep, off, or off the network, in which case no
+	# amount of cancelling will reach it. Record that on the device so the till can
+	# warn the cashier *before* the next sale instead of freezing again.
+	_set_device_status(frappe.db.get_value("Payment Intent", intent_name, "device"), "offline")
+	frappe.db.commit()
+	frappe.log_error(
+		"Terminal not released after repeated cancellations",
+		f"Intent {intent_name}: the reader may still be waiting for a card, and is "
+		f"most likely unreachable (asleep, powered off, or off the network). "
+		f"Tried {_RELEASE_ROUNDS} times over "
+		f"{int(_RELEASE_ROUNDS * _RELEASE_INTERVAL_SECONDS)}s; device marked offline.",
+	)
+
+
+def _set_device_status(device: str | None, status: str) -> None:
+	"""Record what we just learned about a reader's reachability.
+
+	Written from the only place that actually finds out: a cancellation either gets
+	acknowledged or it does not. Nothing else in the stack talks to the hardware
+	often enough to know.
+	"""
+	if not device:
+		return
+	if frappe.db.get_value("Payment Device", device, "status") != status:
+		frappe.db.set_value("Payment Device", device, "status", status)
 
 
 @frappe.whitelist()
