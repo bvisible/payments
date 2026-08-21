@@ -559,6 +559,15 @@ def poll_pending_payrexx_transactions() -> None:
 					payload_excerpt=f"payrexx {row.channel} {row.provider_intent_id}",
 					ignore_invalid=True,
 				)
+				if row.channel == "terminal" and row.device:
+					# A reader that settled a payment was plainly listening. This is the
+					# only positive evidence available: the ECR API has no liveness
+					# endpoint at all — `GET ecr/{sn}/pair` answers AUTHORIZED even with
+					# the device powered off (verified 2026-08-21), so pairing says
+					# nothing about reachability.
+					from payments.api.intent import _set_device_status
+
+					_set_device_status(row.device, "online")
 				frappe.db.commit()
 			elif row.channel == "terminal":
 				# Still live after five minutes with nobody watching. On a web intent
