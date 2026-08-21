@@ -2997,3 +2997,35 @@ msgid ""
 msgstr ""
 "UUID de la boutique fourni par TWINT. Retrouvez-le dans le portail marchand "
 "TWINT → menu COMMERCES → Commerce en ligne → éditez la boutique."
+
+#: payments/api/terminal_receipt.py
+msgid "Card payment"
+msgstr "Paiement par carte"
+
+#: payments/api/terminal_receipt.py
+msgid "Method"
+msgstr "Moyen"
+
+#: payments/api/terminal_receipt.py
+msgid "Card"
+msgstr "Carte"
+
+#: payments/api/terminal_receipt.py
+msgid "Authorisation"
+msgstr "Autorisation"
+
+#: payments/api/terminal_receipt.py
+msgid "Tip"
+msgstr "Pourboire"
+
+#: payments/api/terminal_receipt.py
+msgid "Customer copy"
+msgstr "Exemplaire client"
+
+#: payments/api/terminal_receipt.py
+msgid "Merchant copy"
+msgstr "Exemplaire commerçant"
+
+#: payments/api/terminal_receipt.py
+msgid "Thank you for your visit"
+msgstr "Merci de votre visite"
