@@ -309,6 +309,12 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			next_action_payload={
 				"terminal_status": payment.status,
 				"slip": list(payment.slip),
+				# The same slip as named fields, so the till can print its own receipt
+				# rather than the terminal's. The device's paper carries the acceptance
+				# platform's branding; ours does not, and everything legally required
+				# on a card receipt is in here — amount, date, masked PAN,
+				# authorisation, terminal and merchant.
+				"receipt": payment.receipt,
 			},
 			raw=payment.raw,
 		)
