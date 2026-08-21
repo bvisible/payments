@@ -39,6 +39,7 @@ provider being in ``test`` mode — see :meth:`PayrexxTerminalDriver._is_simulat
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import frappe
@@ -53,6 +54,36 @@ from payments.drivers.base import (
 )
 from payments.drivers.payrexx._common import build_client, error_response, map_status
 from payments.drivers.payrexx.provider import PayrexxProvider
+
+class PayrexxCancelUnconfirmed(Exception):
+	"""The terminal never confirmed a cancellation, so it may still take a card.
+
+	Raised — not returned — because the intent API treats *any* driver response as
+	a successful cancellation and only preserves the status on an exception.
+	"""
+
+
+#: FSM states that count as proof a terminal cancellation actually landed.
+#:
+#: ``failed`` and ``refunded`` are included because they are equally terminal: a
+#: declined or already-returned payment cannot take a card either. Only a payment
+#: still ``processing`` / ``requires_action`` means the terminal is live.
+_CANCEL_CONFIRMED = frozenset({"canceled", "failed", "refunded"})
+
+#: How long to insist before handing the question to reconciliation.
+#:
+#: A NexGo N86 on 4G took anywhere from 8 s to ~40 s to report a cancellation
+#: (measured 2026-08-21), so this window deliberately does NOT cover the worst
+#: case: a till request that blocks for 40 s is its own failure. Ten seconds
+#: catches the common case; beyond that the driver raises, the intent keeps its
+#: current status, and `poll_pending_payrexx_transactions` settles it.
+_CANCEL_POLL_ATTEMPTS = 5
+_CANCEL_POLL_SECONDS = 2.0
+
+#: Poll index after which the cancel is sent a second time — late enough that the
+#: terminal is past the window where it swallows one, early enough to still be
+#: confirmed inside the loop.
+_CANCEL_RETRY_AFTER = 1
 
 
 class PayrexxTerminalChannel(PaymentChannelBase):
@@ -320,7 +351,21 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		)
 
 	def cancel_intent(self, provider_intent_id: str) -> DriverResponse:
-		"""Cancel a payment still in progress on the terminal."""
+		"""Cancel a payment still in progress on the terminal, and prove it took.
+
+		``POST .../cancel`` answers with the payment's **current** state, not the
+		outcome of the request — it returns ``IN_PROGRESS`` whether the terminal
+		accepted the cancellation or ignored it. Worse, a cancel sent within a
+		second or so of the payment request is silently swallowed: verified on a
+		NexGo N86 on 2026-08-21, where the first cancel left the terminal waiting
+		for a card and only a second attempt terminated it.
+
+		Reporting ``canceled`` on the strength of that reply is how a till ends up
+		believing an order was abandoned while the terminal is still live in front
+		of the customer — who taps, pays, and is charged for a sale nobody
+		recorded. So the cancellation is confirmed by polling, retried once, and
+		only reported as ``canceled`` when the terminal actually says so.
+		"""
 		if str(provider_intent_id).startswith("sim_"):
 			return DriverResponse(
 				status="canceled",
@@ -333,15 +378,52 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			serial = self._serial(self._device_for_intent(provider_intent_id))
 			with self._client() as client:
 				payment = client.ecr.cancel_payment(serial, provider_intent_id)
+				payment = self._await_cancellation(client, serial, provider_intent_id, payment)
 		except Exception as exc:  # noqa: BLE001
 			return error_response(exc, provider_intent_id=provider_intent_id)
 
+		settled = map_status(payment.status)
+		if settled not in _CANCEL_CONFIRMED:
+			# Raise rather than return: `payments.api.intent.cancel_intent` marks the
+			# intent `canceled` on any response at all, and only leaves the status
+			# untouched when the driver raises. Returning a "failed" DriverResponse
+			# here would be recorded as a successful cancellation — the exact outcome
+			# this method exists to prevent.
+			raise PayrexxCancelUnconfirmed(
+				f"terminal {serial} did not confirm the cancellation of "
+				f"{provider_intent_id} (still {payment.status!r}) — it may still take "
+				"a card, so the intent must not be marked canceled"
+			)
+
 		return DriverResponse(
-			status="canceled",
+			status=settled,
 			provider_intent_id=provider_intent_id,
 			next_action_payload={"terminal_status": payment.status},
 			raw=payment.raw,
 		)
+
+	def _await_cancellation(self, client, serial, payment_id, payment):  # noqa: ANN001
+		"""Poll until the terminal settles, retrying the cancel once mid-way.
+
+		The retry exists because of the swallowed-first-cancel behaviour described
+		in :meth:`cancel_intent`. Repeating it is safe in the way that matters — a
+		cancel never takes money, unlike the payment request, which is why *that*
+		one is never retried. It is not, however, a no-op: once the payment has
+		settled the endpoint answers ``400 "Payment abort impossible, payment not
+		in progress"``. That is a normal outcome of the race, not a failure, so it
+		is swallowed and the poll below decides.
+		"""
+		for attempt in range(_CANCEL_POLL_ATTEMPTS):
+			if map_status(payment.status) in _CANCEL_CONFIRMED:
+				return payment
+			time.sleep(_CANCEL_POLL_SECONDS)
+			if attempt == _CANCEL_RETRY_AFTER:
+				try:
+					client.ecr.cancel_payment(serial, payment_id)
+				except Exception:  # noqa: BLE001 - the poll below is the real check
+					pass
+			payment = client.ecr.get_payment(serial, payment_id)
+		return payment
 
 	def refund(self, provider_intent_id: str, amount: int | None = None) -> DriverResponse:
 		"""Return money for a terminal payment, preferring a void, falling back to refund.
