@@ -120,15 +120,17 @@ def run():
     check("6. pos_start_payment ran through the Payrexx driver", bool(name),
           f"{name} status={intent['status']}")
 
-    # 7. the unpaired terminal fails cleanly, not with a stack trace
+    # 7. the simulated device answers as a device would, without touching hardware
     code = intent.get("error_code") or ""
-    check("7. unpaired terminal reported as TerminalNotFoundError",
-          code == "TerminalNotFoundError",
-          f"error_code={code} message={(intent.get('error_message') or '')[:80]}")
+    check("7. simulated payment starts without an error",
+          intent.get("status") in ("requires_action", "processing") and not code,
+          f"status={intent.get('status')} error_code={code or '-'}")
 
-    # 8. and it is NOT reported as an unknown outcome — nothing was charged, so the
-    #    till may safely retry; a transport_error would mean the opposite.
-    check("8. not misreported as transport_error", code != "transport_error", code)
+    # 8. and no outcome is reported that we cannot back up. A transport_error would
+    #    mean "we do not know whether money moved", which must never come out of a
+    #    simulated run — the till would have to reconcile something that never
+    #    happened.
+    check("8. not misreported as transport_error", code != "transport_error", code or "-")
 
     frappe.delete_doc("Payment Intent", name, force=True, ignore_permissions=True)
     frappe.db.commit()
