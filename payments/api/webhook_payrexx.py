@@ -41,6 +41,7 @@ surfaced to an operator instead of driving a transition.
 from __future__ import annotations
 
 import hashlib
+import json
 
 import frappe
 from frappe import _
@@ -504,6 +505,38 @@ def _safe_truncate(payload: bytes, max_bytes: int = 200_000) -> str:
 	return text
 
 
+def _persist_terminal_receipt(intent, response) -> None:  # noqa: ANN001
+	"""Keep the card details of a settled terminal payment on the intent.
+
+	The intent's ``next_action_payload`` is written when the payment is *created*,
+	so it holds an empty slip and a status of ``IN_PROGRESS`` — nothing a receipt
+	can be printed from. The masked PAN, authorisation, terminal id and merchant
+	only exist once the payment completes, and only in the reading that settles it.
+
+	This matters more than it looks: the terminal no longer prints anything of its
+	own (its paper carries the acceptance platform's branding), so the customer's
+	card receipt is the one the till prints — and it can only carry these mentions
+	if they were kept at this moment. Nothing else re-reads the payment afterwards.
+	"""
+	payload = response.next_action_payload or {}
+	if not payload.get("receipt") and not payload.get("slip"):
+		return
+	existing = {}
+	if intent.next_action_payload:
+		try:
+			existing = json.loads(intent.next_action_payload)
+		except (ValueError, TypeError):
+			existing = {}
+	existing.update(
+		{
+			"terminal_status": payload.get("terminal_status"),
+			"slip": payload.get("slip"),
+			"receipt": payload.get("receipt"),
+		}
+	)
+	intent.db_set("next_action_payload", json.dumps(existing, default=str), update_modified=False)
+
+
 def poll_pending_payrexx_transactions() -> None:
 	"""Scheduler fallback for deliveries that never arrived.
 
@@ -568,6 +601,7 @@ def poll_pending_payrexx_transactions() -> None:
 					from payments.api.intent import _set_device_status
 
 					_set_device_status(row.device, "online")
+					_persist_terminal_receipt(intent, response)
 				frappe.db.commit()
 			elif row.channel == "terminal":
 				# Still live after five minutes with nobody watching. On a web intent
