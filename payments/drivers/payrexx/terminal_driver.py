@@ -63,12 +63,23 @@ class PayrexxCancelUnconfirmed(Exception):
 	"""
 
 
-#: FSM states that count as proof a terminal cancellation actually landed.
+#: Raw ECR statuses meaning the reader is no longer holding the payment.
 #:
-#: ``failed`` and ``refunded`` are included because they are equally terminal: a
-#: declined or already-returned payment cannot take a card either. Only a payment
-#: still ``processing`` / ``requires_action`` means the terminal is live.
-_CANCEL_CONFIRMED = frozenset({"canceled", "failed", "refunded"})
+#: Deliberately expressed in the ECR vocabulary rather than as FSM states, because
+#: the two answer different questions. "Is the hardware free?" and "did the money
+#: move?" are independent here: ``TERMINATED`` settles the first and says nothing
+#: about the second — a paid card and a cancelled request end there alike (see
+#: NEEDS_HUMAN in _common.py). Mapping through the FSM to decide whether a
+#: cancellation landed is what let a paid sale be recorded as cancelled.
+_READER_FREE = frozenset(
+	{"TERMINATED", "CANCELLED", "CANCELED", "FAILED", "DECLINED", "EXPIRED", "SUCCESS"}
+)
+
+#: The one raw status that proves money moved. It is reported only during a short
+#: window around the payment itself, then gives way to ``TERMINATED`` for good —
+#: which is why a cancellation has to watch for it as it polls rather than read it
+#: back afterwards.
+_PAID = "SUCCESS"
 
 #: How long to insist before handing the question to reconciliation.
 #:
@@ -318,7 +329,11 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			return error_response(exc, provider_intent_id=provider_intent_id)
 
 		target = map_status(str(payment.status) if payment.status else None)
-		if target is None and payment.status:
+		# TERMINATED is unmapped on purpose, not by omission: it is the end state of
+		# a paid payment *and* of a cancelled one, so it cannot drive a transition.
+		# The till keeps waiting and the webhook decides.
+		known_ambiguous = str(payment.status or "").strip().lower() == "terminated"
+		if target is None and payment.status and not known_ambiguous:
 			# Worth knowing about: either Payrexx added a value, or the firmware
 			# reports one their support did not list. Either way the payment stalls
 			# until someone maps it, and a stalled payment nobody hears about is how
@@ -378,12 +393,26 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			serial = self._serial(self._device_for_intent(provider_intent_id))
 			with self._client() as client:
 				payment = client.ecr.cancel_payment(serial, provider_intent_id)
-				payment = self._await_cancellation(client, serial, provider_intent_id, payment)
+				payment, saw_payment = self._await_cancellation(
+					client, serial, provider_intent_id, payment
+				)
 		except Exception as exc:  # noqa: BLE001
 			return error_response(exc, provider_intent_id=provider_intent_id)
 
-		settled = map_status(payment.status)
-		if settled not in _CANCEL_CONFIRMED:
+		raw_status = str(payment.status or "").strip().upper()
+
+		if saw_payment or raw_status == _PAID:
+			# The customer tapped while we were cancelling. The money moved, so this
+			# is a sale, not a cancellation — and saying otherwise would book a paid
+			# transaction as abandoned.
+			return DriverResponse(
+				status="succeeded",
+				provider_intent_id=provider_intent_id,
+				next_action_payload={"terminal_status": payment.status, "raced_payment": True},
+				raw=payment.raw,
+			)
+
+		if raw_status not in _READER_FREE:
 			# Raise rather than return: `payments.api.intent.cancel_intent` marks the
 			# intent `canceled` on any response at all, and only leaves the status
 			# untouched when the driver raises. Returning a "failed" DriverResponse
@@ -396,7 +425,7 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 			)
 
 		return DriverResponse(
-			status=settled,
+			status="canceled",
 			provider_intent_id=provider_intent_id,
 			next_action_payload={"terminal_status": payment.status},
 			raw=payment.raw,
@@ -413,9 +442,16 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		in progress"``. That is a normal outcome of the race, not a failure, so it
 		is swallowed and the poll below decides.
 		"""
+		saw_payment = False
 		for attempt in range(_CANCEL_POLL_ATTEMPTS):
-			if map_status(payment.status) in _CANCEL_CONFIRMED:
-				return payment
+			raw_status = str(payment.status or "").strip().upper()
+			if raw_status == _PAID:
+				# Caught the narrow window in which the reader admits it took money.
+				# Missing it means reading TERMINATED later and being unable to tell
+				# a sale from an abandoned request, so it is remembered here.
+				saw_payment = True
+			if raw_status in _READER_FREE:
+				return payment, saw_payment
 			time.sleep(_CANCEL_POLL_SECONDS)
 			if attempt == _CANCEL_RETRY_AFTER:
 				try:
@@ -423,7 +459,7 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 				except Exception:  # noqa: BLE001 - the poll below is the real check
 					pass
 			payment = client.ecr.get_payment(serial, payment_id)
-		return payment
+		return payment, saw_payment
 
 	def refund(self, provider_intent_id: str, amount: int | None = None) -> DriverResponse:
 		"""Return money for a terminal payment, preferring a void, falling back to refund.

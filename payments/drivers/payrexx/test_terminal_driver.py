@@ -30,7 +30,15 @@ PAYMENT_ID = "291f6bdf-fa94-4e3d-83f0-6444750be7a9"
 
 
 def _payment(status: str) -> SimpleNamespace:
-	return SimpleNamespace(payment_id=PAYMENT_ID, status=status, raw={"status": status})
+	# `slip` and `receipt` are what get_status hands the till so it can print its own
+	# document; empty here, but they must exist or the call blows up on an attribute.
+	return SimpleNamespace(
+		payment_id=PAYMENT_ID,
+		status=status,
+		raw={"status": status},
+		slip=[],
+		receipt=None,
+	)
 
 
 class _FakeEcr:
@@ -163,3 +171,54 @@ class TestPayrexxTerminalCancel(FrappeTestCase):
 			result = driver.cancel_intent("sim_PI-2026-00000001")
 		self.assertEqual(result.status, "canceled")
 		self.assertEqual(ecr.cancel_calls, 0)
+
+	def test_payment_taken_while_cancelling_is_a_sale(self):
+		"""If the customer taps mid-cancellation, that is a sale, not a cancellation.
+
+		The reader admits ``SUCCESS`` only briefly before settling to ``TERMINATED``,
+		so the cancellation loop has to notice it as it polls. Reporting ``canceled``
+		here books money that was taken as an abandoned sale.
+		"""
+		ecr = _FakeEcr(
+			cancel_responses=["IN_PROGRESS"],
+			poll_states=["IN_PROGRESS", "SUCCESS", "TERMINATED"],
+		)
+		with self._driver(ecr) as driver:
+			result = driver.cancel_intent(PAYMENT_ID)
+		self.assertEqual(result.status, "succeeded")
+		self.assertTrue(result.next_action_payload.get("raced_payment"))
+
+
+class TestPayrexxTerminatedIsAmbiguous(FrappeTestCase):
+	"""``TERMINATED`` must never be read as an outcome.
+
+	Measured on a NexGo N86 on 2026-08-22: a card payment that completed and printed
+	its receipt, and a payment cancelled from the till, are indistinguishable
+	afterwards — same status, same type, same (absent) reversalStatus.
+	"""
+
+	def test_terminated_does_not_map_to_canceled(self):
+		from payments.drivers.payrexx._common import NEEDS_HUMAN, map_status
+
+		self.assertIsNone(map_status("TERMINATED"))
+		self.assertIsNone(map_status("terminated"))
+		self.assertIn("terminated", NEEDS_HUMAN)
+
+	def test_get_status_keeps_a_terminated_payment_open(self):
+		"""The till keeps waiting; the webhook decides."""
+		ecr = _FakeEcr(cancel_responses=[], poll_states=["TERMINATED"])
+		driver = PayrexxTerminalDriver.__new__(PayrexxTerminalDriver)
+
+		@contextmanager
+		def _client(_self=None):
+			yield _FakeClient(ecr)
+
+		with (
+			patch.object(PayrexxTerminalDriver, "_client", _client),
+			patch.object(PayrexxTerminalDriver, "_serial", lambda _s, _d: SERIAL),
+			patch.object(PayrexxTerminalDriver, "_device_for_intent", lambda _s, _i: "DEV-X"),
+		):
+			result = driver.get_status(PAYMENT_ID, device_id="DEV-X")
+
+		self.assertEqual(result.status, "processing")
+		self.assertEqual(result.next_action_payload["terminal_status"], "TERMINATED")

@@ -46,7 +46,8 @@ _STATUS_TO_FSM: dict[str, str] = {
 	# and live in NEEDS_HUMAN instead.
 	"in_progress": "processing",
 	"success": "succeeded",
-	"terminated": "canceled",
+	# `terminated` is deliberately absent — see NEEDS_HUMAN below. It used to map to
+	# `canceled`, which is how a paid sale got recorded as cancelled.
 	"reverted": "refunded",
 	# `declined`, `expired` and `failed` already appear above with the same meaning.
 	"failed": "failed",
@@ -66,8 +67,28 @@ _STATUS_TO_FSM: dict[str, str] = {
 #: is a commercial decision, not a state transition. ``unknown`` is what it says: the
 #: terminal could not tell us, so inventing an outcome would be the one thing worse
 #: than stalling.
+#: ``terminated`` is the ECR state a payment ends in — **whether it was paid or
+#: cancelled**. Measured on a NexGo N86 on 2026-08-22: a card payment that went
+#: through and printed its receipt, and a payment cancelled from the till, are
+#: byte-for-byte indistinguishable afterwards — ``status=TERMINATED``,
+#: ``type=CHARGE``, ``reversalStatus=None`` on both. The reader reports ``SUCCESS``
+#: only during a brief window at the moment of payment, then settles to
+#: ``TERMINATED`` for good.
+#:
+#: It previously mapped to ``canceled``, which meant a customer could pay, walk out
+#: with a receipt, and have the till record the sale as cancelled. The authoritative
+#: outcome comes from the webhook or the merchant transaction, never from polling
+#: this field.
 NEEDS_HUMAN: frozenset[str] = frozenset(
-	{"chargeback", "disputed", "insecure", "uncaptured", "underpaid", "unknown"}
+	{
+		"chargeback",
+		"disputed",
+		"insecure",
+		"uncaptured",
+		"underpaid",
+		"unknown",
+		"terminated",
+	}
 )
 
 

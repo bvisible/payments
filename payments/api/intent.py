@@ -268,12 +268,31 @@ def release_stuck_terminal(intent_name: str) -> None:
 			return
 
 		driver = resolve_driver(intent_doc.provider, intent_doc.channel)
+		reader_status = None
 		try:
-			status = driver.get_status(
+			reading = driver.get_status(
 				intent_doc.provider_intent_id, device_id=intent_doc.device
-			).status
+			)
+			status = reading.status
+			reader_status = str(
+				(reading.next_action_payload or {}).get("terminal_status") or ""
+			).strip().upper()
 		except Exception:  # noqa: BLE001 - a failed read is not a reason to stop
 			status = None
+
+		if reader_status == "TERMINATED":
+			# The reader is already free, so there is nothing to release — and this is
+			# the one state that cannot be read as an outcome: a paid card and a
+			# cancelled request both end in TERMINATED, indistinguishably (see
+			# NEEDS_HUMAN in payments/drivers/payrexx/_common.py). Cancelling now would
+			# stamp `canceled` on what may well be a sale the customer paid for.
+			frappe.log_error(
+				"Terminal payment ended ambiguously — left for reconciliation",
+				f"Intent {intent_name}: the reader reports TERMINATED, which covers "
+				"both a completed payment and a cancelled one. Status left untouched; "
+				"the webhook or the merchant transaction decides.",
+			)
+			return
 
 		if status in final:
 			# It resolved on its own — record that and leave the reader alone.
