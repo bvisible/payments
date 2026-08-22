@@ -111,6 +111,14 @@ doc_events = {
 	"Payment Intent": {
 		"on_update": "payments.api.reconciliation.on_payment_intent_after_update",
 	},
+	"Sales Invoice": {
+		# The card mentions a receipt must carry — masked PAN, scheme, AID,
+		# authorisation. They live on the Payment Intent and nothing copied them
+		# onto the invoice, so the till printed a sales receipt where a card receipt
+		# was required. On validate rather than on_submit: a draft POS invoice is
+		# printed too.
+		"validate": "payments.api.card_receipt.fill_card_details",
+	},
 }
 
 # Scheduled Tasks
