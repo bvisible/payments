@@ -1,6 +1,21 @@
 {% extends "templates/web.html" %}
 
-{% block title %} Payment {% endblock %}
+{#- //// Neoffice — page refaite. L'originale était du Bootstrap nu
+    (`col-sm-offset-2`, labels flottants, bouton perdu à droite) : le client
+    quittait un parcours de réservation soigné pour une page qui n'avait plus
+    rien à voir avec le site qu'il venait de lire. Reproche de Daniel Moret,
+    2026-08-21, capture à l'appui.
+
+    Le vocabulaire est celui du parcours (`nb-*`, servi par
+    `neoffice_theme/public/css/booking.css`) : même papier crème, mêmes bordures
+    sable, Forum pour le titre, bouton ink pleine largeur. Rien n'est importé en
+    plus — ces feuilles sont déjà sur toutes les pages du site.
+
+    ⚠️ Les crochets du script Stripe sont INTOUCHABLES : `#card-element`,
+    `#card-errors`, `#submit`, `input[name=cardholder-name]`,
+    `input[name=cardholder-email]`, `.error` et `.success`. -#}
+
+{% block title %}{{ _("Payment") }}{% endblock %}
 
 {%- block header -%}
 {% endblock %}
@@ -11,48 +26,50 @@
 {% endblock %}
 
 {%- block page_content -%}
+<div class="nb npay">
+	<div class="nb-card npay-card">
+		<span class="nb-eyebrow nb-eyebrow--muted">{{ _("Secure payment") }}</span>
+		{% if title %}<h1 class="nb-title npay-house">{{ title }}</h1>{% endif %}
+		{% if description %}<p class="nb-muted npay-what">{{ description }}</p>{% endif %}
 
-<div class="stripe" id="payment-section">
-	<div class="col-sm-10 col-sm-offset-2">
-		{% if image %}
-			<img src={{image}}>
-		{% endif %}
-		<h2 class="text-center">{{description}}</h2>
-		<form id="payment-form">
-			<div class="form-row row">
-				<div class="group col-12">
-					<div>
-						<label>
-							<span>{{ _("Name") }}</span>
-						<input id="cardholder-name" name="cardholder-name" class="field" placeholder="{{ _('John Doe') }}" value="{{payer_name}}"/>
-					</label>
-					</div>
-				</div>
-				<div class="group col-12">
-					<div>
-						<label>
-							<span>{{ _("Email") }}</span>
-						<input id="cardholder-email" name="cardholder-email" class="field" placeholder="{{ _('john@doe.com') }}" value="{{payer_email}}"/>
-					</label>
-					</div>
-				</div>
-				<div class="group col-12">
-					<label>
-					<span>{{ _("Card Details") }}</span>
-				<div id="card-element" name="card-element" class="field"></div>
-				<div id="card-errors" role="alert"></div>
+		<div class="npay-amount">
+			<span class="nb-eyebrow nb-eyebrow--muted">{{ _("Amount to pay") }}</span>
+			<span class="nb-amount">{{ amount }}</span>
+		</div>
+
+		<form id="payment-form" class="npay-form">
+			<label class="npay-field">
+				<span class="npay-label">{{ _("Name") }}</span>
+				<input id="cardholder-name" name="cardholder-name" class="nba-input"
+					autocomplete="cc-name" value="{{ payer_name or '' }}">
 			</label>
+
+			<label class="npay-field">
+				<span class="npay-label">{{ _("Email") }}</span>
+				<input id="cardholder-email" name="cardholder-email" class="nba-input"
+					type="email" autocomplete="email" value="{{ payer_email or '' }}">
+			</label>
+
+			<div class="npay-field">
+				<span class="npay-label">{{ _("Card Details") }}</span>
+				{#- //// Neoffice — Stripe monte SES champs ici : la boîte est à
+				    nous, le contenu est à lui, et aucun numéro de carte ne
+				    touche nos serveurs. -#}
+				<div id="card-element" name="card-element" class="nba-input npay-card-box"></div>
+				<div id="card-errors" class="npay-error" role="alert"></div>
 			</div>
 
-			</div>
-			<button type="submit" class="submit mb-4" id="submit">{{_('Pay')}} {{amount}}</button>
-			<div class="outcome text-center">
-				<div class="error" hidden>{{ _("An error occured during the payment process. Please contact us.") }}</div>
-				<div class="success" hidden>{{ _("Your payment has been successfully registered.") }}</div>
+			<button type="submit" class="nb-btn nb-btn--ink npay-submit" id="submit">
+				{{ _("Pay") }} {{ amount }}
+			</button>
+
+			<p class="npay-note">{{ _("Payment handled by Stripe. Your card details never pass through our servers.") }}</p>
+
+			<div class="outcome">
+				<div class="error npay-outcome npay-outcome--bad" hidden>{{ _("An error occured during the payment process. Please contact us.") }}</div>
+				<div class="success npay-outcome npay-outcome--good" hidden>{{ _("Your payment has been successfully registered.") }}</div>
 			</div>
 		</form>
 	</div>
 </div>
-
-
 {% endblock %}

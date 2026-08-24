@@ -2,20 +2,23 @@ var stripe = Stripe("{{ publishable_key }}");
 
 var elements = stripe.elements();
 
+//// Neoffice — les champs de carte sont dessinés PAR Stripe dans son iframe :
+//// notre feuille de style ne peut pas les atteindre, seul cet objet le peut.
+//// Sans lui, trois lignes en Helvetica bleu au milieu d'une page en Karla ink.
 var style = {
 	base: {
-		color: '#32325d',
-		lineHeight: '18px',
-		fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+		color: '#141414',
+		lineHeight: '20px',
+		fontFamily: 'Karla, system-ui, -apple-system, "Segoe UI", sans-serif',
 		fontSmoothing: 'antialiased',
 		fontSize: '16px',
 		'::placeholder': {
-			color: '#aab7c4'
+			color: '#8A8078'
 		}
 	},
 	invalid: {
-		color: '#fa755a',
-		iconColor: '#fa755a'
+		color: '#B3261E',
+		iconColor: '#B3261E'
 	}
 };
 

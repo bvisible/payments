@@ -1,117 +1,127 @@
-.StripeElement {
-  background-color: white;
-  height: 40px;
-  padding: 10px 12px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  box-shadow: 0 1px 3px 0 #e6ebf1;
-  -webkit-transition: box-shadow 150ms ease;
-  transition: box-shadow 150ms ease;
+/* //// Neoffice — feuille refaite. L'originale posait une grille Bootstrap et
+   des champs gris ; la page ne ressemblait plus au parcours dont elle est la
+   dernière étape. On reprend ici le vocabulaire de `booking.css` (déjà servi
+   sur tout le site), sans rien importer de plus.
+
+   Les variables `--nb-*` viennent de cette feuille ; les valeurs de repli
+   couvrent le cas où une instance servirait cette page sans le thème. */
+
+.npay {
+	display: flex;
+	justify-content: center;
+	padding: 3rem 1rem 4rem;
 }
 
-.StripeElement--focus {
-  box-shadow: 0 1px 3px 0 #cfd7df;
+.npay-card {
+	width: 100%;
+	max-width: 30rem;
+	padding: 2rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
 }
 
-.StripeElement--invalid {
-  border-color: #fa755a;
+.npay-house {
+	margin: 0.25rem 0 0;
+	font-family: var(--nb-font-title, "Forum", Georgia, serif);
+	font-size: 1.6rem;
+	line-height: 1.2;
+	color: var(--nb-ink, #141414);
 }
 
-.StripeElement--webkit-autofill {
-  background-color: #fefde5;
+.npay-what {
+	margin: 0;
+	font-size: 0.95rem;
 }
 
-.stripe #payment-form {
-	margin-top: 2rem;
+/* Le montant d'abord : c'est la seule chose que le client vient vérifier. */
+.npay-amount {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	margin: 0.5rem 0 0.25rem;
+	padding: 1rem 1.25rem;
+	background: var(--nb-clay-wash, #FBF4EC);
+	border: 1px solid var(--nb-sand-soft, #EFE3D4);
+	border-radius: var(--nb-radius-md, 14px);
 }
 
-.stripe button {
-  float: right;
-  display: block;
-  background: #171717;
-  color: white;
-  border-radius: 8px;
-  border: 0;
-  font-size: 14px;
-  font-weight: 420;
-  max-width: 40%;
-  height: 40px;
-  line-height: 38px;
-  outline: none;
+.npay-amount .nb-amount {
+	font-family: var(--nb-font-title, "Forum", Georgia, serif);
+	font-size: 1.9rem;
+	line-height: 1.1;
+	color: var(--nb-ink, #141414);
 }
 
-.stripe .group {
-  background: white;
-  border-radius: 4px;
-  margin-bottom: 20px;
+.npay-form {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	margin-top: 0.5rem;
 }
 
-.stripe label {
-  position: relative;
-  color: #8898AA;
-  font-weight: 300;
-  height: 40px;
-  line-height: 40px;
-  margin-left: 20px;
-  display: block;
+.npay-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
 }
 
-.stripe .group label:not(:last-child) {
-  border-bottom: 1px solid #F0F5FA;
+.npay-label {
+	font-family: var(--nb-font-ui, "Karla", system-ui, sans-serif);
+	font-size: 0.8rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--nb-muted, #6B6257);
 }
 
-.stripe label>span {
-  width: 20%;
-  float: left;
-  color: #525252;
-  font-size: 13px;
-  font-weight: 420;
-  letter-spacing: 0.02em;
+/* Stripe injecte un iframe de hauteur libre : on lui donne la même boîte
+   qu'à nos propres champs pour que les trois lignes s'alignent. */
+.npay-card-box {
+	padding: 0.85rem 0.9rem;
+	min-height: 3rem;
 }
 
-.current-card {
-	margin-left: 20px;
+.npay-error {
+	min-height: 1.1rem;
+	font-size: 0.85rem;
+	color: var(--nb-danger, #B3261E);
 }
 
-.field {
-  border-radius: 8px;
-  letter-spacing: 0.02em;
-  font-size: 14px;
-  font-weight: 420;
-  width: 70%;
-  float: right;
-  border: none;
-  height: 28px;
-  padding: 6px 8px;
-  color: #383838;
-  background: #f3f3f3;
-  background-clip: padding-box;
+.npay-submit {
+	width: 100%;
+	justify-content: center;
+	margin-top: 0.25rem;
 }
 
-.field::-webkit-input-placeholder {
-  color: #CFD7E0;
+.npay-note {
+	margin: 0;
+	font-family: var(--nb-font-ui, "Karla", system-ui, sans-serif);
+	font-size: 0.8rem;
+	line-height: 1.5;
+	color: var(--nb-muted, #6B6257);
+	text-align: center;
 }
 
-.field::-moz-placeholder {
-  color: #CFD7E0;
+.npay-outcome {
+	margin-top: 0.75rem;
+	padding: 0.75rem 1rem;
+	border-radius: var(--nb-radius-sm, 10px);
+	font-size: 0.9rem;
+	text-align: center;
 }
 
-.field:-ms-input-placeholder {
-  color: #CFD7E0;
+.npay-outcome--bad {
+	background: var(--nb-danger-bg, #FDECEA);
+	color: var(--nb-danger, #B3261E);
 }
 
-#payment-section {
-  min-height: 50vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  padding: 10rem;
+.npay-outcome--good {
+	background: var(--nb-success-bg, #E9F5EE);
+	color: var(--nb-success, #1B7A47);
 }
 
-@media (max-width: 48rem) {
-  #payment-section {
-    padding: 0rem;
-    min-height: 70vh;
-  },
+@media (max-width: 480px) {
+	.npay { padding: 1.5rem 0.75rem 3rem; }
+	.npay-card { padding: 1.25rem; }
 }
