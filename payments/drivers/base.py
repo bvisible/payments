@@ -70,7 +70,15 @@ class DriverResponse:
 
 	next_action_type: str = "none"
 	"""One of: ``none``, ``display_card_present_modal``, ``display_qr_payload``,
-	``redirect_to_url``, ``requires_confirmation``."""
+	``native_app_handoff``, ``redirect_to_url``, ``requires_confirmation``.
+
+	#//// Neoffice — `native_app_handoff` manquait à cette liste alors que le
+	#//// pilote Payrexx tap-to-pay le rend depuis sa création. Un consommateur
+	#//// qui se fie à la docstring pour énumérer les cas en oublie donc un, et
+	#//// le traite comme un silence — chez nous, cela aurait voulu dire « rien à
+	#//// encaisser » sur un paiement bien réel. Toute action ajoutée ici doit
+	#//// l'être aussi dans cette phrase : c'est le contrat que lisent les écrans.
+	"""
 
 	next_action_payload: dict[str, Any] = field(default_factory=dict)
 
