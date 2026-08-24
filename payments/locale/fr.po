@@ -3029,3 +3029,15 @@ msgstr "Exemplaire commerçant"
 #: payments/api/terminal_receipt.py
 msgid "Thank you for your visit"
 msgstr "Merci de votre visite"
+
+#: payments/templates/pages/stripe_checkout.html
+msgid "Secure payment"
+msgstr "Paiement sécurisé"
+
+#: payments/templates/pages/stripe_checkout.html
+msgid "Amount to pay"
+msgstr "Montant à payer"
+
+#: payments/templates/pages/stripe_checkout.html
+msgid "Payment handled by Stripe. Your card details never pass through our servers."
+msgstr "Paiement traité par Stripe. Les données de votre carte ne transitent jamais par nos serveurs."

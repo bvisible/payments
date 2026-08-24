@@ -39,7 +39,20 @@ def get_context(context):
 		context.publishable_key = get_api_key(context.reference_docname, gateway_controller)
 		context.image = get_header_image(context.reference_docname, gateway_controller)
 
-		context["amount"] = fmt_money(amount=context["amount"], currency=context["currency"])
+		#//// Neoffice — le montant porte sa DEVISE. `fmt_money` la retire dès que
+		#//// le défaut global `hide_currency_symbol` vaut « Yes » (le cas chez
+		#//// nous, et défendable au desk où chaque colonne annonce la sienne) :
+		#//// la page de paiement n'affichait plus que « 156.00 ». Sur l'écran où
+		#//// l'on sort sa carte, l'unité n'est pas un détail.
+		context["amount"] = neoffice_amount(context["amount"], context["currency"])
+
+		#//// Neoffice — le paramètre `title` de l'URL porte le nom de la SOCIÉTÉ,
+		#//// et l'écrire dans `context.title` le faisait servir de titre de page :
+		#//// le thème le répétait en grand titre et dans le fil d'Ariane, au-dessus
+		#//// d'une carte qui le disait déjà. On le déplace, et la page reprend son
+		#//// vrai nom.
+		context["payee"] = context.get("title")
+		context["title"] = _("Payment")
 
 		if is_a_subscription(context.reference_doctype, context.reference_docname):
 			payment_plan = frappe.db.get_value(
@@ -60,6 +73,21 @@ def get_context(context):
 		)
 		frappe.local.flags.redirect_location = frappe.local.response.location
 		raise frappe.Redirect
+
+
+def neoffice_amount(amount, currency: str = None) -> str:
+	"""#//// Neoffice — un montant lisible par un client : avec sa devise.
+
+	`fmt_money` l'omet quand le défaut global `hide_currency_symbol` vaut
+	« Yes ». On formate donc le nombre seul, puis on remet la devise du côté
+	que sa fiche Currency indique.
+	"""
+	montant = fmt_money(amount=amount)
+	if not currency:
+		return montant
+	symbole = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
+	a_droite = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
+	return f"{montant} {_(symbole)}" if a_droite else f"{_(symbole)} {montant}"
 
 
 def get_api_key(doc, gateway_controller):
