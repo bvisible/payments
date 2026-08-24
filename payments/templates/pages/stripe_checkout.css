@@ -9,7 +9,9 @@
 .npay {
 	display: flex;
 	justify-content: center;
-	padding: 3rem 1rem 4rem;
+	/* Le thème pose déjà son bandeau de titre au-dessus : 3rem de plus
+	   creusaient un vide de la hauteur d'un écran avant la carte. */
+	padding: 1rem 1rem 4rem;
 }
 
 .npay-card {
