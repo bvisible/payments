@@ -167,12 +167,60 @@ def complete_shipping_step(page: Page) -> None:
 	_advance_step(page, "step-payment", "step-payment")
 
 
+def accept_terms(page: Page, card) -> None:  # noqa: ANN001
+	"""Tick the CGV box inside one payment method card.
+
+	Two things make this less obvious than it looks.
+
+	The checkbox used to be ``#terms-acceptance`` on every gateway template —
+	a duplicated id, so ``document`` lookups and ``label[for]`` both resolved to
+	the *first* card in the page rather than this one. That was fixed in the
+	webshop by giving each one ``id="terms-<submit_id>"`` and a shared
+	``.terms-acceptance`` class; targeting the class, scoped to the card, is what
+	survives both spellings.
+
+	And the label is not safe to click blindly: it wraps an ``<a class="terms-link">``
+	that jumps to the terms section. A click at the label's centre lands on that
+	link, scrolls the page and leaves the box untouched — a silent no-op that
+	looks exactly like a flaky test.
+
+	So: ``check()`` the input directly, which Playwright routes through the
+	proper label/checkbox association, and fall back to the DOM only if the
+	element is not actionable (some themes hide it under custom-control styling).
+	Idempotent — a box already ticked is left alone, since clicking a label is a
+	toggle and a second click would untick it.
+	"""
+	box = card.locator("input.terms-acceptance, input[id^='terms-'], input[type=checkbox]").first
+	if box.count() == 0:
+		return
+	try:
+		if box.is_checked():
+			return
+		box.check(timeout=3_000)
+		return
+	except Exception:
+		pass
+
+	# Not actionable (hidden by CSS). Tick it in the DOM and fire the events the
+	# gateway templates listen on, so the submit button unlocks.
+	box.evaluate(
+		"""
+		(cb) => {
+			if (cb.checked) return;
+			cb.checked = true;
+			cb.dispatchEvent(new Event('change', {bubbles: true}));
+			cb.dispatchEvent(new Event('click', {bubbles: true}));
+		}
+		"""
+	)
+
+
 def select_payment_method(page: Page, method_substr: str) -> None:
 	"""Step 4 — pick a payment method card by data-method-id substring.
 
 	Case-insensitive (``i`` flag) — the data-method-id is a slug of the
 	Payment Gateway Account name, e.g. ``Stripe___CHF`` / ``Wallee___CHF___pri``
-	/ ``Twint___CHF``.
+	/ ``Twint___CHF`` / ``Payrexx___CHF``.
 	"""
 	close_modals(page)
 	# Payment method cards load async after step-payment becomes active.
@@ -182,63 +230,28 @@ def select_payment_method(page: Page, method_substr: str) -> None:
 	card.click()
 	page.wait_for_timeout(1_000)
 
-	# Accept the CGV terms. The checkbox (#terms-acceptance) is CSS-hidden
-	# (custom-control styling) — the webshop handler listens on the
-	# .form-check-label click and TOGGLES the checkbox itself.
-	#
-	# CRITICAL: because the label click is a toggle, we must click it ONLY when
-	# the box is currently unchecked. The previous version clicked it on every
-	# retry where the submit was still disabled; under load (handler binds late
-	# / is_enabled races) that flipped the box back OFF, so the final state
-	# depended on click parity and left the submit disabled at random — this was
-	# the TWINT flakiness. Reading the real checkbox state first makes it
-	# idempotent: check once, then just wait for the submit to enable.
-	submit = card.locator(".btn-submit-payment").first
-	for attempt in range(8):
+	# The submit button stays disabled until the terms are accepted. Ticking is
+	# idempotent (see accept_terms), so the loop only waits — it never re-clicks
+	# a box that is already ticked, which is what used to flip it back off and
+	# leave the button disabled on a coin toss.
+	submit = card.locator(".btn-submit-payment")
+	form = card.locator(".payment-method-form").first
+	for _ in range(8):
 		try:
-			if submit.is_enabled():
+			if submit.count() > 0 and submit.first.is_enabled():
 				return
+			# A method switched to the intent engine draws itself — TWINT shows its
+			# QR and pairing token as soon as it is picked, with no button and
+			# nothing to accept. Once its form has content and still no submit
+			# exists, there is nothing left to wait for.
+			if submit.count() == 0 and form.count() > 0:
+				if page.evaluate(
+					"(el) => el.innerHTML.trim().length > 0", form.element_handle()
+				):
+					return
 		except Exception:
 			pass
-		checked = page.evaluate(
-			"""
-			(methodSubstr) => {
-				const card = [...document.querySelectorAll('.payment-method-item')]
-					.find(c => (c.dataset.methodId||'').toLowerCase().includes(methodSubstr.toLowerCase()));
-				if (!card) return null;
-				const cb = card.querySelector('#terms-acceptance, input[id*=terms], input[type=checkbox]');
-				return cb ? !!cb.checked : null;
-			}
-			""",
-			method_substr,
-		)
-		if not checked:
-			label = card.locator(".form-check-label, label[for='terms-acceptance']").first
-			if label.count() > 0:
-				try:
-					label.scroll_into_view_if_needed()
-					label.click(force=True)
-				except Exception:
-					pass
-			else:
-				# Fallback : check the box directly via JS within this card
-				# (guarded by !cb.checked so it stays idempotent).
-				page.evaluate(
-					"""
-					(methodSubstr) => {
-						const card = [...document.querySelectorAll('.payment-method-item')]
-							.find(c => (c.dataset.methodId||'').toLowerCase().includes(methodSubstr.toLowerCase()));
-						if (!card) return;
-						const cb = card.querySelector('#terms-acceptance, input[id*=terms], input[type=checkbox]');
-						if (cb && !cb.checked) {
-							cb.checked = true;
-							cb.dispatchEvent(new Event('change', {bubbles:true}));
-							cb.dispatchEvent(new Event('click', {bubbles:true}));
-						}
-					}
-					""",
-					method_substr,
-				)
+		accept_terms(page, card)
 		page.wait_for_timeout(800)
 	# Final state — caller's click_pay surfaces a clear error if still disabled.
 
