@@ -262,12 +262,33 @@ def selected_card(page: Page):
 
 
 def click_pay(page: Page) -> None:
-	"""Click the submit button INSIDE the selected payment method card."""
+	"""Go ahead with the payment, from inside the selected card.
+
+	Two shapes, because a method switched to the intent engine is drawn by the
+	engine rather than by its own template:
+
+	- legacy — a ``<button class="btn-submit-payment">``, disabled until the terms
+	  are accepted;
+	- intent engine — an ``<a class="btn btn-primary">`` reading "Continue to
+	  payment", already carrying the link the driver produced.
+
+	Waiting on ``.btn-submit-payment`` alone is why the intent-engine tiles timed
+	out on an element that was never going to appear.
+	"""
 	card = selected_card(page)
-	btn = card.locator(".btn-submit-payment").first
-	btn.scroll_into_view_if_needed()
-	expect(btn).to_be_enabled(timeout=15_000)
-	btn.click()
+
+	submit = card.locator(".btn-submit-payment")
+	if submit.count() > 0:
+		btn = submit.first
+		btn.scroll_into_view_if_needed()
+		expect(btn).to_be_enabled(timeout=15_000)
+		btn.click()
+		return
+
+	link = card.locator(".payment-method-form a.btn, .payment-method-form button.btn").first
+	expect(link).to_be_visible(timeout=15_000)
+	link.scroll_into_view_if_needed()
+	link.click()
 
 
 # ---------------------------------------------------------------------------

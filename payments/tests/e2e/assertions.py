@@ -126,7 +126,17 @@ def list_recent_test_intents(minutes: int = 30) -> list[dict[str, Any]]:
 	intents = frappe.get_all(
 		"Payment Intent",
 		filters={"reference_doctype": "Payment Request", "reference_name": ["in", pr_names]},
-		fields=["name", "status", "channel", "provider_intent_id", "reference_name", "creation"],
+		# `metadata_json` travels so a test can assert what the tile *asked for* —
+		# a payment-method restriction, say — rather than only what came back.
+		fields=[
+			"name",
+			"status",
+			"channel",
+			"provider_intent_id",
+			"reference_name",
+			"metadata_json",
+			"creation",
+		],
 		order_by="creation desc",
 		limit=20,
 	)

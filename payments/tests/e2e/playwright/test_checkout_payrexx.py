@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import pytest
 
+from conftest import list_recent_test_intents
 from helpers import (
 	add_to_cart,
 	open_cart,
@@ -59,3 +60,62 @@ def test_checkout_payrexx_redirects_to_hosted_page(logged_in_page, paying_item, 
 
 	# And it is a real hosted payment, not an error page.
 	assert "payment=" in page.url, f"No payment token in the hosted page URL: {page.url}"
+
+
+@pytest.mark.checkout
+@pytest.mark.psp_payrexx
+@pytest.mark.slow
+@pytest.mark.parametrize(
+	("tuile", "attendu"),
+	[("payrexx_twint", ["twint"]), ("payrexx_carte", ["visa", "mastercard"])],
+)
+def test_checkout_payrexx_restricted_tiles(
+	logged_in_page, paying_item, base_url, backend, tuile, attendu
+):
+	"""One gateway, several tiles — each restricted to its own payment methods.
+
+	A single "Payrexx" tile hands the shopper to a page where they still have to
+	choose, which is a second decision after they thought they had decided. Naming
+	a Payment Gateway Account after the same provider and restricting it in
+	``Webshop Settings`` gives them a TWINT tile and a card tile that both settle
+	through Payrexx.
+
+	The restriction is asserted on the intent rather than on the hosted page: the
+	page's URL is a token and reveals nothing, and reading Payrexx's own rendering
+	would be testing their markup. What matters here is that the tile carried the
+	restriction all the way into the payment request — the driver already logs
+	loudly if Payrexx then drops it.
+	"""
+	import json
+
+	page = logged_in_page
+
+	add_to_cart(page, base_url, paying_item["route"])
+	open_cart(page, base_url)
+	proceed_to_checkout(page, base_url)
+
+	complete_information_step(page)
+	complete_shipping_step(page)
+	select_payment_method(page, tuile)
+	click_pay(page)
+
+	page.wait_for_url("**payrexx.com**", timeout=45_000)
+
+	# Restricting to a single method makes Payrexx skip its own chooser and
+	# dispatch straight into that method — a TWINT tile lands on
+	# dispatcher.payrexx.com/twint/, not on the instance's page. That is the point
+	# of the feature: the shopper decides once, on our tile, instead of twice. So
+	# the host is not pinned here; the contract asserted below is that the tile
+	# carried its restriction, which is what produced the direct dispatch.
+	assert "payrexx.com" in page.url, f"Did not reach Payrexx: {page.url}"
+
+	intents = [
+		i for i in list_recent_test_intents(backend, minutes=5)
+		if i.get("channel") == "payrexx_web"
+	]
+	assert intents, "No payrexx_web intent recorded for this checkout"
+
+	metadata = json.loads(intents[0].get("metadata_json") or "{}")
+	assert metadata.get("payment_methods") == attendu, (
+		f"Tile {tuile} did not carry its restriction: {metadata.get('payment_methods')}"
+	)
