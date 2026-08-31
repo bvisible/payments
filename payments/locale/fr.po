@@ -3055,3 +3055,7 @@ msgid "We have not received your payment. If you completed it, it will be confir
 msgstr ""
 "Nous n'avons pas reçu votre paiement. Si vous l'avez effectué, il sera "
 "confirmé sous peu et vous ne serez pas débité deux fois."
+
+#: payments/www/payrexx/success.html
+msgid "Try paying again"
+msgstr "Reprendre le paiement"

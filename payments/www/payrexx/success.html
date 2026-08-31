@@ -97,8 +97,15 @@
 						{% endif %}
 					</div>
 				</div>
-				<a href="/cart" class="btn btn-primary">{{ _("Return to Cart") }}</a>
-				<a href="/contact" class="btn btn-outline-secondary ml-2">{{ _("Contact Support") }}</a>
+				{#
+					Back to the checkout, not the basket: the shopper has already
+					given their address and picked a delivery, and sending them to
+					the basket makes them walk through all of it again for a payment
+					they only have to retry. The basket is one click further on if
+					they do want to change what they are buying.
+				#}
+				<a href="/checkout" class="btn btn-primary">{{ _("Try paying again") }}</a>
+				<a href="/cart" class="btn btn-outline-secondary ml-2">{{ _("Return to Cart") }}</a>
 			</div>
 
 			{% else %}
