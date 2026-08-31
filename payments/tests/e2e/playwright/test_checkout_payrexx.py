@@ -69,7 +69,7 @@ def test_checkout_payrexx_redirects_to_hosted_page(logged_in_page, paying_item, 
 @pytest.mark.slow
 @pytest.mark.parametrize(
 	("tuile", "attendu"),
-	[("payrexx_twint", ["twint"]), ("payrexx_carte", ["visa", "mastercard"])],
+	[("payrexx_twint", ["twint"])],
 )
 def test_checkout_payrexx_restricted_tiles(
 	logged_in_page, paying_item, base_url, backend, tuile, attendu
@@ -163,3 +163,77 @@ def test_intent_engine_hides_the_action_until_terms_accepted(
 	# that simply never finished loading.
 	terms.check()
 	expect(action).to_be_visible(timeout=10_000)
+
+
+@pytest.mark.checkout
+@pytest.mark.psp_payrexx
+def test_card_tile_renders_the_payment_page_inside_the_checkout(
+	logged_in_page, paying_item, base_url, backend
+):
+	"""Card entry is a form, so it stays on the shop.
+
+	Sending someone away to fill in a card number costs the thread of what they
+	were doing: they land on a foreign page, come back to a return screen, and
+	wonder whether their order still exists. Payrexx's hosted page frames without
+	complaint — no X-Frame-Options, no frame-ancestors — and its card fields
+	render from our origin, so the tile shows it in place.
+
+	Not for every method: TWINT hands over to the phone and cannot do that from
+	inside a frame, which is why its tile keeps the link and this is a per-tile
+	setting rather than a rule.
+	"""
+	import json
+
+	page = logged_in_page
+
+	add_to_cart(page, base_url, paying_item["route"])
+	open_cart(page, base_url)
+	proceed_to_checkout(page, base_url)
+
+	complete_information_step(page)
+	complete_shipping_step(page)
+	select_payment_method(page, "payrexx_carte")
+
+	card = selected_card(page)
+	frame_el = card.locator(".payment-method-form iframe").first
+	expect(frame_el).to_be_visible(timeout=20_000)
+
+	src = frame_el.get_attribute("src") or ""
+	assert "payrexx.com" in src, f"The frame does not point at Payrexx: {src}"
+
+	# The shopper stays on the shop — no navigation happened.
+	assert "/checkout" in page.url, f"The shopper was sent away after all: {page.url}"
+
+	# And the card fields are actually reachable inside it, which is the whole
+	# point: a frame that renders an error page would satisfy everything above.
+	#
+	# The card widget is a frame *inside* Payrexx's own page, so it appears a
+	# beat after the outer one becomes visible. Waiting for it explicitly beats
+	# reading too early and calling it a failure.
+	champs = None
+	for _ in range(20):
+		for frame in page.frames:
+			if "checkout.payrexx.com" in frame.url:
+				try:
+					champs = frame.evaluate(
+						"""() => [...document.querySelectorAll('input')]
+						     .map(e => e.placeholder || e.name).filter(Boolean)"""
+					)
+				except Exception:
+					champs = None
+		if champs:
+			break
+		page.wait_for_timeout(1_000)
+	assert champs, "The Payrexx card frame never loaded"
+	assert any("CVC" in c for c in champs), f"No card fields in the frame: {champs}"
+
+	# The restriction still travelled, as for any other tile.
+	intents = [
+		i for i in list_recent_test_intents(backend, minutes=5)
+		if i.get("channel") == "payrexx_web"
+	]
+	assert intents, "No payrexx_web intent recorded"
+	metadata = json.loads(intents[0].get("metadata_json") or "{}")
+	assert metadata.get("payment_methods") == ["visa", "mastercard"], (
+		f"Restriction lost: {metadata.get('payment_methods')}"
+	)
