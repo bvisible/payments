@@ -54,12 +54,51 @@
 					</div>
 				</div>
 				{#
-					The server polls for ~18 s before rendering. This reload covers a
-					settlement slower than that without holding the request open, and
-					the webhook remains the real backstop.
+					The reload carries its own count, so the page can stop. Reloading
+					for ever meant a spinner that never resolved for a shopper who came
+					back without paying, and an API call every three seconds until they
+					closed the tab.
 				#}
-				<script>setTimeout(function(){ window.location.reload(); }, 3000);</script>
+				{#
+					The URL rides on a data attribute rather than being interpolated
+					into the script: Jinja escapes an attribute value on its own, so
+					this needs no filter and cannot break out into the JS.
+				#}
+				<span id="payrexx-retry" data-url="{{ retry_url }}" hidden></span>
+				<script>
+					setTimeout(function () {
+						var el = document.getElementById("payrexx-retry");
+						if (el) window.location.href = el.getAttribute("data-url");
+					}, 3000);
+				</script>
 				<p class="text-muted small">{{ _("This page will refresh automatically.") }}</p>
+			</div>
+
+			{% elif status == "unconfirmed" %}
+			{#
+				Not an error: the payment may simply not have been made. Saying
+				"declined" would be a guess, and the shopper is the one person who
+				knows whether they went through with it.
+			#}
+			<div class="payment-unconfirmed">
+				<div class="pending-icon mb-4" style="display:flex; justify-content:center;">
+					<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{ _("Not received") }}">
+						<circle cx="40" cy="40" r="40" fill="#ffc107"/>
+						<path d="M40 25V45M40 55V55.01" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<h2 class="mb-3">{{ _("Payment not received") }}</h2>
+				<p class="text-muted mb-4">{{ _("We have not received your payment. If you completed it, it will be confirmed shortly and you will not be charged twice.") }}</p>
+				<div class="payment-details card mb-4">
+					<div class="card-body">
+						{% if intent %}
+						<p><strong>{{ _("Reference") }}:</strong> {{ intent.name }}</p>
+						<p><strong>{{ _("Amount") }}:</strong> {{ frappe.format_value(intent.amount / 100, {"fieldtype": "Currency", "options": intent.currency}) }}</p>
+						{% endif %}
+					</div>
+				</div>
+				<a href="/cart" class="btn btn-primary">{{ _("Return to Cart") }}</a>
+				<a href="/contact" class="btn btn-outline-secondary ml-2">{{ _("Contact Support") }}</a>
 			</div>
 
 			{% else %}

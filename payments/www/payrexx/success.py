@@ -29,6 +29,27 @@ from frappe import _
 
 no_cache = 1
 
+#: How hard to poll on the first load, and on the reloads after it.
+#:
+#: The first load happens while the shopper is still watching, so it is worth
+#: waiting; the ones after are a safety net and must not hold the request open.
+#: Every attempt is an API call, and Payrexx rate-limits at ~600 requests per five
+#: minutes per account — a page that polls six times every three seconds burns
+#: that on a handful of abandoned baskets.
+_POLL_FIRST_LOAD = 6
+_POLL_LATER_LOADS = 2
+_POLL_DELAY_SECONDS = 3
+
+#: How many times the page may reload itself before it stops and says so.
+#:
+#: A shopper who comes back from Payrexx without paying leaves the gateway in
+#: ``waiting`` for good. Reloading forever then means a spinner that never
+#: resolves, no way out, and an API call every three seconds until the tab is
+#: closed. Roughly 45 s of trying is generous for a settlement that is normally
+#: instantaneous; past that the honest thing is to say the payment did not arrive
+#: and offer to start again. The webhook still settles it if it lands later.
+_MAX_PENDING_LOADS = 5
+
 
 def _debug(msg: str) -> None:
 	"""Emit a debug line to the bench log, not the Error Log doctype.
@@ -39,14 +60,13 @@ def _debug(msg: str) -> None:
 	frappe.logger("payrexx").debug(msg)
 
 
-def _refresh_status(intent_doc, max_retries: int = 6, retry_delay: int = 3) -> None:
+def _refresh_status(intent_doc, max_retries: int, retry_delay: int = _POLL_DELAY_SECONDS) -> None:
 	"""Poll the gateway until the Payment Intent is final, or retries run out.
 
-	About an 18-second window (6 × 3 s). Shorter than the Wallee equivalent because
-	Payrexx settles faster in practice, and because its rate limit (~600 requests /
-	5 minutes per account) makes a long per-shopper poll expensive across a fleet.
-	The template refreshes itself while pending, so a slower settlement is still
-	picked up on the next page load, and the webhook remains the real backstop.
+	The caller decides how hard, because the first load and the reloads after it
+	are not the same situation — see :data:`_POLL_FIRST_LOAD`. The template
+	refreshes itself a bounded number of times while pending, so a slower
+	settlement is still picked up, and the webhook remains the real backstop.
 	"""
 	from payments.drivers.registry import resolve_driver
 
@@ -109,8 +129,19 @@ def get_context(context):  # noqa: ANN001
 			frappe.local.flags.redirect_location = f"/thank_you?sales_order={pr.reference_name}"
 			raise frappe.Redirect
 
-	_refresh_status(intent_doc)
-	_debug(f"after refresh status={intent_doc.status}")
+	# Which reload this is. Carried in the URL rather than in the session: the
+	# page must be able to give up even for a guest, and a session counter would
+	# also make a second tab inherit the first one's countdown.
+	try:
+		attempt = max(0, int(frappe.form_dict.get("try") or 0))
+	except (TypeError, ValueError):
+		attempt = 0
+	context.attempt = attempt
+
+	_refresh_status(
+		intent_doc, _POLL_FIRST_LOAD if attempt == 0 else _POLL_LATER_LOADS
+	)
+	_debug(f"after refresh status={intent_doc.status} attempt={attempt}")
 
 	if intent_doc.status == "succeeded":
 		context.status = "success"
@@ -145,8 +176,28 @@ def get_context(context):  # noqa: ANN001
 	elif intent_doc.status in ("failed", "canceled"):
 		context.status = "failed"
 		context.error = intent_doc.error_message or _("Payment was declined")
+	elif attempt >= _MAX_PENDING_LOADS:
+		# Nothing came, and nothing is coming while the shopper watches. Say it,
+		# instead of spinning for ever on a gateway that is still `waiting`
+		# because they returned without paying.
+		context.status = "unconfirmed"
 	else:
 		context.status = "pending"
+		context.retry_url = (
+			f"/payrexx/success?payment_intent={intent_name}&try={attempt + 1}"
+		)
+
+	# The page is reached by all three return URLs, so its title has to follow the
+	# state rather than the route. Leaving it as "Success" printed that word above
+	# "Paiement non reçu", which reads as a contradiction to the one person it
+	# matters to.
+	context.title = {
+		"success": _("Payment Successful"),
+		"failed": _("Payment Error"),
+		"unconfirmed": _("Payment not received"),
+	}.get(context.status, _("Payment Processing"))
+	if context.error:
+		context.title = _("Payment Error")
 
 	_debug(f"END status={context.status} error={context.error}")
 	return context
