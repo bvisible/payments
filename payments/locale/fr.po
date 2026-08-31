@@ -3041,3 +3041,17 @@ msgstr "Montant à payer"
 #: payments/templates/pages/stripe_checkout.html
 msgid "Payment handled by Stripe. Your card details never pass through our servers."
 msgstr "Paiement traité par Stripe. Les données de votre carte ne transitent jamais par nos serveurs."
+
+#: payments/www/payrexx/success.html
+msgid "Payment not received"
+msgstr "Paiement non reçu"
+
+#: payments/www/payrexx/success.html
+msgid "Not received"
+msgstr "Non reçu"
+
+#: payments/www/payrexx/success.html
+msgid "We have not received your payment. If you completed it, it will be confirmed shortly and you will not be charged twice."
+msgstr ""
+"Nous n'avons pas reçu votre paiement. Si vous l'avez effectué, il sera "
+"confirmé sous peu et vous ne serez pas débité deux fois."
