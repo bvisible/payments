@@ -118,6 +118,13 @@ class PayrexxWebDriver(PaymentDriverBase):
 					or _("Payment {0}").format(request.intent_name),
 					payment_methods=list(methods) if methods else None,
 					psp=config.get("psp") or None,
+					# Prefilled contact details. The hosted page asks for an email and
+					# refuses to submit without one — "Veuillez remplir le champ
+					# E-mail" — so a shopper who has already given it to us is asked
+					# for it again, and one who does not notice the message simply
+					# cannot pay. We know it; sending it is the difference between a
+					# form that submits and one that quietly does not.
+					fields=request.metadata.get("fields") or None,
 					language=request.metadata.get("language") or frappe.local.lang or None,
 					look_and_feel_profile=config.get("look_and_feel_profile") or None,
 					skip_result_page=config.get("skip_result_page"),
