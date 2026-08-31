@@ -17,6 +17,7 @@ this flow.
 from __future__ import annotations
 
 import pytest
+from playwright.sync_api import expect
 
 from conftest import list_recent_test_intents
 from helpers import (
@@ -26,6 +27,7 @@ from helpers import (
 	complete_information_step,
 	complete_shipping_step,
 	select_payment_method,
+	selected_card,
 	click_pay,
 )
 
@@ -119,3 +121,45 @@ def test_checkout_payrexx_restricted_tiles(
 	assert metadata.get("payment_methods") == attendu, (
 		f"Tile {tuile} did not carry its restriction: {metadata.get('payment_methods')}"
 	)
+
+
+@pytest.mark.checkout
+@pytest.mark.psp_payrexx
+@pytest.mark.parametrize("tuile", ["payrexx_twint", "twint"])
+def test_intent_engine_hides_the_action_until_terms_accepted(
+	logged_in_page, paying_item, base_url, tuile
+):
+	"""No terms, no payment — on the intent engine as everywhere else.
+
+	A method switched to the intent engine is drawn by the engine, not by its
+	template, and the template was the only thing that carried the terms checkbox.
+	So on that path the shopper could pay having accepted nothing, while every
+	other tile made it impossible. It applied to TWINT from the day it was
+	switched, which is why this covers TWINT too rather than only the tile that
+	made it visible.
+
+	The action is hidden rather than disabled: a QR on screen *is* the means of
+	paying, and greying it out would not stop a phone from scanning it.
+	"""
+	page = logged_in_page
+
+	add_to_cart(page, base_url, paying_item["route"])
+	open_cart(page, base_url)
+	proceed_to_checkout(page, base_url)
+
+	complete_information_step(page)
+	complete_shipping_step(page)
+	select_payment_method(page, tuile, accept=False)
+
+	card = selected_card(page)
+	terms = card.locator("input.terms-acceptance").first
+	action = card.locator(".intent-action").first
+
+	assert terms.count() > 0, "The intent engine drew no terms checkbox"
+	assert not terms.is_checked(), "The terms started out already accepted"
+	assert not action.is_visible(), "The payment action was reachable without accepting"
+
+	# And ticking reveals it — otherwise the assertion above would pass on a card
+	# that simply never finished loading.
+	terms.check()
+	expect(action).to_be_visible(timeout=10_000)

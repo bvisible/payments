@@ -215,7 +215,7 @@ def accept_terms(page: Page, card) -> None:  # noqa: ANN001
 	)
 
 
-def select_payment_method(page: Page, method_substr: str) -> None:
+def select_payment_method(page: Page, method_substr: str, accept: bool = True) -> None:
 	"""Step 4 — pick a payment method card by data-method-id substring.
 
 	Case-insensitive (``i`` flag) — the data-method-id is a slug of the
@@ -230,28 +230,34 @@ def select_payment_method(page: Page, method_substr: str) -> None:
 	card.click()
 	page.wait_for_timeout(1_000)
 
+	if not accept:
+		# Deliberately leaving the terms unticked, to assert that paying is then
+		# impossible. Give the card a moment to finish drawing first, or the
+		# assertion would pass on a card that had simply not rendered yet.
+		page.wait_for_timeout(3_000)
+		return
+
 	# The submit button stays disabled until the terms are accepted. Ticking is
 	# idempotent (see accept_terms), so the loop only waits — it never re-clicks
 	# a box that is already ticked, which is what used to flip it back off and
 	# leave the button disabled on a coin toss.
 	submit = card.locator(".btn-submit-payment")
-	form = card.locator(".payment-method-form").first
+	action = card.locator(".intent-action")
 	for _ in range(8):
+		# Tick first, then judge. A method on the intent engine keeps its action
+		# hidden until the terms are accepted, so a check made before ticking sees
+		# an empty card and would return with nothing done.
+		accept_terms(page, card)
 		try:
-			if submit.count() > 0 and submit.first.is_enabled():
-				return
-			# A method switched to the intent engine draws itself — TWINT shows its
-			# QR and pairing token as soon as it is picked, with no button and
-			# nothing to accept. Once its form has content and still no submit
-			# exists, there is nothing left to wait for.
-			if submit.count() == 0 and form.count() > 0:
-				if page.evaluate(
-					"(el) => el.innerHTML.trim().length > 0", form.element_handle()
-				):
+			if submit.count() > 0:
+				if submit.first.is_enabled():
 					return
+			elif action.count() > 0 and action.first.is_visible():
+				# Intent engine: the link or the QR appeared, which only happens
+				# once the terms are ticked.
+				return
 		except Exception:
 			pass
-		accept_terms(page, card)
 		page.wait_for_timeout(800)
 	# Final state — caller's click_pay surfaces a clear error if still disabled.
 
