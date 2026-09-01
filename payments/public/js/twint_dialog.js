@@ -219,7 +219,7 @@ frappe.provide('frappe.twint');
                     </button>
                     <div style="display: flex; align-items: center; margin: 20px auto 20px;">
                         <div style="flex-grow: 1; height: 2px; background-color: #ddd;"></div>
-                        <div style="margin: 0 10px; color: #666; font-size: 14px;">or</div>
+                        <div style="margin: 0 10px; color: #666; font-size: 14px;">${__('or')}</div>
                         <div style="flex-grow: 1; height: 2px; background-color: #ddd;"></div>
                     </div>
                 </div>

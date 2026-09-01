@@ -68,11 +68,11 @@ def test_checkout_payrexx_redirects_to_hosted_page(logged_in_page, paying_item, 
 @pytest.mark.psp_payrexx
 @pytest.mark.slow
 @pytest.mark.parametrize(
-	("tuile", "attendu"),
+	("tile", "expected"),
 	[("payrexx_twint", ["twint"])],
 )
 def test_checkout_payrexx_restricted_tiles(
-	logged_in_page, paying_item, base_url, backend, tuile, attendu
+	logged_in_page, paying_item, base_url, backend, tile, expected
 ):
 	"""One gateway, several tiles — each restricted to its own payment methods.
 
@@ -98,7 +98,7 @@ def test_checkout_payrexx_restricted_tiles(
 
 	complete_information_step(page)
 	complete_shipping_step(page)
-	select_payment_method(page, tuile)
+	select_payment_method(page, tile)
 	click_pay(page)
 
 	page.wait_for_url("**payrexx.com**", timeout=45_000)
@@ -118,25 +118,30 @@ def test_checkout_payrexx_restricted_tiles(
 	assert intents, "No payrexx_web intent recorded for this checkout"
 
 	metadata = json.loads(intents[0].get("metadata_json") or "{}")
-	assert metadata.get("payment_methods") == attendu, (
-		f"Tile {tuile} did not carry its restriction: {metadata.get('payment_methods')}"
+	assert metadata.get("payment_methods") == expected, (
+		f"Tile {tile} did not carry its restriction: {metadata.get('payment_methods')}"
 	)
 
 
 @pytest.mark.checkout
 @pytest.mark.psp_payrexx
-@pytest.mark.parametrize("tuile", ["payrexx_twint", "twint"])
+@pytest.mark.parametrize("tile", ["payrexx_twint", "payrexx_carte"])
 def test_intent_engine_hides_the_action_until_terms_accepted(
-	logged_in_page, paying_item, base_url, tuile
+	logged_in_page, paying_item, base_url, tile
 ):
 	"""No terms, no payment — on the intent engine as everywhere else.
 
 	A method switched to the intent engine is drawn by the engine, not by its
 	template, and the template was the only thing that carried the terms checkbox.
 	So on that path the shopper could pay having accepted nothing, while every
-	other tile made it impossible. It applied to TWINT from the day it was
-	switched, which is why this covers TWINT too rather than only the tile that
-	made it visible.
+	other tile made it impossible.
+
+	Covers both engine tiles rather than the one that made it visible, because
+	they take different shapes: the TWINT tile ends in a link, the card tile in a
+	payment frame, and a veil has to hold over both. `Twint - CHF` is deliberately
+	NOT here — it was reverted to its own template on 01.09.2026 (see
+	test_checkout_twint), so it carries its own checkbox and never reaches the
+	engine.
 
 	The action is shown but veiled, not hidden. Hiding it meant clicking a tile
 	and seeing nothing but a checkbox, with no idea what was coming — where every
@@ -152,20 +157,20 @@ def test_intent_engine_hides_the_action_until_terms_accepted(
 
 	complete_information_step(page)
 	complete_shipping_step(page)
-	select_payment_method(page, tuile, accept=False)
+	select_payment_method(page, tile, accept=False)
 
 	card = selected_card(page)
 	terms = card.locator("input.terms-acceptance").first
-	voile = card.locator(".intent-voile").first
+	veil = card.locator(".intent-voile").first
 
 	assert terms.count() > 0, "The intent engine drew no terms checkbox"
 	assert not terms.is_checked(), "The terms started out already accepted"
-	assert voile.is_visible(), "The payment action was reachable without accepting"
+	assert veil.is_visible(), "The payment action was reachable without accepting"
 
 	# And ticking lifts it — otherwise the assertion above would pass on a card
 	# that simply never finished loading.
 	terms.check()
-	expect(voile).to_be_hidden(timeout=10_000)
+	expect(veil).to_be_hidden(timeout=10_000)
 
 
 @pytest.mark.checkout
