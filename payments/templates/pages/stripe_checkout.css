@@ -1,16 +1,16 @@
-/* //// Neoffice — feuille refaite. L'originale posait une grille Bootstrap et
-   des champs gris ; la page ne ressemblait plus au parcours dont elle est la
-   dernière étape. On reprend ici le vocabulaire de `booking.css` (déjà servi
-   sur tout le site), sans rien importer de plus.
+/* //// Neoffice — sheet rewritten. The original laid out a Bootstrap grid and
+   grey fields; the page no longer looked like the journey it is the last step
+   of. We reuse the vocabulary of `booking.css` (already served across the whole
+   site) here, without importing anything more.
 
-   Les variables `--nb-*` viennent de cette feuille ; les valeurs de repli
-   couvrent le cas où une instance servirait cette page sans le thème. */
+   The `--nb-*` variables come from that sheet; the fallback values cover the
+   case of an instance serving this page without the theme. */
 
 .npay {
 	display: flex;
 	justify-content: center;
-	/* Le thème pose déjà son bandeau de titre au-dessus : 3rem de plus
-	   creusaient un vide de la hauteur d'un écran avant la carte. */
+	/* The theme already puts its title banner above: 3rem more hollowed out a
+	   screen-height gap before the card. */
 	padding: 1rem 1rem 4rem;
 }
 
@@ -36,7 +36,7 @@
 	font-size: 0.95rem;
 }
 
-/* Le montant d'abord : c'est la seule chose que le client vient vérifier. */
+/* The amount first: it is the one thing the shopper came to check. */
 .npay-amount {
 	display: flex;
 	flex-direction: column;
@@ -77,8 +77,8 @@
 	color: var(--nb-muted, #6B6257);
 }
 
-/* Stripe injecte un iframe de hauteur libre : on lui donne la même boîte
-   qu'à nos propres champs pour que les trois lignes s'alignent. */
+/* Stripe injects an iframe of free height: we give it the same box as our own
+   fields so the three lines line up. */
 .npay-card-box {
 	padding: 0.85rem 0.9rem;
 	min-height: 3rem;
