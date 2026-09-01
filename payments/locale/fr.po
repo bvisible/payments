@@ -3059,3 +3059,123 @@ msgstr ""
 #: payments/www/payrexx/success.html
 msgid "Try paying again"
 msgstr "Reprendre le paiement"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Payrexx Setup"
+msgstr "Configuration Payrexx"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "1. Credentials"
+msgstr "1. Identifiants"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "From your Payrexx back office, under API & Plugins. The POS key is only needed for a card terminal."
+msgstr "Depuis votre back-office Payrexx, rubrique API & Plugins. La clé POS ne sert qu'au terminal de paiement."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Instance"
+msgstr "Instance"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "the part before .payrexx.com"
+msgstr "la partie avant .payrexx.com"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "API secret"
+msgstr "Secret API"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "POS API key"
+msgstr "Clé API POS"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "terminal only"
+msgstr "terminal uniquement"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Save and test"
+msgstr "Enregistrer et tester"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Already stored — leave empty to keep it"
+msgstr "Déjà enregistré — laisser vide pour le conserver"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Talking to Payrexx…"
+msgstr "Communication avec Payrexx…"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Connected to {0}"
+msgstr "Connecté à {0}"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "mode"
+msgstr "mode"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Methods on this account"
+msgstr "Moyens actifs sur ce compte"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Connection failed"
+msgstr "Échec de la connexion"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "This account is live. Payments taken from now on are real."
+msgstr "Ce compte est en production. Les paiements encaissés à partir de maintenant sont réels."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "2. What Payrexx is used for"
+msgstr "2. À quoi sert Payrexx"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Online payments"
+msgstr "Paiements en ligne"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Card terminal"
+msgstr "Terminal de paiement"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "3. What the shop offers"
+msgstr "3. Ce que la boutique propose"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "One tile per payment method reads better than a single tile that asks the shopper to choose again on Payrexx's page."
+msgstr "Une tuile par moyen de paiement se lit mieux qu'une tuile unique qui redemande au client de choisir sur la page de Payrexx."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Visa and Mastercard, entered inside the checkout"
+msgstr "Visa et Mastercard, saisis directement dans le tunnel"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "goes straight to TWINT, no second choice"
+msgstr "va directement dans TWINT, sans second choix"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "All methods"
+msgstr "Tous les moyens"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "one tile, the shopper chooses on Payrexx's page"
+msgstr "une seule tuile, le client choisit sur la page de Payrexx"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "already there"
+msgstr "déjà en place"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Create the tiles"
+msgstr "Créer les tuiles"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Pick at least one tile"
+msgstr "Choisissez au moins une tuile"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "The instance is required"
+msgstr "L'instance est obligatoire"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Open the shop's payment step to see them."
+msgstr "Ouvrez l'étape de paiement de la boutique pour les voir."
