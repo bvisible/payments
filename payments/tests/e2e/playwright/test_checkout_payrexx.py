@@ -138,8 +138,11 @@ def test_intent_engine_hides_the_action_until_terms_accepted(
 	switched, which is why this covers TWINT too rather than only the tile that
 	made it visible.
 
-	The action is hidden rather than disabled: a QR on screen *is* the means of
-	paying, and greying it out would not stop a phone from scanning it.
+	The action is shown but veiled, not hidden. Hiding it meant clicking a tile
+	and seeing nothing but a checkbox, with no idea what was coming — where every
+	other tile shows its form and greys only the button. A payment frame cannot be
+	merely greyed, since it would still work, so it sits under a veil that says
+	why: visible, explained, and inert.
 	"""
 	page = logged_in_page
 
@@ -153,16 +156,16 @@ def test_intent_engine_hides_the_action_until_terms_accepted(
 
 	card = selected_card(page)
 	terms = card.locator("input.terms-acceptance").first
-	action = card.locator(".intent-action").first
+	voile = card.locator(".intent-voile").first
 
 	assert terms.count() > 0, "The intent engine drew no terms checkbox"
 	assert not terms.is_checked(), "The terms started out already accepted"
-	assert not action.is_visible(), "The payment action was reachable without accepting"
+	assert voile.is_visible(), "The payment action was reachable without accepting"
 
-	# And ticking reveals it — otherwise the assertion above would pass on a card
+	# And ticking lifts it — otherwise the assertion above would pass on a card
 	# that simply never finished loading.
 	terms.check()
-	expect(action).to_be_visible(timeout=10_000)
+	expect(voile).to_be_hidden(timeout=10_000)
 
 
 @pytest.mark.checkout
