@@ -125,7 +125,7 @@ def test_checkout_payrexx_restricted_tiles(
 
 @pytest.mark.checkout
 @pytest.mark.psp_payrexx
-@pytest.mark.parametrize("tile", ["payrexx_twint", "payrexx_carte"])
+@pytest.mark.parametrize("tile", ["payrexx_twint"])
 def test_intent_engine_hides_the_action_until_terms_accepted(
 	logged_in_page, paying_item, base_url, tile
 ):
@@ -136,10 +136,11 @@ def test_intent_engine_hides_the_action_until_terms_accepted(
 	So on that path the shopper could pay having accepted nothing, while every
 	other tile made it impossible.
 
-	Covers both engine tiles rather than the one that made it visible, because
-	they take different shapes: the TWINT tile ends in a link, the card tile in a
-	payment frame, and a veil has to hold over both. `Twint - CHF` is deliberately
-	NOT here — it was reverted to its own template on 01.09.2026 (see
+	Covers the tiles whose action WE own — a link or a button. The card tile is
+	deliberately absent: its payment happens inside Payrexx's frame, so there is
+	nothing of ours to gate and it carries a mention instead of a checkbox
+	(test_card_tile_states_the_terms_instead_of_gating_them). `Twint - CHF` is
+	absent too — it was reverted to its own template on 01.09.2026 (see
 	test_checkout_twint), so it carries its own checkbox and never reaches the
 	engine.
 
@@ -161,7 +162,7 @@ def test_intent_engine_hides_the_action_until_terms_accepted(
 
 	card = selected_card(page)
 	terms = card.locator("input.terms-acceptance").first
-	veil = card.locator(".intent-voile").first
+	veil = card.locator(".intent-veil").first
 
 	assert terms.count() > 0, "The intent engine drew no terms checkbox"
 	assert not terms.is_checked(), "The terms started out already accepted"
@@ -245,3 +246,48 @@ def test_card_tile_renders_the_payment_page_inside_the_checkout(
 	assert metadata.get("payment_methods") == ["visa", "mastercard"], (
 		f"Restriction lost: {metadata.get('payment_methods')}"
 	)
+
+
+@pytest.mark.checkout
+@pytest.mark.psp_payrexx
+def test_card_tile_states_the_terms_instead_of_gating_them(
+	logged_in_page, paying_item, base_url
+):
+	"""A payment frame gets a mention, not a checkbox.
+
+	A tick gates something we own — our button, our link. Inside the frame the
+	shopper pays at Payrexx, on their fields, with their button, so there is
+	nothing of ours left to gate; what a checkbox bought here was a veil hiding
+	the card fields behind a request to accept before seeing what for.
+
+	Two things must hold, and they fail differently: the frame is immediately
+	usable (no checkbox, no veil), and the terms are still SAID — dropping the
+	gate must not drop the sentence.
+	"""
+	page = logged_in_page
+
+	add_to_cart(page, base_url, paying_item["route"])
+	open_cart(page, base_url)
+	proceed_to_checkout(page, base_url)
+
+	complete_information_step(page)
+	complete_shipping_step(page)
+	select_payment_method(page, "payrexx_carte", accept=False)
+
+	card = selected_card(page)
+	expect(card.locator(".payment-method-form iframe").first).to_be_visible(timeout=25_000)
+
+	assert card.locator("input.terms-acceptance").count() == 0, (
+		"The card tile still draws a checkbox"
+	)
+	assert card.locator(".intent-veil").count() == 0, (
+		"The card tile still veils its payment frame"
+	)
+
+	# The sentence stays, and it names the merchant's own terms record rather
+	# than a wording invented in JS — the two used to disagree on one page.
+	mention = card.locator(".intent-mention").first
+	expect(mention).to_be_visible(timeout=10_000)
+	expected_label = page.evaluate("window.webshop_terms_label")
+	assert expected_label, "The shop never seeded a terms label"
+	expect(mention).to_contain_text(expected_label, timeout=5_000)
