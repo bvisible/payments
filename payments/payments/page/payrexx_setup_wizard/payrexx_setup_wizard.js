@@ -50,16 +50,32 @@ class PayrexxSetup {
 
 			<div class="card">
 				<div class="card-body">
-					<h5>${__("1. Credentials")}</h5>
+					<h5>${__("1. Your Payrexx space")}</h5>
 					<p class="text-muted etat">${__(
-						"From your Payrexx back office, under API & Plugins. The POS key is only needed for a card terminal."
+						"Everything else follows from this. It is the part before .payrexx.com in the address of your back office — sign in and read the address bar."
 					)}</p>
 					<div class="row">
-						<div class="col-sm-4"><div class="frappe-control" data-champ="instance"></div></div>
-						<div class="col-sm-4"><div class="frappe-control" data-champ="api_secret"></div></div>
-						<div class="col-sm-4"><div class="frappe-control" data-champ="pos_api_secret"></div></div>
+						<div class="col-sm-5"><div class="frappe-control" data-champ="instance"></div></div>
+						<div class="col-sm-7 pt-4">
+							<a href="https://signup.payrexx.com" target="_blank" rel="noopener"
+							   class="btn btn-default btn-xs">${__("No account yet — create one")}</a>
+						</div>
 					</div>
-					<div class="row"><div class="col-sm-4"><div class="frappe-control" data-champ="mode"></div></div></div>
+					<div class="mt-2 etat" data-zone="liens"></div>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-body">
+					<h5>${__("2. Credentials")}</h5>
+					<p class="text-muted etat">${__(
+						"In your back office, under API & Plugins. The POS key is only needed for a card terminal."
+					)}</p>
+					<div class="row">
+						<div class="col-sm-5"><div class="frappe-control" data-champ="api_secret"></div></div>
+						<div class="col-sm-5"><div class="frappe-control" data-champ="pos_api_secret"></div></div>
+						<div class="col-sm-2"><div class="frappe-control" data-champ="mode"></div></div>
+					</div>
 					<button class="btn btn-primary btn-sm" data-action="enregistrer">${__("Save and test")}</button>
 					<div class="etat mt-3" data-zone="connexion"></div>
 				</div>
@@ -67,7 +83,7 @@ class PayrexxSetup {
 
 			<div class="card">
 				<div class="card-body">
-					<h5>${__("2. What Payrexx is used for")}</h5>
+					<h5>${__("3. What Payrexx is used for")}</h5>
 					<div class="frappe-control" data-champ="web"></div>
 					<div class="frappe-control" data-champ="terminal"></div>
 					<button class="btn btn-default btn-sm" data-action="canaux" disabled>${__("Apply")}</button>
@@ -77,7 +93,7 @@ class PayrexxSetup {
 
 			<div class="card">
 				<div class="card-body">
-					<h5>${__("3. What the shop offers")}</h5>
+					<h5>${__("4. What the shop offers")}</h5>
 					<p class="text-muted etat">${__(
 						"One tile per payment method reads better than a single tile that asks the shopper to choose again on Payrexx's page."
 					)}</p>
@@ -113,6 +129,13 @@ class PayrexxSetup {
 		this.champs.mode.set_value("test");
 		this.champs.web.set_value(1);
 
+		//// Les liens du back-office ne sont adressables qu'avec le nom de l'espace :
+		//// il fait partie du domaine. D'où l'instance en première question — sans
+		//// elle on ne peut que dire « allez dans API & Plugins » et laisser le
+		//// client chercher. Avec elle, chaque lien tombe sur SA page.
+		this.champs.instance.$input.on("input", () => this.rendre_liens());
+		this.rendre_liens();
+
 		this.$body.on("click", "[data-action]", (e) => {
 			const action = $(e.currentTarget).data("action");
 			({
@@ -123,6 +146,38 @@ class PayrexxSetup {
 		});
 	}
 
+	//// `valeur` est passée explicitement à l'ouverture : `set_value` est
+	//// asynchrone, donc relire le contrôle juste après rend encore le champ
+	//// vide et les liens ne s'affichent jamais sur une configuration existante.
+	rendre_liens(valeur) {
+		const espace = (valeur !== undefined ? valeur : this.champs.instance.get_value() || "").trim();
+		const zone = this.$body.find('[data-zone="liens"]');
+		if (!espace) {
+			zone.html(
+				`<span class="text-muted">${__(
+					"Enter your space above and the links to your own back office appear here."
+				)}</span>`
+			);
+			return;
+		}
+		const base = `https://${encodeURIComponent(espace)}.payrexx.com/cadmin/index.php`;
+		const liens = [
+			[`${base}?cmd=checkout&act=api`, __("API & Plugins — the secrets")],
+			[`${base}?cmd=checkout&act=softpos`, __("Tap to Pay")],
+			[`${base}?cmd=checkout&act=api&tpl=webhookLogs`, __("Webhook logs")],
+			[`https://${encodeURIComponent(espace)}.payrexx.com/cadmin/`, __("Back office")],
+		];
+		zone.html(
+			liens
+				.map(
+					([url, texte]) =>
+						`<a href="${frappe.utils.escape_html(url)}" target="_blank" rel="noopener"
+						    class="btn btn-default btn-xs mr-2 mb-1">${frappe.utils.escape_html(texte)} ↗</a>`
+				)
+				.join("")
+		);
+	}
+
 	async charger() {
 		const { message } = await frappe.call({
 			method: "payments.api.payrexx_setup.get_current_setup",
@@ -131,6 +186,7 @@ class PayrexxSetup {
 		const p = message.provider;
 		if (p) {
 			this.champs.instance.set_value(p.instance || "");
+			this.rendre_liens(p.instance || "");
 			this.champs.mode.set_value(p.mode || "test");
 			//// The secrets are never sent back, so the fields stay empty and the
 			//// description says they are already stored. Echoing a key into a form

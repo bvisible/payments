@@ -3179,3 +3179,51 @@ msgstr "L'instance est obligatoire"
 #: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
 msgid "Open the shop's payment step to see them."
 msgstr "Ouvrez l'étape de paiement de la boutique pour les voir."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "1. Your Payrexx space"
+msgstr "1. Votre espace Payrexx"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Everything else follows from this. It is the part before .payrexx.com in the address of your back office — sign in and read the address bar."
+msgstr "Tout le reste en découle. C'est la partie avant .payrexx.com dans l'adresse de votre back-office — connectez-vous et lisez la barre d'adresse."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "No account yet — create one"
+msgstr "Pas encore de compte — en créer un"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "2. Credentials"
+msgstr "2. Identifiants"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "In your back office, under API & Plugins. The POS key is only needed for a card terminal."
+msgstr "Dans votre back-office, rubrique API & Plugins. La clé POS ne sert qu'au terminal de paiement."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "3. What Payrexx is used for"
+msgstr "3. À quoi sert Payrexx"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "4. What the shop offers"
+msgstr "4. Ce que la boutique propose"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Enter your space above and the links to your own back office appear here."
+msgstr "Saisissez votre espace ci-dessus et les liens vers votre propre back-office apparaissent ici."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "API & Plugins — the secrets"
+msgstr "API & Plugins — les secrets"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Tap to Pay"
+msgstr "Tap to Pay"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Webhook logs"
+msgstr "Journaux de webhooks"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js
+msgid "Back office"
+msgstr "Back-office"
