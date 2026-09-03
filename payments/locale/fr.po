@@ -3320,3 +3320,59 @@ msgstr "Un document à encaisser demande son type et son nom"
 #: payments/api/mobile_payments.py
 msgid "Not permitted to collect a payment"
 msgstr "Vous n'êtes pas autorisé à encaisser un paiement"
+
+#: payments/api/mobile_payments.py
+msgid "Card (Tap to Pay)"
+msgstr "Carte (Tap to Pay)"
+
+#: payments/api/mobile_payments.py
+msgid "Response"
+msgstr "Réponse"
+
+#: payments/api/mobile_payments.py
+msgid "Receipt"
+msgstr "Reçu"
+
+#: payments/api/mobile_payments.py
+msgid "Payment declined"
+msgstr "Paiement refusé"
+
+#: payments/api/mobile_payments.py
+msgid "Keep this receipt for your records."
+msgstr "Conservez ce reçu."
+
+#: payments/api/mobile_payments.py
+msgid "Please enter a valid email address"
+msgstr "Veuillez saisir une adresse e-mail valide"
+
+#: payments/api/mobile_payments.py
+msgid "Not an on-site payment"
+msgstr "Ce n'est pas un paiement sur place"
+
+#: payments/api/mobile_payments.py
+msgid "The payment is not settled yet"
+msgstr "Le paiement n'est pas encore réglé"
+
+#: payments/api/mobile_payments.py
+msgid "Receipt {0} — {1}"
+msgstr "Reçu {0} — {1}"
+
+#: payments/api/mobile_payments.py
+msgid "Payment declined — {0}"
+msgstr "Paiement refusé — {0}"
+
+#: payments/api/mobile_payments.py
+msgid "{0}: the card was not accepted. {1}"
+msgstr "{0} : la carte n'a pas été acceptée. {1}"
+
+#: payments/api/mobile_payments.py
+msgid "Approved"
+msgstr "Approuvé"
+
+#: payments/api/mobile_payments.py
+msgid "Declined"
+msgstr "Refusé"
+
+#: payments/api/mobile_payments.py
+msgid "Payment method"
+msgstr "Moyen de paiement"

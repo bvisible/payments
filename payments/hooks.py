@@ -113,7 +113,12 @@ override_doctype_class = {"Web Form": "payments.overrides.payment_webform.Paymen
 
 doc_events = {
 	"Payment Intent": {
-		"on_update": "payments.api.reconciliation.on_payment_intent_after_update",
+		"on_update": [
+			"payments.api.reconciliation.on_payment_intent_after_update",
+			# The phone that took a payment on site learns of a decline even
+			# after leaving the screen (Apple Tap to Pay requirement 5.12).
+			"payments.api.mobile_payments.on_intent_update",
+		],
 	},
 	"Sales Invoice": {
 		# The card mentions a receipt must carry — masked PAN, scheme, AID,

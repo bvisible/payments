@@ -208,6 +208,55 @@ class TestMobilePayments(FrappeTestCase):
 		self.assertNotIn(against["intent_name"], names)
 		mp.mobile_abandon_payment(against["intent_name"])
 
+	# ------------------------------------------------------------- receipts
+
+	def test_context_says_who_may_accept_apple_terms_and_the_merchant_name(self) -> None:
+		ctx = mp.mobile_context()
+		self.assertIsInstance(ctx["can_accept_terms"], bool)
+		self.assertTrue(ctx["can_accept_terms"], "the test runner is Administrator")
+		self.assertTrue(ctx["merchant_display_name"])
+
+	def test_receipt_is_refused_while_the_payment_is_open(self) -> None:
+		if not self.reference:
+			self.skipTest("no on-site payment method is set up on this site")
+		out = self._start(self.ctx["methods"][0], amount=1250)
+		with self.assertRaises(frappe.ValidationError):
+			mp.send_receipt(out["intent_name"], "client@example.com")
+		mp.mobile_abandon_payment(out["intent_name"])
+
+	def test_receipt_carries_the_payment_and_remembers_the_address(self) -> None:
+		if not self.reference:
+			self.skipTest("no on-site payment method is set up on this site")
+		if not frappe.conf.get("enable_e2e_simulators"):
+			self.skipTest("enable_e2e_simulators is off on this site")
+		out = mp.mobile_start_payment(amount=1250, method=self.ctx["methods"][0], label="Joint de robinet")
+		self.created.append(out["intent_name"])
+		mp.simulate_success(out["intent_name"])
+		with self.assertRaises(frappe.ValidationError):
+			mp.send_receipt(out["intent_name"], "not-an-address")
+		sent = mp.send_receipt(out["intent_name"], "client@example.com")
+		self.assertTrue(sent["sent"])
+		receipt = sent["receipt"]
+		self.assertEqual(receipt["amount_display"], f"{self.ctx['currency']} 12.50")
+		self.assertTrue(receipt["approved"])
+		self.assertEqual(receipt["label"], "Joint de robinet")
+		self.assertTrue(receipt["merchant"])
+		meta = frappe.parse_json(frappe.db.get_value("Payment Intent", out["intent_name"], "metadata_json"))
+		self.assertEqual(meta["receipt_sent_to"], "client@example.com")
+		# The screen reads the same thing back.
+		again = mp.mobile_receipt(out["intent_name"])
+		self.assertEqual(again["intent_name"], out["intent_name"])
+
+	def test_a_declined_mobile_payment_pushes_the_phone(self) -> None:
+		if not self.reference:
+			self.skipTest("no on-site payment method is set up on this site")
+		out = self._start(self.ctx["methods"][0], amount=1300)
+		with patch.object(mp, "_push_to_owner") as push:
+			doc = frappe.get_doc("Payment Intent", out["intent_name"])
+			doc.transition_to("failed", event_source="system", error_code="card_declined", error_message="Refusée")
+			push.assert_called_once()
+			self.assertEqual(push.call_args.args[0].name, out["intent_name"])
+
 	# --------------------------------------------------------------- common
 
 	def test_payments_for_lists_open_intents_newest_first_with_their_method(self) -> None:
