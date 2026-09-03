@@ -24,6 +24,8 @@ from __future__ import annotations
 import time
 from typing import Any
 
+import json
+
 import frappe
 from frappe import _
 
@@ -132,11 +134,17 @@ def connection_token() -> dict[str, Any]:
 @frappe.whitelist()
 def mobile_start_payment(
 	amount: int,
-	reference_doctype: str,
-	reference_name: str,
+	reference_doctype: str | None = None,
+	reference_name: str | None = None,
 	method: str = "card",
+	label: str | None = None,
 ) -> dict[str, Any]:
-	"""Record a payment the phone is about to take, against one document.
+	"""Record a payment the phone is about to take.
+
+	Against one document when the caller names one (an intervention, from its
+	screen), or on its own — the "Collect" tool: an amount, a method, and an
+	optional label that says what the money was for. A payment without a
+	document is only for people who work on the site, never for a portal account.
 
 	Returns the serialized intent. For a card, ``client_secret`` is what the
 	Terminal SDK confirms; for TWINT, ``next_action_payload`` carries the QR and
@@ -155,27 +163,115 @@ def mobile_start_payment(
 	if amount <= 0:
 		frappe.throw(_("amount must be > 0"))
 
-	if not reference_doctype or not reference_name:
-		frappe.throw(_("A document to pay for is required"))
-	if not frappe.db.exists(reference_doctype, reference_name):
-		frappe.throw(_("{0} {1} does not exist").format(reference_doctype, reference_name))
-	# The generic create_intent inserts with ignore_permissions. Here the caller
-	# is a person on site, and an intent number is enough to watch a payment, so
-	# they must at least be allowed to read the document they claim to collect for.
-	if not frappe.has_permission(reference_doctype, "read", doc=reference_name):
-		frappe.throw(
-			_("Not permitted to collect a payment for {0} {1}").format(reference_doctype, reference_name),
-			frappe.PermissionError,
-		)
+	metadata: dict[str, Any] = {"origin": "mobile"}
+	label = (label or "").strip()[:140]
+	if label:
+		metadata["label"] = label
+
+	if reference_doctype or reference_name:
+		if not reference_doctype or not reference_name:
+			frappe.throw(_("A document to pay for needs both its type and its name"))
+		if not frappe.db.exists(reference_doctype, reference_name):
+			frappe.throw(_("{0} {1} does not exist").format(reference_doctype, reference_name))
+		# The generic create_intent inserts with ignore_permissions. Here the caller
+		# is a person on site, and an intent number is enough to watch a payment, so
+		# they must at least be allowed to read the document they claim to collect for.
+		if not frappe.has_permission(reference_doctype, "read", doc=reference_name):
+			frappe.throw(
+				_("Not permitted to collect a payment for {0} {1}").format(reference_doctype, reference_name),
+				frappe.PermissionError,
+			)
+	else:
+		# No document to lean on for permissions: the person must be staff.
+		_require_staff()
+		metadata["kind"] = "standalone"
 
 	return create_intent(
 		provider=ctx["provider"],
 		channel=channel,
 		amount=amount,
 		currency=_currency(),
-		reference_doctype=reference_doctype,
-		reference_name=reference_name,
-		metadata={"origin": "mobile"},
+		reference_doctype=reference_doctype or None,
+		reference_name=reference_name or None,
+		metadata=metadata,
+	)
+
+
+def _is_staff(user: str | None = None) -> bool:
+	"""A desk account. Portal customers (Website Users) never collect money."""
+	user = user or frappe.session.user
+	if not user or user == "Guest":
+		return False
+	return frappe.get_cached_value("User", user, "user_type") == "System User"
+
+
+def _require_staff() -> None:
+	if not _is_staff():
+		frappe.throw(_("Not permitted to collect a payment"), frappe.PermissionError)
+
+
+_ROW_FIELDS = (
+	"name",
+	"status",
+	"channel",
+	"amount",
+	"currency",
+	"creation",
+	"modified",
+	"provider_intent_id",
+	"error_code",
+	"error_message",
+	"metadata_json",
+)
+
+
+def _label_of(row) -> str | None:  # noqa: ANN001
+	try:
+		meta = json.loads(row.metadata_json) if row.metadata_json else {}
+	except ValueError:
+		meta = {}
+	label = meta.get("label") if isinstance(meta, dict) else None
+	return str(label) if label else None
+
+
+def _rows(filters: dict[str, Any], limit: int = 20) -> list[dict[str, Any]]:
+	rows = frappe.get_all(
+		"Payment Intent",
+		filters={"channel": ["in", list(MOBILE_CHANNELS)], **filters},
+		fields=list(_ROW_FIELDS),
+		order_by="creation desc",
+		limit_page_length=limit,
+	)
+	return [
+		{
+			"intent_name": row.name,
+			"status": row.status,
+			"method": "card" if row.channel == CARD_CHANNEL else "twint",
+			"amount": row.amount,
+			"currency": row.currency,
+			"label": _label_of(row),
+			"created_at": str(row.creation),
+			"updated_at": str(row.modified),
+			"provider_intent_id": row.provider_intent_id,
+			"error_code": row.error_code,
+			"error_message": row.error_message,
+			"open": row.status in OPEN_STATES,
+		}
+		for row in rows
+	]
+
+
+@frappe.whitelist()
+def mobile_recent_payments(limit: int = 20) -> list[dict[str, Any]]:
+	"""The caller's own standalone payments — the Collect tool's list, newest first.
+
+	Their own only: the tool is one person's till, and an intent left open there
+	must be resumed by the phone that started it, not by a colleague's.
+	"""
+	_require_staff()
+	return _rows(
+		{"owner": frappe.session.user, "reference_doctype": ["in", ["", None]]},
+		limit=max(1, min(int(limit or 20), 50)),
 	)
 
 
@@ -192,44 +288,7 @@ def mobile_payments_for(reference_doctype: str, reference_name: str) -> list[dic
 	if not frappe.has_permission(reference_doctype, "read", doc=reference_name):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	rows = frappe.get_all(
-		"Payment Intent",
-		filters={
-			"channel": ["in", list(MOBILE_CHANNELS)],
-			"reference_doctype": reference_doctype,
-			"reference_name": reference_name,
-		},
-		fields=[
-			"name",
-			"status",
-			"channel",
-			"amount",
-			"currency",
-			"creation",
-			"modified",
-			"provider_intent_id",
-			"error_code",
-			"error_message",
-		],
-		order_by="creation desc",
-		limit_page_length=20,
-	)
-	return [
-		{
-			"intent_name": row.name,
-			"status": row.status,
-			"method": "card" if row.channel == CARD_CHANNEL else "twint",
-			"amount": row.amount,
-			"currency": row.currency,
-			"created_at": str(row.creation),
-			"updated_at": str(row.modified),
-			"provider_intent_id": row.provider_intent_id,
-			"error_code": row.error_code,
-			"error_message": row.error_message,
-			"open": row.status in OPEN_STATES,
-		}
-		for row in rows
-	]
+	return _rows({"reference_doctype": reference_doctype, "reference_name": reference_name})
 
 
 @frappe.whitelist()

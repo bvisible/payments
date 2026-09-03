@@ -170,6 +170,44 @@ class TestMobilePayments(FrappeTestCase):
 		closed = mp.mobile_abandon_payment(out["intent_name"])
 		self.assertIn(closed["status"], ("canceled", "requires_action"))
 
+	# ---------------------------------------------------------- standalone
+
+	def test_standalone_start_needs_no_document_and_keeps_its_label(self) -> None:
+		"""The Collect tool: an amount, a method, a label — no document behind it."""
+		if not self.reference:
+			self.skipTest("no on-site payment method is set up on this site")
+		method = self.ctx["methods"][0]
+		out = mp.mobile_start_payment(amount=350, method=method, label="  Dépannage chaudière  ")
+		self.created.append(out["intent_name"])
+		self.assertEqual(out["status"], "requires_action")
+		doc = frappe.get_doc("Payment Intent", out["intent_name"])
+		self.assertFalse(doc.reference_doctype)
+		self.assertFalse(doc.reference_name)
+		rows = mp.mobile_recent_payments()
+		row = next(r for r in rows if r["intent_name"] == out["intent_name"])
+		self.assertEqual(row["label"], "Dépannage chaudière", "trimmed, and kept")
+		self.assertTrue(row["open"])
+		self.assertEqual(row["method"], method)
+		mp.mobile_abandon_payment(out["intent_name"])
+
+	def test_standalone_start_is_refused_to_a_portal_account(self) -> None:
+		"""No document means no permission to lean on: staff only."""
+		if not self.reference:
+			self.skipTest("no on-site payment method is set up on this site")
+		with patch.object(mp, "_is_staff", return_value=False):
+			with self.assertRaises(frappe.PermissionError):
+				mp.mobile_start_payment(amount=350, method=self.ctx["methods"][0])
+			with self.assertRaises(frappe.PermissionError):
+				mp.mobile_recent_payments()
+
+	def test_recent_payments_leave_out_the_ones_taken_for_a_document(self) -> None:
+		if not self.reference:
+			self.skipTest("no on-site payment method is set up on this site")
+		against = self._start(self.ctx["methods"][0], amount=360)
+		names = [r["intent_name"] for r in mp.mobile_recent_payments()]
+		self.assertNotIn(against["intent_name"], names)
+		mp.mobile_abandon_payment(against["intent_name"])
+
 	# --------------------------------------------------------------- common
 
 	def test_payments_for_lists_open_intents_newest_first_with_their_method(self) -> None:

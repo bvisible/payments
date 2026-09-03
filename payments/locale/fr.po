@@ -3304,9 +3304,6 @@ msgstr "Moyen de paiement inconnu : {0}"
 msgid "This payment method is not set up on this site"
 msgstr "Ce moyen de paiement n'est pas configuré sur ce site"
 
-#: payments/api/mobile_payments.py
-msgid "A document to pay for is required"
-msgstr "Il faut un document à payer"
 
 #: payments/api/mobile_payments.py
 msgid "Not permitted to collect a payment for {0} {1}"
@@ -3315,3 +3312,11 @@ msgstr "Pas le droit d'encaisser un paiement pour {0} {1}"
 #: payments/api/mobile_payments.py
 msgid "{0} is not an on-site payment"
 msgstr "{0} n'est pas un paiement sur place"
+
+#: payments/api/mobile_payments.py
+msgid "A document to pay for needs both its type and its name"
+msgstr "Un document à encaisser demande son type et son nom"
+
+#: payments/api/mobile_payments.py
+msgid "Not permitted to collect a payment"
+msgstr "Vous n'êtes pas autorisé à encaisser un paiement"
