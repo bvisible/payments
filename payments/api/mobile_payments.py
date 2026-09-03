@@ -561,6 +561,10 @@ def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 		if receipt["approved"]
 		else _("Payment declined — {0}").format(receipt["merchant"])
 	)
+	#//// Neoffice — Frappe checks the outgoing mail account when queuing, so a broken
+	#//// default account (e.g. a test fixture account left active) raised a raw 417 to the
+	#//// phone; catch it, log the cause, and still return the receipt for the screen
+	#//// (6138dcf "fix(mobile): un site sans messagerie sortante ne casse pas l'envoi du reçu")
 	try:
 		frappe.sendmail(
 			recipients=[email],
