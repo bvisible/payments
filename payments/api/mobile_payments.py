@@ -561,14 +561,26 @@ def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 		if receipt["approved"]
 		else _("Payment declined — {0}").format(receipt["merchant"])
 	)
-	frappe.sendmail(
-		recipients=[email],
-		subject=subject,
-		message=_receipt_html(receipt),
-		reference_doctype="Payment Intent",
-		reference_name=doc.name,
-		now=False,
-	)
+	try:
+		frappe.sendmail(
+			recipients=[email],
+			subject=subject,
+			message=_receipt_html(receipt),
+			reference_doctype="Payment Intent",
+			reference_name=doc.name,
+			now=False,
+		)
+	except Exception as exc:  # noqa: BLE001 — a site without working mail must not break the checkout
+		# Frappe checks the outgoing account when it queues, so a site whose
+		# default outgoing account is broken fails here, not later. The phone
+		# gets words for it; the receipt itself is still returned for the screen.
+		frappe.log_error("mobile receipt: mail could not be queued", f"{doc.name} → {email}: {exc!r}")
+		return {
+			"sent": False,
+			"to": email,
+			"receipt": receipt,
+			"error": _("This site cannot send email at the moment. Ask an administrator to check the outgoing email account."),
+		}
 	meta = _metadata_of(doc)
 	meta["receipt_sent_to"] = email
 	meta["receipt_sent_at"] = str(frappe.utils.now_datetime())[:19]
