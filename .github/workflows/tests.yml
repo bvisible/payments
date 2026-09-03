@@ -1,0 +1,28 @@
+name: Tests
+# Fleet CI for this product fork (wave 2). Mechanics live in bvisible/neoffice-ci
+# (frappe-app-ci.yml): bench init on OUR frappe fork, deps, blocking build,
+# run-tests, report to the hub (one [CI] issue per repo, closed by the green).
+# Nightly + PR + on demand — not on push: the upstream CI and the build bot
+# already run there, a second run per bot commit would only add noise.
+on:
+  schedule:
+    - cron: "3 4 * * *"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      test_args:
+        description: "Extra args for bench run-tests (e.g. --debug-records)"
+        required: false
+        default: ""
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ci:
+    uses: bvisible/neoffice-ci/.github/workflows/frappe-app-ci.yml@main
+    with:
+      app: payments
+      install_apps: erpnext
+      test_args: ${{ inputs.test_args || '' }}
+    # inherit: CI_REPORT_SECRET (deps are public bvisible forks: no read token needed)
+    secrets: inherit
