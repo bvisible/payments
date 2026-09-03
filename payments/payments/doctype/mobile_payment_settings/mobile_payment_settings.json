@@ -1,0 +1,101 @@
+{
+ "actions": [],
+ "creation": "2026-09-03 13:00:00.000000",
+ "description": "The one place that decides whether an intervention can be paid for on site, from the mobile app, and with which accounts.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "card_section",
+  "enable_tap_to_pay",
+  "tap_to_pay_provider",
+  "stripe_location",
+  "column_break_card",
+  "enable_twint",
+  "twint_provider"
+ ],
+ "fields": [
+  {
+   "fieldname": "card_section",
+   "fieldtype": "Section Break",
+   "label": "On-site collection"
+  },
+  {
+   "default": "0",
+   "description": "The card is tapped on the technician's own phone, inside the Neoffice app (Stripe Terminal, Tap to Pay). Payments land in the Payment Intent list on the Tap to Pay channel.",
+   "fieldname": "enable_tap_to_pay",
+   "fieldtype": "Check",
+   "label": "Tap to Pay (card) on the phone"
+  },
+  {
+   "depends_on": "eval:doc.enable_tap_to_pay",
+   "description": "The Stripe Payment Provider whose account collects the money.",
+   "fieldname": "tap_to_pay_provider",
+   "fieldtype": "Link",
+   "label": "Stripe account",
+   "mandatory_depends_on": "eval:doc.enable_tap_to_pay",
+   "options": "Payment Provider"
+  },
+  {
+   "depends_on": "eval:doc.enable_tap_to_pay",
+   "description": "The Stripe Terminal Location the phones attach to (tml_...). Create one from the Stripe dashboard, or with payments.api.terminal.create_stripe_location.",
+   "fieldname": "stripe_location",
+   "fieldtype": "Data",
+   "label": "Stripe Terminal Location",
+   "mandatory_depends_on": "eval:doc.enable_tap_to_pay"
+  },
+  {
+   "fieldname": "column_break_card",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "The customer scans a QR shown on the technician's phone with their TWINT app. Payments land on the TWINT on-site channel.",
+   "fieldname": "enable_twint",
+   "fieldtype": "Check",
+   "label": "TWINT on the phone"
+  },
+  {
+   "depends_on": "eval:doc.enable_twint",
+   "description": "The TWINT Payment Provider (direct merchant contract, through the PHP bridge).",
+   "fieldname": "twint_provider",
+   "fieldtype": "Link",
+   "label": "TWINT account",
+   "mandatory_depends_on": "eval:doc.enable_twint",
+   "options": "Payment Provider"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-09-03 13:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payments",
+ "name": "Mobile Payment Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

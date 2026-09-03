@@ -6,3 +6,4 @@ payments.patches.v15_04.merge_twint_integration
 payments.patches.v15_05.provision_wallee_web_channel
 payments.patches.v15_06.provision_payrexx_channels
 payments.patches.v15_07.provision_payrexx_tap_to_pay_channel
+payments.patches.v15_08.provision_mobile_payment_channels

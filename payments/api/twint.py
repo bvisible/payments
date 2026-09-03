@@ -31,7 +31,9 @@ from frappe.utils import now_datetime
 
 # Channels driven by the TWINT bridge — both flows share the SDK calls
 # (Client.startOrder + monitorOrder), the difference is who shows the QR.
-_TWINT_CHANNELS = ("qr_bridge", "twint_web")
+# `twint_mobile` is the same bridge flow drawn on the operator's phone; it settles
+# through these pollers like the other two.
+_TWINT_CHANNELS = ("qr_bridge", "twint_web", "twint_mobile")
 
 
 def _publish_intent_update(doc, channel: str, target: str, extra: dict[str, Any] | None = None) -> None:
