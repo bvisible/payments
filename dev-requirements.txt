@@ -1,0 +1,8 @@
+# Development-only requirements, installed by `bench setup requirements --dev`.
+# The Playwright e2e suite (payments/tests/e2e/playwright) imports these at module
+# level; frappe's test runner imports every test_*.py of the app in one process,
+# so without them `bench run-tests --app payments` dies on the import before
+# running a single unit test (CI, 2026-09-03). Browsers: `playwright install chromium`.
+pytest
+playwright
+pytest-playwright
