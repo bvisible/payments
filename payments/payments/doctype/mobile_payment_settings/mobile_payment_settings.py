@@ -39,6 +39,13 @@ class MobilePaymentSettings(Document):
 			_require_provider(self.twint_provider, "twint", _("TWINT on the phone needs a TWINT Payment Provider"))
 
 	def on_update(self) -> None:
+		if frappe.flags.in_install:
+			# ``frappe.installer.init_singles`` saves every Single once during
+			# ``bench install-app`` — before after_install and before any patch, so no
+			# Payment Channel exists yet and nobody has chosen a provider: there is no
+			# binding to keep in step. The channels are provisioned right after, from
+			# after_install (payments.setup.payment_channels).
+			return
 		_sync_binding(
 			provider=self.tap_to_pay_provider,
 			channel=CARD_CHANNEL,

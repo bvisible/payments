@@ -69,7 +69,11 @@ app_include_js = "/assets/payments/js/twint_dialog.js"
 # ------------
 
 before_install = "payments.utils.before_install"
-after_install = "payments.utils.make_custom_fields"
+after_install = [
+	"payments.utils.make_custom_fields",
+	# A fresh site runs no patch, so the shipped Payment Channels are created here.
+	"payments.setup.payment_channels.provision_payment_channels",
+]
 
 # Uninstallation
 # ------------
