@@ -28,6 +28,7 @@ import frappe
 from frappe import _
 
 from payments.api.intent import cancel_intent, create_intent, get_intent_status
+from payments.drivers.registry import resolve_driver
 
 CARD_CHANNEL = "stripe_tap_to_pay"
 TWINT_CHANNEL = "twint_mobile"
@@ -229,6 +230,46 @@ def mobile_payments_for(reference_doctype: str, reference_name: str) -> list[dic
 		}
 		for row in rows
 	]
+
+
+@frappe.whitelist()
+def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
+	"""The intent's state, asking the provider first when the intent is still open.
+
+	The plain intent read only reports what the webhook has already written. A
+	phone polling for a card it just tapped needs the answer even when the webhook
+	is late or unreachable, so an open card intent is read back from Stripe here
+	and moved on when Stripe says it settled. TWINT intents already have their own
+	pollers; they are returned as they are.
+	"""
+	doc = frappe.get_doc("Payment Intent", intent_name)
+	if doc.channel != CARD_CHANNEL or doc.status not in OPEN_STATES or not doc.provider_intent_id:
+		return get_intent_status(intent_name)
+
+	try:
+		driver = resolve_driver(doc.provider, doc.channel)
+		response = driver.get_status(doc.provider_intent_id)
+	except Exception as exc:  # noqa: BLE001 — a failed read is not a failed payment
+		frappe.log_error("mobile_refresh_status: provider read failed", f"{intent_name}: {exc!r}")
+		return get_intent_status(intent_name)
+
+	if response.status in ("succeeded", "failed", "canceled") and response.status != doc.status:
+		moved = doc.transition_to(
+			response.status,
+			event_source="poll",
+			error_code=response.error_code,
+			error_message=response.error_message,
+			payload_excerpt="mobile_refresh_status",
+			ignore_invalid=True,
+		)
+		if moved:
+			frappe.publish_realtime(
+				event=f"payment.intent.{doc.name}.updated",
+				message={"intent_name": doc.name, "status": response.status, "channel": doc.channel},
+				after_commit=True,
+			)
+			frappe.db.commit()
+	return get_intent_status(intent_name)
 
 
 @frappe.whitelist()

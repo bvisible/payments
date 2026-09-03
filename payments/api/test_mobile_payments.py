@@ -106,6 +106,20 @@ class TestMobilePayments(FrappeTestCase):
 		self.assertTrue(str(token["secret"]).startswith("pst_"))
 		self.assertEqual(token["location_id"], self.ctx["card"]["location_id"])
 
+	def test_refresh_status_reads_stripe_for_an_open_card_intent(self) -> None:
+		self._need("card")
+		out = self._start("card", amount=600)
+		# Untouched at Stripe: still waiting on the phone, and the read must say so
+		# without inventing a settlement.
+		fresh = mp.mobile_refresh_status(out["intent_name"])
+		self.assertEqual(fresh["status"], "requires_action")
+		# Cancel at Stripe behind the server's back, then refresh: the read moves
+		# the intent to canceled, which is exactly the case a late webhook leaves.
+		closed = mp.mobile_abandon_payment(out["intent_name"])
+		self.assertEqual(closed["status"], "canceled")
+		again = mp.mobile_refresh_status(out["intent_name"])
+		self.assertEqual(again["status"], "canceled")
+
 	# -------------------------------------------------------------------- twint
 
 	def test_twint_start_hands_the_phone_a_qr(self) -> None:
