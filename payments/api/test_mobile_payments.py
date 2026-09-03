@@ -17,6 +17,8 @@ settings do, and the caller can read it.
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
@@ -119,6 +121,41 @@ class TestMobilePayments(FrappeTestCase):
 		self.assertEqual(closed["status"], "canceled")
 		again = mp.mobile_refresh_status(out["intent_name"])
 		self.assertEqual(again["status"], "canceled")
+
+	def test_refresh_status_yields_when_the_webhook_settles_first(self) -> None:
+		"""The poll reads Stripe while the webhook writes the same settlement.
+
+		Its copy of the intent is then stale, and saving it would raise a timestamp
+		mismatch straight to the phone. The poll must report the webhook's result
+		instead, and the intent must carry exactly one settlement event.
+		"""
+		self._need("card")
+		out = self._start("card", amount=700)
+		name = out["intent_name"]
+
+		class _WebhookWins:
+			def get_status(self, provider_intent_id):
+				# What the webhook does, in the middle of the poll's read.
+				other = frappe.get_doc("Payment Intent", name)
+				other.transition_to(
+					"succeeded", event_source="webhook", payload_excerpt="test: webhook first"
+				)
+				frappe.db.commit()
+				from payments.drivers.base import DriverResponse
+
+				return DriverResponse(status="succeeded", provider_intent_id=provider_intent_id)
+
+		with patch.object(mp, "resolve_driver", return_value=_WebhookWins()):
+			fresh = mp.mobile_refresh_status(name)
+		self.assertEqual(fresh["status"], "succeeded")
+		events = frappe.get_all(
+			"Payment Event", filters={"intent": name, "to_status": "succeeded"}, pluck="event_source"
+		)
+		self.assertEqual(events, ["webhook"], "the poll must not add a second settlement")
+		# Stripe still holds an unconfirmed PaymentIntent for it: close it there.
+		from payments.drivers.registry import resolve_driver
+
+		resolve_driver(self.ctx["card"]["provider"], mp.CARD_CHANNEL).cancel_intent(out["provider_intent_id"])
 
 	# -------------------------------------------------------------------- twint
 

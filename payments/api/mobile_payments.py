@@ -254,14 +254,21 @@ def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
 		return get_intent_status(intent_name)
 
 	if response.status in ("succeeded", "failed", "canceled") and response.status != doc.status:
-		moved = doc.transition_to(
-			response.status,
-			event_source="poll",
-			error_code=response.error_code,
-			error_message=response.error_message,
-			payload_excerpt="mobile_refresh_status",
-			ignore_invalid=True,
-		)
+		try:
+			moved = doc.transition_to(
+				response.status,
+				event_source="poll",
+				error_code=response.error_code,
+				error_message=response.error_message,
+				payload_excerpt="mobile_refresh_status",
+				ignore_invalid=True,
+			)
+		except frappe.TimestampMismatchError:
+			# The webhook got there first: it wrote the settlement while Stripe was
+			# being read, so this copy of the intent is stale. Nothing is lost —
+			# report what the webhook wrote instead of failing the poll.
+			frappe.db.rollback()
+			return get_intent_status(intent_name)
 		if moved:
 			frappe.publish_realtime(
 				event=f"payment.intent.{doc.name}.updated",
