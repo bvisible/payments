@@ -1,3 +1,13 @@
+#//// Neoffice — added file (no upstream equivalent). Two surfaces the drivers must not
+#//// carry: the admin onboarding calls behind the `payment_terminal_wizard` Frappe Page
+#//// (list configurations and locations from Wallee, create a terminal, link a physical
+#//// device by serial), and the guest-callable webshop endpoints for the three hosted
+#//// modes (Redirect / Lightbox / iFrame). The latter are the port of
+#//// `wallee_integration.api.transaction`, which `webshop.templates.payments.wallee`
+#//// imported directly and which the ADR-005 fusion removed. Upstream has no Wallee
+#//// anything, and no admin-side PSP provisioning at all.
+#//// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+#////          d30e585 2026-05-19 "feat(wallee-web): webshop endpoints for the 3 modes (Redirect/Lightbox/iFrame)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Wallee wizard helpers — config sync + terminal registration.

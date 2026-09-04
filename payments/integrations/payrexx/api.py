@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Webshop-facing pivot for Payrexx
+#//// hosted checkout — the guest-callable seam between the shop's generic
+#//// `payment_handler.create_payment_request` and the unified `create_intent`. It is
+#//// not a driver: it creates the Payment Intent through PayrexxWebDriver and returns
+#//// the URL to send the buyer to. Upstream's equivalent seam is the `<psp>_settings`
+#//// controller's `get_payment_url`, which has no intent behind it.
+#//// Commits: 5429dbe 2026-08-11 "feat(payrexx): webshop pivot for hosted checkout"
+#////          96bd0ea 2026-08-11 "fix(payrexx): stop letting the most recently saved provider capture payments"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Webshop pivot for Payrexx hosted checkout.

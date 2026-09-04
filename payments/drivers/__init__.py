@@ -1,3 +1,10 @@
+#//// Neoffice — added file (no upstream equivalent). Package root of the driver
+#//// layer. Upstream `payments` has no notion of a driver at all: it ships one
+#//// `payment_gateways/doctype/<psp>_settings/` per PSP, fusing credentials,
+#//// channel config and business logic in a single DocType. This package holds
+#//// the Provider × Channel × Driver abstraction (ADR-001 / ADR-004) behind the
+#//// Payment Intent flow, and coexists with the legacy web-only controllers.
+#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Unified payment driver layer for the `payments` Frappe app.

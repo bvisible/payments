@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Webshop-facing pivot for TWINT QR
+#//// checkout, ported in when the retired `twint_integration` app was folded into
+#//// `payments` (Phase 11). Guest-callable: `create_web_transaction` creates the
+#//// Payment Intent on the `twint_web` channel and returns the QR SVG + pairing token,
+#//// `get_intent_state` is the poll the checkout JS falls back on when its SocketIO
+#//// subscription drops. Upstream has no TWINT integration to pivot to.
+#//// Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
+#////          ffaa216 2026-05-28 "feat(twint): dev-only 'simulate success' button in the checkout dialog"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """TWINT webshop helpers — pivot between ``payment_handler.create_payment_request``

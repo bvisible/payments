@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Wallee hosted payment page
+#//// (Redirect / Lightbox / iFrame), ported by the ADR-005 fusion of the retired
+#//// `wallee_integration` app: it replaces that app's `create_webshop_payment` code
+#//// path and its own `Wallee Transaction` DocType, so web checkout becomes just
+#//// another Payment Intent on the unified FSM. Refund, cancel and webhook are
+#//// shared with the terminal driver — one Wallee transactions API for both channels.
+#//// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+#////          d30e585 2026-05-19 "feat(wallee-web): webshop endpoints for the 3 modes (Redirect/Lightbox/iFrame)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Wallee Web driver — hosted payment page (Redirect / Lightbox / iFrame).

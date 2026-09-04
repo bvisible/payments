@@ -1,3 +1,16 @@
+#//// Neoffice — added file (no upstream equivalent). The three ABCs of the
+#//// Provider × Channel × Driver ontology: PaymentProviderBase (credentials,
+#//// health check, supported channels), PaymentChannelBase (declarative
+#//// capabilities) and PaymentDriverBase (create / confirm / cancel / refund /
+#//// handle_webhook). Upstream has no driver layer at all — it fuses credentials,
+#//// channel config and business logic into one `<psp>_settings` DocType per PSP,
+#//// which cannot grow a second channel without copying the credentials (ADR-004).
+#//// Every concrete driver under payments/drivers/<provider>/ implements these.
+#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver
+#//// layer (Provider × Channel × Driver)"; a3a4a4a 2026-08-24 "docs(drivers): le
+#//// contrat oubliait une action que le code produit".
+#//// TO REVIEW (RULE #00): the marker a3a4a4a left in the `next_action_type`
+#//// docstring is in French, and sits INSIDE the docstring rather than beside it.
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Abstract base classes for the Provider × Channel × Driver hierarchy.

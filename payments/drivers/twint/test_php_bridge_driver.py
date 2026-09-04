@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Unit tests for the TWINT PHP
+#//// bridge driver; the HTTP layer to neoservice is mocked, so nothing reaches the
+#//// bridge or the TWINT Merchant API.
+#//// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
+#////          cc503b1 2026-05-13 "fix(payments): rename Twint Settings → Twint Bridge Settings + scheduler cron syntax"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Unit tests for the TWINT PHP bridge driver (mocks the HTTP layer)."""

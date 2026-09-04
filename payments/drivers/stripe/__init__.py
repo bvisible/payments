@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Public entry points of the
+#//// Stripe drivers, the names an operator puts in `Payment Provider.driver_class`
+#//// / `Provider Channel Settings.driver_class`. Upstream only has the
+#//// `Stripe Settings` web-checkout controller.
+#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+#////          0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Stripe drivers.

@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Unit tests for the Payrexx web
+#//// and terminal drivers with the client stubbed: the HTTP layer is the standalone
+#//// `payrexx` library's job and is tested there against a live account, so these
+#//// only cover what this app owns — the request built from an IntentRequest, the FSM
+#//// status derived, and that a transport failure reads as *unknown*, never as a
+#//// clean rejection.
+#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+#////          ac59479 2026-08-11 "fix(payrexx): read the terminal serial from the right Payment Device field"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Unit tests for the Payrexx drivers.

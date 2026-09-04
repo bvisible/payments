@@ -1,3 +1,10 @@
+#//// Neoffice — added file (no upstream equivalent). Payrexx Tap to Pay: unlike every
+#//// other driver here it **cannot start a payment**. Tap to Pay is an Android
+#//// app-to-app integration over Intents — our app hands off to the Payrexx app, which
+#//// owns the NFC exchange — so create_intent only records the intent, returns
+#//// `native_app_handoff` and leaves `provider_intent_id` empty; the webhook
+#//// (`transaction.type == "Tap to Pay"`) is what drives the FSM and fills the id in.
+#//// Commits: a8087dc 2026-08-11 "feat(payrexx): Tap to Pay server lot — the phone initiates, the server records"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Payrexx Tap to Pay driver — the phone initiates, the server records.

@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Placeholder `stripe.web`
+#//// driver: it exists so that a `Provider Channel Settings` binding created ahead
+#//// of Phase 6 still resolves to an importable class instead of failing the
+#//// registry lookup. Web checkout meanwhile keeps flowing through the legacy
+#//// upstream `Stripe Settings` controller; every operation raises NotImplementedError.
+#//// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Stripe Web driver (placeholder for Phase 6).
