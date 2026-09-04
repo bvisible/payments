@@ -417,6 +417,7 @@ def simulate_success(intent_name: str) -> dict[str, Any]:
 	return get_intent_status(doc.name)
 
 
+#//// Neoffice ▼▼▼ — added `paid_total_for` / `mobile_paid_total`: what a document (intervention, project, invoice) has already collected on site — total in minor units, currency, count of settled payments, last settlement date, and still-open intents apart — without re-deriving the channel and status rules; exposed to the phone behind the document's read permission (137488f "feat(mobile): ce qu'un document a déjà encaissé sur place — paid_total_for")
 # ──────────────────────────────────────────── what a document has collected ──
 # The intervention screen, the project, the invoice: each wants to know how
 # much was already taken on site for a given document, without re-deriving

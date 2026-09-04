@@ -263,6 +263,7 @@ class TestMobilePayments(FrappeTestCase):
 			push.assert_called_once()
 			self.assertEqual(push.call_args.args[0].name, out["intent_name"])
 
+	#//// Neoffice — covers `paid_total_for`/`mobile_paid_total`: open intents must not be counted in the collected total (137488f "feat(mobile): ce qu'un document a déjà encaissé sur place — paid_total_for")
 	def test_paid_total_counts_only_settled_intents(self) -> None:
 		if not self.reference:
 			self.skipTest("no on-site payment method is set up on this site")
