@@ -1,3 +1,17 @@
+#//// Neoffice — added file (no upstream equivalent). The server side of collecting
+#//// on site from the mobile app: Stripe Tap to Pay (the server mints the
+#//// PaymentIntent and hands the phone its client_secret) and merchant-presented
+#//// TWINT QR, chosen once in Mobile Payment Settings. Upstream is a web-checkout
+#//// hub only — it has no mobile surface, no Tap to Pay and no TWINT.
+#//// The point of these endpoints is that the SERVER stays the only authority on
+#//// whether the money arrived: the app follows the Payment Intent and never
+#//// trusts an SDK result on its own.
+#//// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap
+#//// to Pay et par QR TWINT"; 3788073 2026-09-03 (what Apple requires of the
+#//// server for Tap to Pay on iPhone: receipt, notified decline, terms);
+#//// d910b8d + 5b40846 2026-09-03 (the card poll re-reads Stripe when the webhook
+#//// is late, and stands down when the webhook won the race); 7e5f680 2026-09-03
+#//// (collecting with no document behind it).
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Collecting on site from the mobile app — what the phone asks the server.

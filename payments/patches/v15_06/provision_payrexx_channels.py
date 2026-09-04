@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Creates the `payrexx_web` Payment
+#//// Channel on the sites that already exist. Only the web channel needs creating:
+#//// `terminal` already exists and is shared with Stripe Terminal and Wallee, since the
+#//// Provider Channel Settings binding is what decides which driver a POS profile
+#//// resolves to. No Payment Provider is created — credentials are per client.
+#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Create the ``payrexx_web`` Payment Channel.

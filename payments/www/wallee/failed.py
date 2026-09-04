@@ -1,3 +1,10 @@
+#//// Neoffice — added file (no upstream equivalent). Controller of `/wallee/failed`:
+#//// resolve the Payment Intent from `payment_intent` (or the legacy `payment_request`),
+#//// best-effort refresh its status through the driver, and render the last known
+#//// failure reason. Moved here from `www/wallee_failed.py` — Frappe's www resolver maps
+#//// `/wallee/failed` to the path hierarchy, so the underscore variant answered 404 to
+#//// every buyer coming back from the Wallee hosted page.
+#//// Commits: ce478ca 2026-05-28 "fix(wallee-web): /wallee/success and /wallee/failed routes (404 → working)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """``/wallee/failed`` — landing page when the Wallee redirect indicates failure.

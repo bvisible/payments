@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Stripe Terminal management: create
+#//// Locations, register Readers, refresh their online status, and install the webhook
+#//// on the first reader registration. Server-driven mode (ADR-003) — the server calls
+#//// api.stripe.com and Stripe drives the reader over its own cloud channel, so the
+#//// cashier's browser never talks to the device and no mDNS/LAN discovery is needed.
+#//// Upstream has no notion of a physical card terminal at all.
+#//// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
+#////          1a6de8b 2026-05-19 "feat(stripe): auto-setup webhook on first reader registration"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Stripe Terminal management API.

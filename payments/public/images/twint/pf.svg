@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- //// Neoffice — added file (no upstream equivalent). PostFinance app icon of the TWINT bank-app selector (public/js/twint_dialog.js), from the retired `twint_integration` app. Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments" -->
 <svg width="284px" height="284px" viewBox="0 0 284 284" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50 (54983) - http://www.bohemiancoding.com/sketch -->
     <title>PF-App-Icon</title>

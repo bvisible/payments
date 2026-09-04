@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Backend of the Payrexx setup
+#//// wizard: read the current state, save the credentials, prove them against the live
+#//// API, and only then create the Provider Channel Settings, the Payment Gateways, the
+#//// Gateway Accounts and the Webshop Settings rows. Standing an account up by hand
+#//// means six doctypes in the right order and fails silently when one is missed — a
+#//// tile that never appears, or one that appears and cannot take money. Payrexx is our
+#//// third provider (4c05756); upstream has no Payrexx anything.
+#//// Commits: 754ddf4 2026-09-01 "feat(payrexx): a setup wizard, so standing an account up is five minutes not a runbook"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """One-call setup for Payrexx — credentials, channels, and the shop tiles.

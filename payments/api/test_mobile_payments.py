@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). What the phone relies on from
+#//// `payments.api.mobile_payments` — the "collect on site" surface where Stripe Tap to
+#//// Pay and TWINT QR settle in one place. Talks to Stripe in test mode and registers
+#//// then cancels a payment on the TWINT bridge; a method switched off is skipped, not
+#//// failed, because a site may offer only one. Upstream has neither surface.
+#//// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap to Pay et par QR TWINT, réglés en un seul endroit"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """What the phone relies on from :mod:`payments.api.mobile_payments`.

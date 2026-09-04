@@ -1,3 +1,10 @@
+{#- //// Neoffice — added file (no upstream equivalent). Landing page of `/wallee/failed`,
+    //// the failure return of the Wallee hosted checkout, which came in with the retired
+    //// `wallee_integration` app (99e929c, ADR-005). It lives under `www/wallee/` because
+    //// Frappe's www resolver maps the `/wallee/failed` path to a directory hierarchy and
+    //// not to the underscore filename it first had — which is why every returning buyer
+    //// hit a 404. Upstream has no Wallee anything and no `payments/www/` at all.
+    //// Commits: ce478ca 2026-05-28 "fix(wallee-web): /wallee/success and /wallee/failed routes (404 → working)" -#}
 {% extends "templates/web.html" %}
 
 {% block page_content %}

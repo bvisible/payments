@@ -1,3 +1,9 @@
+/* //// Neoffice — added file (no upstream equivalent). Styles of the TWINT checkout
+   //// overlay — QR panel, instruction steps, bank-app selector, status spinner — ported
+   //// from the retired `twint_integration` app. hooks.py now serves it through
+   //// `web_include_css` (webshop checkout) and `app_include_css` (desk), both of which
+   //// upstream leaves commented out because it ships no asset of its own.
+   //// Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)" */
 /* Global */
 .twint-modal-dialog .twint-payment-container, .twint-dialog .twint-payment-container {
     padding: 20px;

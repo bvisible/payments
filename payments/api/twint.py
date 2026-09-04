@@ -1,3 +1,12 @@
+#//// Neoffice — added file (no upstream equivalent). The TWINT poller: TWINT pushes no
+#//// webhook, so state is pulled — an every-minute cron for the POS QR (`qr_bridge`),
+#//// plus a fast-poll job for the webshop consumer (`twint_web`) and the operator's
+#//// phone (`twint_mobile`) while the buyer waits, publishing
+#//// `payment.intent.<name>.updated` over SocketIO so the overlay redirects without
+#//// polling. TWINT in-store runs through our central PHP bridge rather than Stripe's
+#//// TWINT QR (ADR-002); upstream has no TWINT at all.
+#//// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
+#////          9a8e74f 2026-06-30 "feat(twint): enqueue fast-poll for POS (qr_bridge) so the till validates in a few seconds, not up to 1 min…"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """TWINT scheduler + helpers (POS terminal + webshop consumer).

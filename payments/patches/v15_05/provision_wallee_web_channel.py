@@ -1,3 +1,10 @@
+#//// Neoffice — added file (no upstream equivalent). Provisions the `wallee_web`
+#//// Payment Channel and its (provider, wallee_web) binding on every Wallee provider,
+#//// test and live. The v15_03 merger created only the `terminal` binding, so the web
+#//// binding had been set up by hand on the early instances; without it
+#//// `create_intent(channel="wallee_web")` raises DriverResolutionError and both the
+#//// webshop and the POS guest Wallee checkout are dead on a fresh instance. Idempotent.
+#//// Commits: f2543ee 2026-06-01 "feat(wallee-web): patch to provision the wallee_web channel binding on the fleet"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Patch v15.05 — provision the Wallee web (hosted checkout) channel binding.

@@ -1,3 +1,13 @@
+//// Neoffice — added file (no upstream equivalent). The TWINT checkout overlay:
+//// `frappe.twint.processPayment` draws the amount, the pairing code, the QR and the
+//// three gestures to make on the phone, offers the bank-app deep link on mobile
+//// (UBS, Raiffeisen, PostFinance, ZKB, Credit Suisse, BCV), and follows the Payment
+//// Intent over SocketIO (`payment.intent.<name>.updated`) with a 5 s poll as fallback.
+//// Ported from the retired `twint_integration` app; hooks.py serves it through
+//// `web_include_js` (webshop checkout) and `app_include_js` (desk), both of which
+//// upstream leaves commented out because it ships no asset of its own.
+//// Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
+////          cf46815 2026-09-01 "fix(twint): rendre à TWINT son dialogue, et le tenir par un test"
 frappe.provide('frappe.twint');
 
 (function() {

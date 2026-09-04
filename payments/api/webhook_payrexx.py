@@ -1,3 +1,13 @@
+#//// Neoffice — added file (no upstream equivalent). One Payrexx webhook URL for all
+#//// three channels: Payrexx tags each delivery with `transaction.type` (E-Commerce /
+#//// POS-Terminal / Tap to Pay), so a single endpoint drives web, terminal and Tap to Pay
+#//// state — and polling instead would burn the ~600 requests per 5 minutes an account
+#//// gets. Payrexx sends no event id, so one is derived from uuid + status, falling back
+#//// to a payload fingerprint (the back office's test button posts `uuid: null`).
+#//// Upstream has no Payrexx and, at the fork point, no webhook endpoint of any kind.
+#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+#////          f6bf806 2026-08-11 "fix(payrexx): derive a usable webhook event id when the uuid is absent"
+#////          65aeb56 2026-08-22 "feat(payrexx): keep the card details of a settled terminal payment"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Payrexx webhook endpoint — one URL for all three channels.

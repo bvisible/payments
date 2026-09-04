@@ -1,3 +1,10 @@
+{#- //// Neoffice — added file (no upstream equivalent). Landing page of
+    //// `/wallee/success`, the return of the Wallee hosted checkout that came in with the
+    //// retired `wallee_integration` app (99e929c, ADR-005). Renders the success, pending
+    //// and error states off the Payment Intent. Under `www/wallee/` because Frappe
+    //// resolves `/wallee/success` as a path hierarchy, not as the underscore filename it
+    //// first had, which answered 404 to every returning buyer.
+    //// Commits: ce478ca 2026-05-28 "fix(wallee-web): /wallee/success and /wallee/failed routes (404 → working)" -#}
 {% extends "templates/web.html" %}
 
 {% block page_content %}

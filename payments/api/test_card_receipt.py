@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Unit tests for
+#//// `payments.api.card_receipt`, pinned on a receipt measured on a NexGo N86 terminal
+#//// on 2026-08-22. Upstream has no card terminal, so no such test can exist there.
+#//// Commits: 2c37e66 2026-08-22 "feat(payments): fill the card mentions on a POS invoice from its Payment Intent"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Unit tests for filling the card mentions on a POS invoice."""

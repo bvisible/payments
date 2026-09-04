@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Turns a succeeded Payment Intent
+#//// into the ERPNext payment record — a `Sales Invoice Payment` row on the POS or Sales
+#//// Invoice, with the right mode of payment — idempotently, stamped by `reconciled_at`
+#//// in the intent's metadata. Called from the Payment Intent doc_event wired in
+#//// hooks.py, so callers never invoke it. Upstream stops at Payment Request /
+#//// Integration Request and books nothing against the source document.
+#//// Commits: 7dd1ab0 2026-05-13 "feat(payments): Phase 6 — auto-reconciliation Payment Intent → invoice payment row"
+#////          d904c00 2026-08-11 "fix(payments): do not reconcile a cancelled Payment Intent"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Auto-reconciliation — turn a succeeded Payment Intent into an ERPNext payment record.

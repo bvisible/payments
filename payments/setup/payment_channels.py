@@ -1,3 +1,12 @@
+#//// Neoffice — added file (no upstream equivalent). The one idempotent registry of the
+#//// Payment Channels this app ships, provisioned from `after_install`. Until 2026-09-03
+#//// each channel was created by the patch that introduced it (v15_03 … v15_08), which
+#//// works on a site that migrates and never on one that is installed — `bench
+#//// install-app` marks every patch completed without running it — so a fresh site had
+#//// no channel at all and installing payments died on a missing Payment Channel,
+#//// taking every CI that installs payments as a dependency with it. Upstream has no
+#//// Payment Channel doctype, so nothing to provision.
+#//// Commits: 7a0f7ca 2026-09-03 "fix(install): provision the shipped Payment Channels on a fresh site"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """The Payment Channels this app ships, provisioned once per site.

@@ -1,3 +1,13 @@
+#//// Neoffice — added file (no upstream equivalent). Upstream ships an EMPTY
+#//// `patches.txt`. This one absorbs the retired `twint_integration` app ("Phase 11"):
+#//// it creates the `twint_web` Payment Channel, a Payment Provider and the
+#//// (provider, twint_web) binding on the TWINT web driver, re-points the existing
+#//// "Twint" Payment Gateway at `Twint Bridge Settings` instead of the legacy `Twint
+#//// Settings` single so the webshop payment handler can find it, and drops
+#//// `tabTwint Transaction`. The webshop QR now runs on the same neoservice bridge as
+#//// the POS (ADR-002), not on a local PHP service. Idempotent.
+#//// Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
+#////          bab9fec 2026-07-06 "fix(twint-merge): Payment Provider needs provider_name + display_label + valid mode"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Patch v15.04 — merge ``twint_integration`` into ``payments`` (Phase 11).

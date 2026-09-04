@@ -1,3 +1,11 @@
+{#- //// Neoffice — added file (no upstream equivalent). Return page of the Payrexx
+    //// hosted checkout. All three Payrexx return URLs (success, failed, cancel) point
+    //// here, so the state rendered comes from the Payment Intent and never from which
+    //// URL the shopper landed on; the pending state refreshes itself, so a payment that
+    //// settles after the polling window is still caught. Upstream has no Payrexx, and
+    //// no `payments/www/` at all.
+    //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+    ////          65c41f8 2026-08-31 "fix(payrexx): send an unpaid shopper back to the checkout, not to the basket" -#}
 {% extends "templates/web.html" %}
 
 {#
