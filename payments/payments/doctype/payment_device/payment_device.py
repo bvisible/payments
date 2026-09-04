@@ -48,13 +48,16 @@ class PaymentDevice(Document):
 		self._validate_channel_supports_devices()
 
 	def _validate_channel_supports_devices(self):
-		# Only card-present channels make sense for a device. We don't hard-fail
-		# (extensibility): an unknown channel passes, a shipped web/QR one warns.
+		#//// Neoffice — only card-present channels make sense for a device. We don't
+		#//// hard-fail (extensibility): an unknown channel passes, a shipped web or
+		#//// QR one warns. Read `("web", "billing")` until 2026-09-04 — two codes
+		#//// this app has never provisioned, so the warning could not fire once.
 		if not self.provider_channel_settings:
 			return
 		channel = frappe.db.get_value(
 			"Provider Channel Settings", self.provider_channel_settings, "channel"
 		)
+		#//// Neoffice — the set is derived from the shipped registry, not listed here.
 		if channel in _channel_codes_without_devices():
 			frappe.msgprint(
 				_(

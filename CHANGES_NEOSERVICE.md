@@ -47,6 +47,8 @@ Tous nos ajouts sont dans des **fichiers/dossiers nouveaux** pour minimiser les 
 
 ## 2. Modifications de fichiers existants (à minimiser)
 
+<!-- //// Neoffice — corrigé le 2026-09-04 : la section annonçait deux champs qui
+     //// n'ont jamais été ajoutés. Conservée comme abandon, pas supprimée. -->
 ### `payments/payment_gateways/doctype/stripe_settings/stripe_settings.json` (Phase 2) — ABANDONNÉ
 - **Prévu** : champs `terminal_enabled` (Check) et `terminal_default_location_id` (Data), pour activer le driver Terminal sur les credentials Stripe Web existantes.
 - **Ce qui s'est passé** : jamais fait. `git diff upstream -- stripe_settings.json` est vide. La configuration par canal vit dans `Provider Channel Settings.config_json` (`terminal_default_location_id`, `webhook_secret_override`, …) — c'est précisément ce que l'ontologie ADR-004 existe pour éviter de dupliquer dans un `<psp>_settings` par PSP.
@@ -86,6 +88,8 @@ git fetch upstream
 git rebase upstream/version-15
 ```
 
+<!-- //// Neoffice — liste remise à jour le 2026-09-04 : `stripe_settings.json` ne
+     //// diverge pas, les pages stripe_checkout et razorpay_settings si. -->
 Conflits attendus uniquement sur :
 - `hooks.py` (ajouts simples)
 - `stripe_checkout.py` / `stripe_checkout.html` / `includes/stripe_checkout.js` (page refaite)

@@ -49,13 +49,13 @@ from frappe import _lt
 CHANNELS: list[dict] = [
 	{
 		"channel_code": "terminal",
-		"display_label": _lt("POS Terminal"),
+		"display_label": _lt("POS Terminal"),  #//// Neoffice — see the `_lt` note above
 		"ui_kind": "card_present_modal",
 		"capabilities": {"supports_refund": True},
 	},
 	{
 		"channel_code": "twint_web",
-		"display_label": _lt("TWINT Web (QR consumer)"),
+		"display_label": _lt("TWINT Web (QR consumer)"),  #//// Neoffice — see the `_lt` note above
 		"ui_kind": "qr_display",
 		"capabilities": {
 			"supports_refund": True,
@@ -67,7 +67,7 @@ CHANNELS: list[dict] = [
 	},
 	{
 		"channel_code": "wallee_web",
-		"display_label": _lt("Wallee Web (hosted checkout)"),
+		"display_label": _lt("Wallee Web (hosted checkout)"),  #//// Neoffice — see the `_lt` note above
 		"ui_kind": "redirect",
 		"capabilities": {
 			"supports_refund": True,
@@ -79,7 +79,7 @@ CHANNELS: list[dict] = [
 	},
 	{
 		"channel_code": "payrexx_web",
-		"display_label": _lt("Payrexx Web Checkout"),
+		"display_label": _lt("Payrexx Web Checkout"),  #//// Neoffice — see the `_lt` note above
 		"icon": "🌐",
 		"ui_kind": "redirect",
 		"capabilities": {
@@ -93,7 +93,7 @@ CHANNELS: list[dict] = [
 	},
 	{
 		"channel_code": "payrexx_tap_to_pay",
-		"display_label": _lt("Payrexx Tap to Pay"),
+		"display_label": _lt("Payrexx Tap to Pay"),  #//// Neoffice — see the `_lt` note above
 		"icon": "📲",
 		"ui_kind": "card_present_modal",
 		"capabilities": {
@@ -113,7 +113,7 @@ CHANNELS: list[dict] = [
 		# SDK. Its own channel rather than ``terminal``: no device is addressed from
 		# the server, capture is automatic, and reporting wants the two apart.
 		"channel_code": "stripe_tap_to_pay",
-		"display_label": _lt("Tap to Pay"),
+		"display_label": _lt("Tap to Pay"),  #//// Neoffice — see the `_lt` note above
 		"icon": "📱",
 		"ui_kind": "card_present_modal",
 		"capabilities": {

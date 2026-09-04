@@ -9,6 +9,8 @@
 # License: MIT. See LICENSE
 """``/wallee/failed`` — landing page when the Wallee redirect indicates failure.
 
+//// Neoffice — added file. Its docstring carried a French "ou" until 2026-09-04
+//// (RULE #00): everything inside a source file is English.
 URL: ``/wallee/failed?payment_intent=PI-2026-XXXXX`` (preferred)
    or ``/wallee/failed?payment_request=ACC-PRQ-XXX`` (legacy compat).
 """

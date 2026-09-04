@@ -8,9 +8,12 @@
 # License: MIT. See LICENSE
 """Public whitelisted API surface for the unified payments app.
 
-Modules (this list is the index — add a module here when you add one):
+//// Neoffice — this index is ours; upstream has no `payments/api/` at all. It
+//// named 4 of the 11 modules until 2026-09-04. Add a module here when you add
+//// one: an index nobody completes is worse than no index.
+Modules:
 
-- ``intent``: create/get/cancel/refund Payment Intents
+- ``intent``: create, read, cancel and refund Payment Intents
 - ``reconciliation``: match settled payments against their accounting entries
 - ``mobile_payments``: the phone's surface — collect without a document, poll,
   and the Tap to Pay session

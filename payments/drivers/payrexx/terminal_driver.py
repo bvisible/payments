@@ -34,6 +34,8 @@ wrong charges a customer twice:
    wait for the webhook and match on ``paymentReference``) rather than resend.
 
 .. warning::
+   //// Neoffice — this warning said the exact opposite of the code until
+   //// 2026-09-04: it still described the caution ``ee09517`` had lifted.
    **It maps the ECR status, but never guesses at one.** Payrexx's OpenAPI declares
    ``payment_status`` as a bare string and enumerates no values, so until
    2026-08-18 nothing was mapped and :meth:`get_status` answered ``processing``

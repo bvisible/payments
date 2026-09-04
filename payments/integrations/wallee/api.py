@@ -653,6 +653,7 @@ def get_terminal_types() -> list[dict[str, Any]]:
 		{
 			"id": "1568379599819",
 			"name": "BBPOS WisePOS E",
+			#//// Neoffice — English source + `_()` since 2026-09-04 (was a French literal).
 			"description": _(
 				"Bluetooth + Wi-Fi, cylindrical black touchscreen. The most common model."
 			),
@@ -660,6 +661,7 @@ def get_terminal_types() -> list[dict[str, Any]]:
 		{
 			"id": "wisepos_pro",
 			"name": "BBPOS WisePOS Pro",
+			#//// Neoffice — English source + `_()` since 2026-09-04 (was a French literal).
 			"description": _("Successor to the WisePOS, with a wider screen."),
 		},
 	]

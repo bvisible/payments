@@ -85,6 +85,8 @@ def get_context(context):
 #//// symbol put back on the side the Currency record says it belongs.
 def neoffice_amount(amount, currency: str = None) -> str:
 	"""Format an amount for a payment screen, currency symbol included."""
+	#//// Neoffice — the three locals were French (`montant`, `symbole`,
+	#//// `a_droite`) until 2026-09-04. Renamed only; the logic is untouched.
 	formatted = fmt_money(amount=amount)
 	if not currency:
 		return formatted

@@ -12,6 +12,9 @@
 
 Runs without an actual TWINT P12 certificate. Validates that:
 
+//// Neoffice — `Twint Settings` was renamed `Twint Bridge Settings` by cc503b1
+//// on the day this file was written; the list below said the old name until
+//// 2026-09-04. The code never named it, so only the prose was wrong.
 1. The ``Twint Bridge Settings`` DocType is created on the calling site.
 2. The TWINT driver is loadable and the registry resolves it.
 3. ``create_intent`` builds the right bridge payload (HTTP layer is mocked).
@@ -129,6 +132,8 @@ def run_all() -> dict:
 	# 2. Fixtures.
 	try:
 		_ensure_fixtures()
+		#//// Neoffice — the DocType is `Twint Bridge Settings` since cc503b1; this
+		#//// line still printed the pre-rename name until 2026-09-04.
 		add("Provider + Channel + binding + Twint Bridge Settings present", True, MERCHANT_UUID)
 	except Exception as exc:  # noqa: BLE001
 		add("Fixtures", False, repr(exc))

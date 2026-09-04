@@ -11,20 +11,22 @@
 # License: MIT. See LICENSE
 """TWINT scheduler + helpers (POS terminal, webshop consumer, operator's phone).
 
-Since TWINT does not push webhooks, the bridge does not signal state changes
-proactively. We poll for the three channels of ``_TWINT_CHANNELS``:
-
-- ``qr_bridge`` (POS terminal): the cashier dialog watches via SocketIO; an
-  every-minute cron is enough since the cashier is staring at the screen and
-  will see the update within a beat.
-- ``twint_web`` (webshop consumer): the buyer is waiting on a checkout page,
-  so we enqueue a **fast-poll job** at intent creation that polls every 5s for
-  5 min, then backs off to 30s for another 10 min. The per-minute cron is the
-  safety net for missed enqueues.
-- ``twint_mobile`` (operator's phone): the same bridge flow drawn by the app in
-  front of the customer. It settles through these pollers like the other two;
-  it is a separate channel because a payment at the customer's door is not a
-  webshop order and must not run the shop's settlement hook.
+//// Neoffice — added module (upstream has no TWINT). This paragraph said "both
+//// channels" until 2026-09-04 while ``_TWINT_CHANNELS`` has held three since
+//// the mobile surface landed — the third was invisible to anyone reading here.
+TWINT pushes no webhook, so the bridge never announces a state change on its
+own. The three channels of ``_TWINT_CHANNELS`` are polled:
+- ``qr_bridge`` (POS terminal): the cashier's dialog watches over SocketIO, and
+  a once-a-minute cron is enough — the cashier is looking at the screen and
+  sees the change within a beat.
+- ``twint_web`` (webshop consumer): the buyer is held on a checkout page, so a
+  **fast-poll job** is enqueued at intent creation — every 5s for 5 min, then
+  every 30s for another 10 min. The once-a-minute cron is only the safety net
+  for an enqueue that never happened.
+- ``twint_mobile`` (the operator's phone): the same bridge flow, drawn by the
+  app in front of the customer. It settles through these pollers like the other
+  two; it is a channel of its own because a payment at the customer's door is
+  not a webshop order and must not run the shop's settlement hook.
 
 Status transitions publish ``payment.intent.<name>.updated`` via SocketIO so
 the JS overlay can redirect without polling.
