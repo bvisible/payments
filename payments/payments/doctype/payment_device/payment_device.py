@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). `Payment Device` is a physical
+#//// card terminal (BBPOS WisePOS E, Stripe Reader S700, Worldline T630) attached to
+#//// one `Provider Channel Settings` binding — ADR-004 §4. Upstream has no notion of
+#//// a reader whatsoever. The check only warns when the binding's channel is `web` or
+#//// `billing` instead of refusing, so a channel added later is not locked out.
+#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 

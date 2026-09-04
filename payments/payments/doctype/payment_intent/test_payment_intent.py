@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Pins the Payment Intent state
+#//// machine and its validations against a seeded Mock provider: allowed and refused
+#//// transitions, the idempotent self-transition a webhook replay produces, the
+#//// `Payment Event` written on each move, and the amount / currency / metadata
+#//// checks. No upstream counterpart — there is no upstream Payment Intent.
+#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """FSM and validation tests for Payment Intent."""

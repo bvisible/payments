@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Smoke tests for the
+#//// `Payment Provider` DocType of ADR-004: a valid record, the lowercase-identifier
+#//// rule on `provider_name`, and the rejection of malformed `credentials_json`.
+#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 

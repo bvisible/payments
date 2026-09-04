@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Wallee credentials (user_id,
+#//// authentication_key, space_id) for the Wallee driver. Ported from the retired
+#//// `wallee_integration` app, folded into `payments` by 99e929c (ADR-005), and
+#//// turned from a Single into a regular DocType autonamed on `provider`, so a test
+#//// and a live Wallee account can cohabit on one site. Upstream has no Wallee.
+#//// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Wallee Settings — per-provider configuration for the Wallee driver.

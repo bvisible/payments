@@ -1,3 +1,13 @@
+//// Neoffice — added file (no upstream equivalent). Form script for `Twint Bridge
+//// Settings`. It turns `certificate_expires_on` into an intro banner (orange
+//// inside the 45-day window, red once past it — an expired .p12 stops TWINT
+//// payments), adds the TWINT merchant-portal button, and fills `merchant_uuid`
+//// from the attached file name, which TWINT names after the merchant UUID.
+//// Upstream has no TWINT anything: in-store TWINT goes through our central PHP
+//// bridge on neoservice, not Stripe's TWINT QR (ADR-002).
+//// Commits: cf61f54 2026-06-21 "feat(twint): certificate expiry monitoring — store notAfter on upload, daily reminder email + form banner within 45 days (+ POS alert API)"
+////          d5eef5e 2026-06-21 "feat(twint): add TWINT merchant portal link + setup guide on the Twint Bridge Settings form"
+////          e80ac15 2026-06-21 "feat(twint): auto-fill Merchant UUID from the certificate file name on attach"
 // Copyright (c) 2026, Neoffice and contributors
 // License: MIT. See LICENSE
 

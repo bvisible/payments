@@ -1,3 +1,11 @@
+//// Neoffice — added file (no upstream equivalent). The `payment-terminal-wizard`
+//// desk page: four steps (Provider → Location/Configuration → Pairing → POS Profile)
+//// that enrol a physical card reader and bind it to a POS Profile. It replaces the
+//// `wallee_terminal_wizard` of the retired `wallee_integration` app, folded into
+//// `payments` by 99e929c (ADR-005), and gives Stripe Terminal the same path; each
+//// provider's step renderers are kept apart so a new PSP means writing a renderer,
+//// not editing an existing one. Upstream has no terminal onboarding surface.
+//// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 // Copyright (c) 2026, Neoffice and contributors
 // License: MIT. See LICENSE
 //

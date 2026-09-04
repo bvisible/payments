@@ -1,3 +1,11 @@
+/* //// Neoffice — added file (no upstream equivalent). Styles for the
+   //// `payment-terminal-wizard` desk page: the four-step progress bar, the
+   //// provider / location / configuration picker cards with their kind and mode
+   //// badges, the two-column Wallee step 2, and the step 3-4 forms. Ported with the
+   //// wizard itself from the retired `wallee_integration` app (which shipped
+   //// `wallee_terminal_wizard`), folded into `payments` by 99e929c (ADR-005).
+   //// Upstream is a web-checkout hub and has no terminal onboarding page to style.
+   //// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005" */
 /* Copyright (c) 2026, Neoffice and contributors */
 /* License: MIT. See LICENSE */
 

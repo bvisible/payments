@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Pins the dedup guarantee of
+#//// `Webhook Event Log`: because `event_id` is the autoname, a replayed provider
+#//// event raises DuplicateEntryError at the database level instead of being
+#//// processed a second time. Upstream has no shared webhook log to dedup.
+#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Dedup guarantee tests for Webhook Event Log.

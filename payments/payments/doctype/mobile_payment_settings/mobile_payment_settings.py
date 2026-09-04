@@ -1,3 +1,13 @@
+#//// Neoffice — added file (no upstream equivalent). The Single the mobile app reads
+#//// to know whether an intervention can be paid for at the customer's door, and with
+#//// what: a card tapped on the phone (Stripe Tap to Pay) or a QR for the customer's
+#//// TWINT app. Saving keeps the matching `Provider Channel Settings` bindings in
+#//// step, so the driver registry resolves without anyone editing a binding by hand.
+#//// The `in_install` guard exists because `frappe.installer.init_singles` saves
+#//// every Single before after_install, when no Payment Channel exists yet (7a0f7ca).
+#//// Upstream is a web-checkout hub: no terminal, no tap-to-pay, no QR bridge.
+#//// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap to Pay et par QR TWINT, réglés en un seul endroit"
+#////          7a0f7ca 2026-09-03 "fix(install): provision the shipped Payment Channels on a fresh site"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Mobile Payment Settings — the one switch for collecting on site.
