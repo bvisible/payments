@@ -8,10 +8,9 @@ from frappe.utils import cint, fmt_money
 
 #//// Neoffice — this file diverges in `get_context` only (c187f68, 2026-08-24
 #//// "un montant sans devise, un titre en double, deux libellés anglais"), plus the
-#//// `neoffice_amount` helper it adds. Both are marked in place below.
-#//// TO REVIEW (RULE #00): those in-place markers, the helper's docstring and its
-#//// local names (`montant`, `symbole`, `a_droite`) are in French — a defect this
-#//// comment-only pass is not allowed to fix. Rename on the next edit of the file.
+#//// `neoffice_amount` helper it adds. Both are marked in place below. The helper's
+#//// French locals and comments were rewritten in English on 2026-09-04 (RULE #00);
+#//// no behaviour changed with them.
 from payments.payment_gateways.doctype.stripe_settings.stripe_settings import (
 	get_gateway_controller,
 )
@@ -45,18 +44,17 @@ def get_context(context):
 		context.publishable_key = get_api_key(context.reference_docname, gateway_controller)
 		context.image = get_header_image(context.reference_docname, gateway_controller)
 
-		#//// Neoffice — le montant porte sa DEVISE. `fmt_money` la retire dès que
-		#//// le défaut global `hide_currency_symbol` vaut « Yes » (le cas chez
-		#//// nous, et défendable au desk où chaque colonne annonce la sienne) :
-		#//// la page de paiement n'affichait plus que « 156.00 ». Sur l'écran où
-		#//// l'on sort sa carte, l'unité n'est pas un détail.
+		#//// Neoffice — the amount carries its CURRENCY. `fmt_money` drops the symbol
+		#//// as soon as the global default `hide_currency_symbol` is "Yes" — which it
+		#//// is here, and defensibly so on the desk where every column announces its
+		#//// own — so the payment page showed a bare "156.00". On the screen where
+		#//// someone takes out a card, the unit is not a detail.
 		context["amount"] = neoffice_amount(context["amount"], context["currency"])
 
-		#//// Neoffice — le paramètre `title` de l'URL porte le nom de la SOCIÉTÉ,
-		#//// et l'écrire dans `context.title` le faisait servir de titre de page :
-		#//// le thème le répétait en grand titre et dans le fil d'Ariane, au-dessus
-		#//// d'une carte qui le disait déjà. On le déplace, et la page reprend son
-		#//// vrai nom.
+		#//// Neoffice — the URL's `title` parameter holds the COMPANY name, and writing
+		#//// it to `context.title` made it the page title: the theme repeated it as a
+		#//// heading and in the breadcrumb, above a card that already said it. Moved to
+		#//// `payee`, and the page gets its own name back.
 		context["payee"] = context.get("title")
 		context["title"] = _("Payment")
 
@@ -81,19 +79,20 @@ def get_context(context):
 		raise frappe.Redirect
 
 
+#//// Neoffice — added helper (no upstream equivalent): an amount a customer can
+#//// read, currency included. `fmt_money` omits the symbol when the global default
+#//// `hide_currency_symbol` is "Yes", so the number is formatted on its own and the
+#//// symbol put back on the side the Currency record says it belongs.
 def neoffice_amount(amount, currency: str = None) -> str:
-	"""#//// Neoffice — un montant lisible par un client : avec sa devise.
-
-	`fmt_money` l'omet quand le défaut global `hide_currency_symbol` vaut
-	« Yes ». On formate donc le nombre seul, puis on remet la devise du côté
-	que sa fiche Currency indique.
-	"""
-	montant = fmt_money(amount=amount)
+	"""Format an amount for a payment screen, currency symbol included."""
+	formatted = fmt_money(amount=amount)
 	if not currency:
-		return montant
-	symbole = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
-	a_droite = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
-	return f"{montant} {_(symbole)}" if a_droite else f"{_(symbole)} {montant}"
+		return formatted
+	symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
+	symbol_on_right = frappe.db.get_value(
+		"Currency", currency, "symbol_on_right", cache=True
+	)
+	return f"{formatted} {_(symbol)}" if symbol_on_right else f"{_(symbol)} {formatted}"
 
 
 def get_api_key(doc, gateway_controller):

@@ -8,9 +8,8 @@
 #//// Every concrete driver under payments/drivers/<provider>/ implements these.
 #//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver
 #//// layer (Provider × Channel × Driver)"; a3a4a4a 2026-08-24 "docs(drivers): le
-#//// contrat oubliait une action que le code produit".
-#//// TO REVIEW (RULE #00): the marker a3a4a4a left in the `next_action_type`
-#//// docstring is in French, and sits INSIDE the docstring rather than beside it.
+#//// contrat oubliait une action que le code produit" (its marker was in French and
+#//// sat inside a docstring; rewritten in English beside the field, 2026-09-04).
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Abstract base classes for the Provider × Channel × Driver hierarchy.
@@ -81,16 +80,15 @@ class DriverResponse:
 	client_secret: str | None = None
 	"""Optional secret used by SDK-based confirmation (Stripe Web)."""
 
+	#//// Neoffice — `native_app_handoff` was missing from this list even though the
+	#//// Payrexx tap-to-pay driver has returned it since the day it was written. A
+	#//// consumer that trusts the docstring to enumerate the cases therefore misses
+	#//// one and treats it as silence — here that would have read as "nothing to
+	#//// collect" on a payment that was very real. Any action added to the code must
+	#//// be added to this sentence too: it is the contract the screens read.
 	next_action_type: str = "none"
 	"""One of: ``none``, ``display_card_present_modal``, ``display_qr_payload``,
 	``native_app_handoff``, ``redirect_to_url``, ``requires_confirmation``.
-
-	#//// Neoffice — `native_app_handoff` manquait à cette liste alors que le
-	#//// pilote Payrexx tap-to-pay le rend depuis sa création. Un consommateur
-	#//// qui se fie à la docstring pour énumérer les cas en oublie donc un, et
-	#//// le traite comme un silence — chez nous, cela aurait voulu dire « rien à
-	#//// encaisser » sur un paiement bien réel. Toute action ajoutée ici doit
-	#//// l'être aussi dans cette phrase : c'est le contrat que lisent les écrans.
 	"""
 
 	next_action_payload: dict[str, Any] = field(default_factory=dict)

@@ -1,19 +1,19 @@
 {% extends "templates/web.html" %}
 
-{#- //// Neoffice — page refaite. L'originale était du Bootstrap nu
-    (`col-sm-offset-2`, labels flottants, bouton perdu à droite) : le client
-    quittait un parcours de réservation soigné pour une page qui n'avait plus
-    rien à voir avec le site qu'il venait de lire. Reproche de Daniel Moret,
-    2026-08-21, capture à l'appui.
+{#- //// Neoffice — page rewritten. Upstream's was bare Bootstrap
+    (`col-sm-offset-2`, floating labels, a button lost on the right): a customer
+    left a carefully built booking flow for a page that no longer had anything to
+    do with the site they had just been reading. Reported by Daniel Moret,
+    2026-08-21, with a screenshot.
 
-    Le vocabulaire est celui du parcours (`nb-*`, servi par
-    `neoffice_theme/public/css/booking.css`) : même papier crème, mêmes bordures
-    sable, Forum pour le titre, bouton ink pleine largeur. Rien n'est importé en
-    plus — ces feuilles sont déjà sur toutes les pages du site.
+    The vocabulary is the booking flow's (`nb-*`, served by
+    `neoffice_theme/public/css/booking.css`): same cream paper, same sand borders,
+    Forum for the title, full-width ink button. Nothing extra is imported — those
+    sheets are already on every page of the site.
 
-    ⚠️ Les crochets du script Stripe sont INTOUCHABLES : `#card-element`,
+    ⚠️ The Stripe script's hooks are UNTOUCHABLE: `#card-element`,
     `#card-errors`, `#submit`, `input[name=cardholder-name]`,
-    `input[name=cardholder-email]`, `.error` et `.success`. -#}
+    `input[name=cardholder-email]`, `.error` and `.success`. -#}
 
 {% block title %}{{ _("Payment") }}{% endblock %}
 
@@ -70,9 +70,9 @@
 			    //// wrapper; that extra `.group` div is the one that vanishes from the diff here. -#}
 			<div class="npay-field">
 				<span class="npay-label">{{ _("Card Details") }}</span>
-				{#- //// Neoffice — Stripe monte SES champs ici : la boîte est à
-				    nous, le contenu est à lui, et aucun numéro de carte ne
-				    touche nos serveurs. -#}
+				{#- //// Neoffice — Stripe mounts ITS fields in here: the box is ours,
+				    the contents are theirs, and no card number ever touches our
+				    servers. -#}
 				<div id="card-element" name="card-element" class="nba-input npay-card-box"></div>
 				<div id="card-errors" class="npay-error" role="alert"></div>
 			</div>

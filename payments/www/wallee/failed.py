@@ -9,8 +9,8 @@
 # License: MIT. See LICENSE
 """``/wallee/failed`` — landing page when the Wallee redirect indicates failure.
 
-URL : ``/wallee/failed?payment_intent=PI-2026-XXXXX`` (preferred)
-   ou ``/wallee/failed?payment_request=ACC-PRQ-XXX`` (legacy compat).
+URL: ``/wallee/failed?payment_intent=PI-2026-XXXXX`` (preferred)
+   or ``/wallee/failed?payment_request=ACC-PRQ-XXX`` (legacy compat).
 """
 
 from __future__ import annotations

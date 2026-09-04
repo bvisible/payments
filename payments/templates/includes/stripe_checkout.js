@@ -7,10 +7,9 @@ var elements = stripe.elements();
 //// Neue", placeholder #aab7c4, invalid #fa755a. Retuned to the Neoffice tokens
 //// (ink #141414 / Karla / muted #8A8078 / danger #B3261E) so the card fields
 //// match the page around them. Nothing else in this file diverges.
-//// TO REVIEW (RULE #00): the three lines just below are in French.
-//// Neoffice — les champs de carte sont dessinés PAR Stripe dans son iframe :
-//// notre feuille de style ne peut pas les atteindre, seul cet objet le peut.
-//// Sans lui, trois lignes en Helvetica bleu au milieu d'une page en Karla ink.
+//// The card fields are drawn BY Stripe inside its own iframe: our stylesheet
+//// cannot reach them, only this object can. Without it, three lines of blue
+//// Helvetica in the middle of a page set in Karla ink.
 var style = {
 	base: {
 		color: '#141414',

@@ -12,11 +12,11 @@
 # License: MIT. See LICENSE
 """``/wallee/success`` — landing page after a Wallee web checkout.
 
-URL : ``/wallee/success?payment_intent=PI-2026-XXXXX`` (preferred)
-   ou ``/wallee/success?payment_request=ACC-PRQ-XXX`` (legacy compat — looks up
+URL: ``/wallee/success?payment_intent=PI-2026-XXXXX`` (preferred)
+   or ``/wallee/success?payment_request=ACC-PRQ-XXX`` (legacy compat — looks up
       the Payment Intent by ``reference_name``).
 
-Flow :
+Flow:
 1. Lookup the Payment Intent.
 2. Refresh its status from Wallee via the driver (handles the race where Wallee
    may take a few seconds to confirm after the redirect).
