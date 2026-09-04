@@ -5,8 +5,11 @@ name: Tests
 # Nightly + PR + on demand — not on push: the upstream CI and the build bot
 # already run there, a second run per bot commit would only add noise.
 on:
-  # nightly paused on 2026-09-03 until #192 is treated (known red: every night mailed a failure);
-  # run on demand or on a PR meanwhile, and put the cron back when the issue closes.
+  # Nightly back on 2026-09-04: #192 closed on a green run (the card receipt's EMV
+  # fields had no owner, no app created them on a fresh site). It was paused on
+  # 2026-09-03 only because a known red mailed a failure every night.
+  schedule:
+    - cron: "3 4 * * *"
   pull_request:
   workflow_dispatch:
     inputs:
