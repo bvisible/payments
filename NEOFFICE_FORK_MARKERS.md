@@ -36,6 +36,22 @@ nothing to reconcile field by field: take upstream's wholesale.
 > is for. `CHANGES_NEOSERVICE.md` is stale in several other places too; this file and the
 > `////` markers are the current map.
 
+### The one add/add collision
+
+Of the ~190 files this fork adds, exactly **one** now also exists upstream:
+**`payments/tests/__init__.py`**, created upstream by `6b288b9` (2026-03-25, *"resolve
+merge conflicts between version-15 and develop"*) as an **empty** file. Git will raise an
+add/add conflict there and nowhere else — take ours, upstream contributes nothing.
+Checked by intersecting our added paths with `upstream/version-15`.
+
+Where the conflicts will really be is in the files we **edit**: `razorpay_settings.py`
+(51 upstream commits since the base), `paypal_settings.py` (17),
+`templates/pages/stripe_checkout.py` (13), `stripe_settings.py` (10),
+`braintree_settings.py` (9), `paytm_settings.py` (8), `pyproject.toml` (6),
+`mpesa_settings.py` (5), then `stripe_checkout.html` (2) and one each for
+`stripe_checkout.css`, `hooks.py`, `.gitignore`. Upstream has not touched
+`payments/patches.txt` or `templates/includes/stripe_checkout.js`.
+
 ### New DocTypes — the Provider × Channel × Driver ontology (ADR-001, ADR-004)
 
 Upstream fuses PSP credentials, channel configuration and business logic into one
@@ -91,6 +107,23 @@ and `payments/patches/v15_04/merge_twint_integration.py`.
 
 Deliberately left without a `////` header: they are copied verbatim to seed a new
 driver, and the header would be copied with them.
+
+### Empty `__init__.py` — deliberately unmarked
+
+**26** of the added files are empty `__init__.py` package markers (0 bytes), required by
+Python and by Frappe's module loader and carrying no content of their own:
+
+`payments/setup/`, `payments/integrations/` (+ `payrexx/`, `twint/`),
+`payments/patches/` (+ `v15_03` … `v15_08`),
+`payments/payments/doctype/` × 12 (customer_payment_link, mobile_payment_settings,
+payment_channel, payment_device, payment_event, payment_intent, payment_provider,
+provider_channel_settings, wallee_location, wallee_settings,
+wallee_terminal_configuration, webhook_event_log),
+`payments/payments/page/` × 2, `payments/payment_gateways/doctype/twint_bridge_settings/`.
+
+They carry no `////` header on purpose: there is nothing to explain, and a header would
+be the only content in the file. The package they mark is itself marked. Listed here so
+their absence from a `grep -rn "////"` is a recorded decision, not an oversight.
 
 ### Images — the TWINT overlay
 

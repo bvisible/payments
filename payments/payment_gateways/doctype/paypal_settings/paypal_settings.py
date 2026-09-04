@@ -508,7 +508,7 @@ def ipn_handler():
 		#//// one line: `title=e` hands an Exception object where a string title is
 		#//// expected, and `frappe.log()` only appends to `debug_log` (it never writes an
 		#//// Error Log) so it merely stringified the doc that log_error had just written.
-		#//// TO REVIEW: `e` is now unbound-but-unused in this except clause.
+		#//// TO REVIEW: `e` is now bound but unused in this except clause.
 		frappe.log_error("Error in PayPal webhook handling", frappe.get_traceback())
 
 
