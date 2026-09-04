@@ -1,6 +1,24 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+#//// ═══════════════════════════════════════════════════════════════════════════
+#//// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
+#//// 2025-02-28 "update error log and stripe version"). Nothing else in the file
+#//// diverges from upstream.
+#////
+#//// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
+#//// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
+#//// body goes to `error` (Code, unbounded). Upstream calls it here with the
+#//// traceback as the ONLY argument: the traceback lands in the title and is
+#//// truncated, and the swap hack in `frappe/utils/error.py` cannot rescue it
+#//// because that only fires when a message is passed too. A constant title also
+#//// groups the entries, instead of one Error Log group per distinct message.
+#////
+#//// This file got the roughest pass of the six: four sites lost the Razorpay API
+#//// response body that upstream logged, and one lost a `frappe.throw`. They are
+#//// marked TO REVIEW below — read them before merging, they are not just log
+#//// lines. Each other site carries the upstream form it replaces.
+#//// ═══════════════════════════════════════════════════════════════════════════
 """
 # Integrating RazorPay
 
@@ -271,8 +289,17 @@ class RazorpaySettings(Document):
 					headers={"content-type": "application/json"},
 				)
 				if not resp.get("id"):
+					#//// Neoffice — TO REVIEW. Upstream: `frappe.log_error(message=str(resp),
+					#//// title="Razorpay Failed while creating subscription")` — already the right
+					#//// pair, and it carried the Razorpay response body. Ours replaces that body with
+					#//// `frappe.get_traceback()`, but no exception is in flight on this branch (we are
+					#//// in an `if`/`else`, not an `except`), so the traceback is the caller's own frame
+					#//// and the only thing that said WHY Razorpay refused is gone.
 					frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 		except Exception:
+			#//// Neoffice — upstream: bare `frappe.log_error()`. That works (the title falls
+			#//// back to "Error" and the traceback is derived) but every failure in the file
+			#//// landed in one nameless group. Named so the groups mean something.
 			frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 			# failed
 			pass
@@ -310,9 +337,18 @@ class RazorpaySettings(Document):
 				frappe.flags.status = "created"
 				return kwargs
 			else:
+				#//// Neoffice — TO REVIEW. Upstream: `frappe.log_error(message=str(resp),
+				#//// title="Razorpay Failed while creating subscription")` — already the right
+				#//// pair, and it carried the Razorpay response body. Ours replaces that body with
+				#//// `frappe.get_traceback()`, but no exception is in flight on this branch (we are
+				#//// in an `if`/`else`, not an `except`), so the traceback is the caller's own frame
+				#//// and the only thing that said WHY Razorpay refused is gone.
 				frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 
 		except Exception:
+			#//// Neoffice — upstream: bare `frappe.log_error()`. That works (the title falls
+			#//// back to "Error" and the traceback is derived) but every failure in the file
+			#//// landed in one nameless group. Named so the groups mean something.
 			frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 
 	def prepare_subscription_details(self, settings, **kwargs):
@@ -357,6 +393,13 @@ class RazorpaySettings(Document):
 				order["integration_request"] = integration_request.name
 				return order  # Order returned to be consumed by razorpay.js
 			except Exception:
+				#//// Neoffice — TO REVIEW, this one changes behaviour. Upstream ran TWO lines
+				#//// here: `frappe.log(frappe.get_traceback())` then
+				#//// `frappe.throw(_("Could not create razorpay order"))`. The throw was dropped
+				#//// and not replaced, so `get_razorpay_order()` now falls off the end and returns
+				#//// None where it used to raise — razorpay.js receives a null order instead of an
+				#//// error. (The `frappe.log` it replaced was itself wrong: that only appends to
+				#//// `debug_log`, it never writes an Error Log.)
 				frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 
 	def create_request(self, data):
@@ -368,6 +411,8 @@ class RazorpaySettings(Document):
 			return self.authorize_payment()
 
 		except Exception:
+			#//// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
+			#//// title, truncated at 140). See the file header.
 			frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 			return {
 				"redirect_to": frappe.redirect_to_message(
@@ -412,9 +457,17 @@ class RazorpaySettings(Document):
 					self.flags.status_changed_to = "Verified"
 
 			else:
+				#//// Neoffice — TO REVIEW. Upstream: `frappe.log_error(message=str(resp),
+				#//// title="Razorpay Payment not authorized")`. Same loss as the subscription
+				#//// sites above — the response body is replaced by a traceback taken outside any
+				#//// `except` — and the title no longer says the payment was *not authorized*,
+				#//// which is what made this entry findable.
 				frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 
 		except Exception:
+			#//// Neoffice — upstream: bare `frappe.log_error()`. That works (the title falls
+			#//// back to "Error" and the traceback is derived) but every failure in the file
+			#//// landed in one nameless group. Named so the groups mean something.
 			frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 
 		status = frappe.flags.integration_request.status_code
@@ -431,6 +484,8 @@ class RazorpaySettings(Document):
 					).run_method("on_payment_authorized", self.flags.status_changed_to)
 
 				except Exception:
+					#//// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
+					#//// title, truncated at 140). See the file header.
 					frappe.log_error("Error in Razorpay success page redirect", frappe.get_traceback())
 
 				if custom_redirect_to:
@@ -476,6 +531,8 @@ class RazorpaySettings(Document):
 				auth=(settings.api_key, settings.api_secret),
 			)
 		except Exception:
+			#//// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
+			#//// title, truncated at 140). See the file header.
 			frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
 
 	def verify_signature(self, body, signature, key):
@@ -560,6 +617,10 @@ def get_order(doctype, docname):
 		# Do not use run_method here as it fails silently
 		return doc.get_razorpay_order()
 	except AttributeError:
+		#//// Neoffice — cosmetic only. Upstream passed `(frappe.get_traceback(),
+		#//// _("Controller method get_razorpay_order missing"))`, which the swap hack in
+		#//// `frappe/utils/error.py` already fixed at runtime (the title held newlines and
+		#//// a message was present, so the two were exchanged). Same result, written out.
 		frappe.log_error(_("Controller method get_razorpay_order missing"), frappe.get_traceback())
 		frappe.throw(_("Could not create Razorpay order. Please contact Administrator"))
 
@@ -600,6 +661,10 @@ def order_payment_failure(integration_request, params):
 	        integration_request (TYPE): Description
 	        params (TYPE): error data to be updated
 	"""
+	#//// Neoffice — upstream: `frappe.log_error(params, "Razorpay Payment Failure")`.
+	#//// `params` is the error payload and became the TITLE — truncated at 140, and a
+	#//// new Error Log group per payload. TO REVIEW: our constant title is the generic
+	#//// one, so the "Payment Failure" distinction upstream carried is lost.
 	frappe.log_error("Error in Razorpay payment processing", params)
 	params = json.loads(params)
 	integration = frappe.get_doc("Integration Request", integration_request)
@@ -644,6 +709,11 @@ def razorpay_subscription_callback():
 	except frappe.InvalidStatusError:
 		pass
 	except Exception as e:
+		#//// Neoffice — upstream: `frappe.log(frappe.log_error(title=e))`. Two faults in
+		#//// one line: `title=e` hands an Exception object where a string title is
+		#//// expected, and `frappe.log()` only appends to `debug_log` (it never writes an
+		#//// Error Log) so it merely stringified the doc that log_error had just written.
+		#//// TO REVIEW: `e` is now bound but unused in this except clause.
 		frappe.log_error("Error in Razorpay webhook handling", frappe.get_traceback())
 
 

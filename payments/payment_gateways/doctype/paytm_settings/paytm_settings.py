@@ -1,6 +1,22 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+#//// ═══════════════════════════════════════════════════════════════════════════
+#//// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
+#//// 2025-02-28 "update error log and stripe version"). Nothing else in the file
+#//// diverges from upstream.
+#////
+#//// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
+#//// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
+#//// body goes to `error` (Code, unbounded). Upstream calls it here with the
+#//// traceback as the ONLY argument: the traceback lands in the title and is
+#//// truncated, and the swap hack in `frappe/utils/error.py` cannot rescue it
+#//// because that only fires when a message is passed too. A constant title also
+#//// groups the entries, instead of one Error Log group per distinct message.
+#////
+#//// Each call site below carries the upstream form it replaces. Sites marked
+#//// TO REVIEW change behaviour, not just the log line — read them before merging.
+#//// ═══════════════════════════════════════════════════════════════════════════
 import json
 from urllib.parse import urlencode
 
@@ -162,6 +178,8 @@ def finalize_request(order_id, transaction_response):
 				request.db_set("status", "Completed")
 			except Exception:
 				request.db_set("status", "Failed")
+				#//// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
+				#//// title, truncated at 140). See the file header.
 				frappe.log_error("Error in Paytm success page redirect", frappe.get_traceback())
 
 			if custom_redirect_to:
