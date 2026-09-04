@@ -2,6 +2,12 @@ var stripe = Stripe("{{ publishable_key }}");
 
 var elements = stripe.elements();
 
+//// Neoffice — the `style` object below is ours (b654630, 2026-08-24). Upstream
+//// ships Stripe's sample palette: color #32325d, lineHeight 18px, "Helvetica
+//// Neue", placeholder #aab7c4, invalid #fa755a. Retuned to the Neoffice tokens
+//// (ink #141414 / Karla / muted #8A8078 / danger #B3261E) so the card fields
+//// match the page around them. Nothing else in this file diverges.
+//// TO REVIEW (RULE #00): the three lines just below are in French.
 //// Neoffice — les champs de carte sont dessinés PAR Stripe dans son iframe :
 //// notre feuille de style ne peut pas les atteindre, seul cet objet le peut.
 //// Sans lui, trois lignes en Helvetica bleu au milieu d'une page en Karla ink.
@@ -12,10 +18,12 @@ var style = {
 		fontFamily: 'Karla, system-ui, -apple-system, "Segoe UI", sans-serif',
 		fontSmoothing: 'antialiased',
 		fontSize: '16px',
+		//// Neoffice — placeholder #8A8078 (upstream #aab7c4, a cold blue-grey).
 		'::placeholder': {
 			color: '#8A8078'
 		}
 	},
+	//// Neoffice — danger #B3261E for both (upstream #fa755a, Stripe's sample red).
 	invalid: {
 		color: '#B3261E',
 		iconColor: '#B3261E'

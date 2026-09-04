@@ -26,12 +26,28 @@
 {% endblock %}
 
 {%- block page_content -%}
+{#- //// ▼▼▼ Neoffice — the whole of page_content is ours (b654630, 2026-08-24;
+    //// c187f68 the same day for the amount and the doubled title). Upstream renders
+    //// `<div class=stripe id=payment-section>` around a `col-sm-10 col-sm-offset-2`
+    //// Bootstrap column, an optional header `<img>`, an `<h2>` description and three
+    //// `.group` / `label` / `span` field rows.
+    //// 
+    //// The Stripe script's hooks are carried over unchanged and MUST stay: #submit,
+    //// #card-element, #card-errors, input[name=cardholder-name],
+    //// input[name=cardholder-email], .error, .success, #payment-form.
+    //// 
+    //// One upstream feature was dropped and not replaced: the `if image` header
+    //// image (`context.image`, still computed by stripe_checkout.py through
+    //// get_header_image). TO REVIEW at the merge — a deliberate design choice, but
+    //// the context variable it consumed is still being set. -#}
 <div class="nb npay">
 	<div class="nb-card npay-card">
 		<span class="nb-eyebrow nb-eyebrow--muted">{{ _("Secure payment") }}</span>
 		{% if payee %}<h1 class="nb-title npay-house">{{ payee }}</h1>{% endif %}
 		{% if description %}<p class="nb-muted npay-what">{{ description }}</p>{% endif %}
 
+		{#- //// Neoffice — added block: the amount, shown before the form. Upstream only
+		    //// ever showed it inside the submit button's label. -#}
 		<div class="npay-amount">
 			<span class="nb-eyebrow nb-eyebrow--muted">{{ _("Amount to pay") }}</span>
 			<span class="nb-amount">{{ amount }}</span>
@@ -50,6 +66,8 @@
 					type="email" autocomplete="email" value="{{ payer_email or '' }}">
 			</label>
 
+			{#- //// Neoffice — replaces upstream's `div.group.col-12 > label > span Card Details`
+			    //// wrapper; that extra `.group` div is the one that vanishes from the diff here. -#}
 			<div class="npay-field">
 				<span class="npay-label">{{ _("Card Details") }}</span>
 				{#- //// Neoffice — Stripe monte SES champs ici : la boîte est à
@@ -59,6 +77,9 @@
 				<div id="card-errors" class="npay-error" role="alert"></div>
 			</div>
 
+			{#- //// Neoffice — upstream: `button.submit.mb-4#submit`, floated right at 40% width.
+			    //// Full-width ink button now (Neoffice design system: a primary action is ink,
+			    //// never clay). The reassurance note under it is new. -#}
 			<button type="submit" class="nb-btn nb-btn--ink npay-submit" id="submit">
 				{{ _("Pay") }} {{ amount }}
 			</button>
@@ -72,4 +93,5 @@
 		</form>
 	</div>
 </div>
+{#- //// ▲▲▲ Neoffice — end of the rewritten page_content. -#}
 {% endblock %}

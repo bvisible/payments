@@ -6,6 +6,18 @@
    The `--nb-*` variables come from that sheet; the fallback values cover the
    case of an instance serving this page without the theme. */
 
+/* //// ▼▼▼ Neoffice — EVERYTHING from here to the end of the file is ours.
+   //// Upstream v15 styles seven selector families and none of them survive:
+   //// `.StripeElement` (+ `--focus`, `--invalid`, `--webkit-autofill`), `.stripe
+   //// #payment-form`, `.stripe button`, `.stripe .group`, `.stripe label` (+ the
+   //// `>span` and `:not(:last-child)` variants), `.current-card`, `.field` (+ its
+   //// three placeholder prefixes) and `#payment-section`. Ours are the `.npay-*`
+   //// classes below, built on the `--nb-*` tokens of neoffice_theme's booking.css.
+   //// Commits: b654630 (rewrite), d969e24 (top padding), dd102fc (comments to
+   //// English, RULE #00). At the merge: take ours wholesale, there is nothing to
+   //// reconcile rule by rule.
+   //// For whoever merges: upstream's `@media` block closes with a stray `},` and
+   //// its file ends without a newline — both gone here. */
 .npay {
 	display: flex;
 	justify-content: center;
@@ -14,6 +26,7 @@
 	padding: 1rem 1rem 4rem;
 }
 
+/* //// Neoffice — the card itself. Upstream had no card: `.stripe .group` was a white strip. */
 .npay-card {
 	width: 100%;
 	max-width: 30rem;
@@ -23,6 +36,7 @@
 	gap: 0.75rem;
 }
 
+/* //// Neoffice — the payee name, in Forum. Upstream printed the description in `<h2 class=text-center>`. */
 .npay-house {
 	margin: 0.25rem 0 0;
 	font-family: var(--nb-font-title, "Forum", Georgia, serif);
@@ -31,11 +45,13 @@
 	color: var(--nb-ink, #141414);
 }
 
+/* //// Neoffice — the description, demoted under the payee name (c187f68 — it was shown twice). */
 .npay-what {
 	margin: 0;
 	font-size: 0.95rem;
 }
 
+/* //// Neoffice — the amount box. Upstream never showed the amount outside the button label. */
 /* The amount first: it is the one thing the shopper came to check. */
 .npay-amount {
 	display: flex;
@@ -48,6 +64,7 @@
 	border-radius: var(--nb-radius-md, 14px);
 }
 
+/* //// Neoffice — the amount figure itself, Forum 1.9rem. No upstream equivalent. */
 .npay-amount .nb-amount {
 	font-family: var(--nb-font-title, "Forum", Georgia, serif);
 	font-size: 1.9rem;
@@ -55,6 +72,7 @@
 	color: var(--nb-ink, #141414);
 }
 
+/* //// Neoffice — the form as a flex column. Upstream: `.stripe #payment-form { margin-top: 2rem }`. */
 .npay-form {
 	display: flex;
 	flex-direction: column;
@@ -62,12 +80,14 @@
 	margin-top: 0.5rem;
 }
 
+/* //// Neoffice — one field = label above input. Upstream floated `label>span` 20% left, `.field` 70% right. */
 .npay-field {
 	display: flex;
 	flex-direction: column;
 	gap: 0.35rem;
 }
 
+/* //// Neoffice — Karla uppercase eyebrow. Upstream: `.stripe label`, grey, 40px tall, floating. */
 .npay-label {
 	font-family: var(--nb-font-ui, "Karla", system-ui, sans-serif);
 	font-size: 0.8rem;
@@ -77,6 +97,7 @@
 	color: var(--nb-muted, #6B6257);
 }
 
+/* //// Neoffice — the box Stripe mounts its iframe into. Upstream: `.StripeElement`, 40px, blue-grey shadow. */
 /* Stripe injects an iframe of free height: we give it the same box as our own
    fields so the three lines line up. */
 .npay-card-box {
@@ -84,18 +105,21 @@
 	min-height: 3rem;
 }
 
+/* //// Neoffice — the `#card-errors` line. Upstream showed that state on `.StripeElement--invalid`. */
 .npay-error {
 	min-height: 1.1rem;
 	font-size: 0.85rem;
 	color: var(--nb-danger, #B3261E);
 }
 
+/* //// Neoffice — full-width ink button. Upstream: `.stripe button`, floated right, max-width 40%. */
 .npay-submit {
 	width: 100%;
 	justify-content: center;
 	margin-top: 0.25rem;
 }
 
+/* //// Neoffice — the "Stripe handles it, no card touches our servers" line. No upstream equivalent. */
 .npay-note {
 	margin: 0;
 	font-family: var(--nb-font-ui, "Karla", system-ui, sans-serif);
@@ -105,6 +129,7 @@
 	text-align: center;
 }
 
+/* //// Neoffice — the outcome banner shell. Upstream left `.outcome` unstyled (`text-center` only). */
 .npay-outcome {
 	margin-top: 0.75rem;
 	padding: 0.75rem 1rem;
@@ -113,17 +138,23 @@
 	text-align: center;
 }
 
+/* //// Neoffice — failure banner. Upstream had no styling for `.error`. */
 .npay-outcome--bad {
 	background: var(--nb-danger-bg, #FDECEA);
 	color: var(--nb-danger, #B3261E);
 }
 
+/* //// Neoffice — success banner. Upstream had no styling for `.success`. */
 .npay-outcome--good {
 	background: var(--nb-success-bg, #E9F5EE);
 	color: var(--nb-success, #1B7A47);
 }
 
+/* //// Neoffice — mobile. Upstream broke at 48rem and set `#payment-section { padding: 0 }`. */
 @media (max-width: 480px) {
 	.npay { padding: 1.5rem 0.75rem 3rem; }
 	.npay-card { padding: 1.25rem; }
 }
+
+/* //// ▲▲▲ Neoffice — end of the rewritten checkout sheet; nothing of
+   //// upstream's remains above. */

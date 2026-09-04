@@ -6,6 +6,12 @@ import frappe
 from frappe import _
 from frappe.utils import cint, fmt_money
 
+#//// Neoffice — this file diverges in `get_context` only (c187f68, 2026-08-24
+#//// "un montant sans devise, un titre en double, deux libellés anglais"), plus the
+#//// `neoffice_amount` helper it adds. Both are marked in place below.
+#//// TO REVIEW (RULE #00): those in-place markers, the helper's docstring and its
+#//// local names (`montant`, `symbole`, `a_droite`) are in French — a defect this
+#//// comment-only pass is not allowed to fix. Rename on the next edit of the file.
 from payments.payment_gateways.doctype.stripe_settings.stripe_settings import (
 	get_gateway_controller,
 )
