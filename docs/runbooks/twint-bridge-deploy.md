@@ -1,3 +1,7 @@
+<!-- //// Neoffice — added file (no upstream equivalent). Deploying and updating the TWINT PHP bridge
+     //// on neoservice — the external service ADR-002 chose, which upstream has no notion
+     //// of. Mirrors the EBICS deployment pattern already used in neoffice_devops.
+     //// Commits: 7cfe7fa 2026-05-13 "Phase 7 runbooks". -->
 # Runbook — Deploy / Update the TWINT PHP Bridge on neoservice
 
 Mirrors the EBICS deployment workflow (`scripts/update-neoservice.sh` already runs `composer install` for `ebics-client-php`; the TWINT bridge follows the same pattern via `scripts/install_twint.sh`).

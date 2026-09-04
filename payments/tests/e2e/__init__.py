@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). Bench-side helpers for the webshop
+#//// checkout runbook, called through `bench execute` (fixtures, assertions,
+#//// simulators). Distinct from the Playwright suite next door, which drives Chrome.
+#//// Commits: f29b04b 2026-05-20 "test(e2e): webshop E2E framework".
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """End-to-end test helpers for the webshop checkout flow.

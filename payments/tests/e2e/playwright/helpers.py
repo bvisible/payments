@@ -1,3 +1,10 @@
+#//// Neoffice — added file (no upstream equivalent). The shared checkout steps every scenario
+#//// reuses. Carries the hard-won knowledge of the osiris theme: the 4-step checkout
+#//// is one page whose `.step-section` divs toggle a class, the `.next-step` handler
+#//// is bound by jQuery delegation and is flaky right after a re-render.
+#//// Commits: 187b5c8 2026-05-20; ff99e4b + c2b14af 2026-06-02 (scoped item selector,
+#//// fixed assertions); b2c5c3d 2026-06-02 (idempotent terms acceptance, TWINT
+#//// flakiness); 5babaea 2026-08-30 "stop the checkout helpers testing the wrong things".
 """Shared step helpers for the webshop checkout flow.
 
 Each function is a building block reused by multiple tests. They take a

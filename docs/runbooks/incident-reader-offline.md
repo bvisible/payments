@@ -1,3 +1,8 @@
+<!-- //// Neoffice — added file (no upstream equivalent). What to do when a card reader stops
+     //// answering: triage, what `Payment Device.status` means, and how to tell a reader
+     //// fault from a Stripe outage. Exists because this fork owns hardware; upstream
+     //// has no Payment Device and no incident to run.
+     //// Commits: 7cfe7fa 2026-05-13 "Phase 7 runbooks". -->
 # Runbook — Stripe Reader offline incident
 
 ## Trigger

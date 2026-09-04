@@ -1,3 +1,11 @@
+#//// Neoffice — added file (no upstream equivalent). Acceptance run for a REAL Payrexx ECR
+#//// terminal (NexGo N5/N6/N86). Written to be run by one person standing at the
+#//// till, one command per step, because each step needs a card tapped or a button
+#//// pressed on the device in between. Ten commits of it are the terminal telling us
+#//// what it actually does (statuses, receipts, voids, pairing states).
+#//// Commits: c393ba9 2026-08-11 "acceptance run for the real ECR terminal";
+#//// 22720fc (make the poll converge and stop over-claiming); 395da0f / 8c5f384
+#//// (an unpaired terminal is not paired; AUTHORIZED counts as paired).
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Acceptance run for a real Payrexx ECR terminal (NexGo N5/N6/N86).

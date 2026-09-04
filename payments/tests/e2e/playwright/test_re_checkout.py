@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Go back mid-checkout, re-engage, and check
+#//// the idempotency token — a second intent must not be minted for the same cart.
+#//// Commits: 187b5c8 2026-05-20.
 """Back-mid-checkout → re-engage → idempotency token check."""
 
 from __future__ import annotations

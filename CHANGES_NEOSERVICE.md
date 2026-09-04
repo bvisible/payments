@@ -1,3 +1,13 @@
+<!-- //// Neoffice — added file (no upstream equivalent). The fork's own divergence log, written
+     //// at the start of the work (e32ecf5, 2026-05-13).
+     //// 
+     //// STALE — it says "Last update : 2026-05-13" and it means it. It predates the
+     //// Wallee fold-in, the TWINT fold-in, Payrexx, Tap to Pay and the mobile surface,
+     //// and at least one of its claims never happened (it announces two new fields on
+     //// `stripe_settings.json`; that file was never touched — those settings live in
+     //// `Provider Channel Settings.config_json`).
+     //// The current map of the divergence is the `//// Neoffice` markers in the source
+     //// plus `NEOFFICE_FORK_MARKERS.md` at the root. Read those, not this. -->
 # Divergences vs upstream `frappe/payments`
 
 > Ce fichier liste toutes les modifications de notre fork `payments/` par rapport à `frappe/payments` upstream (branche `version-15`). Objectif : garder le rebase upstream possible et documenter le pourquoi de chaque divergence.

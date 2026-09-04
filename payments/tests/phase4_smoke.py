@@ -1,3 +1,10 @@
+#//// Neoffice — added file (no upstream equivalent). Phase 4 smoke for the TWINT PHP bridge
+#//// wiring — runs with NO P12 certificate: the HTTP layer is mocked, so it only
+#//// proves the driver loads, the registry resolves it, the payload is right and the
+#//// scheduler entry does not explode.
+#//// Commits: 258f8cf 2026-05-13 "Phase 4 — TWINT PHP bridge driver + scheduler poll".
+#//// TO REVIEW: the docstring still says `Twint Settings`; cc503b1 renamed that
+#//// DocType to `Twint Bridge Settings` the same day.
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Phase 4 smoke test for TWINT PHP Bridge wiring.

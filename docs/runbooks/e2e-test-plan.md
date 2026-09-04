@@ -1,3 +1,7 @@
+<!-- //// Neoffice — added file (no upstream equivalent). The acceptance checklist for go-live with
+     //// real hardware and sandbox credentials (WisePOS E / S700 / S710, TWINT sandbox
+     //// P12). Upstream ships nothing of the kind because it has no hardware to accept.
+     //// Commits: 7cfe7fa 2026-05-13 "Phase 7 runbooks + Phase 8 PSP template". -->
 # Test plan — End-to-end with real hardware + sandbox credentials
 
 Use this as the acceptance checklist when the Stripe Terminal hardware arrives

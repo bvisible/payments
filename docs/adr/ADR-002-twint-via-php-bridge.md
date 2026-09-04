@@ -1,3 +1,8 @@
+<!-- //// Neoffice — added file (no upstream equivalent). Why TWINT in-store goes through a central
+     //// PHP bridge on neoservice (`twint-ag/sdk`) instead of Stripe's TWINT QR: 1.3%
+     //// direct against 1.9% + CHF 0.30, no CHF 5 000 cap, and TWINT is not available on
+     //// Stripe's physical readers at all. Explains `payments/drivers/twint/`.
+     //// Commits: e32ecf5 2026-05-13 "Phase 1". French. -->
 # ADR-002 — TWINT in-store via PHP Bridge centralisé sur neoservice (pas Stripe TWINT QR)
 
 - **Status** : Accepted

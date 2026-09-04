@@ -1,3 +1,10 @@
+<!-- //// Neoffice — added file (no upstream equivalent). The contract a new PSP has to satisfy:
+     //// one `PaymentProviderBase` subclass, one `PaymentDriverBase` per (provider,
+     //// channel) couple, the records to provision, the tests to write. It is the
+     //// companion of `payments/drivers/template/*.template`, and the reason the driver
+     //// layer exists at all — upstream would need a whole new `<psp>_settings` DocType.
+     //// Commits: 7cfe7fa 2026-05-13 "docs(payments): Phase 7 runbooks + Phase 8 PSP
+     //// template". -->
 # Adding a new Payment Service Provider (template)
 
 This guide walks through adding a new PSP (e.g. Worldline, Saferpay, Adyen,

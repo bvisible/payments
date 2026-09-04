@@ -1,3 +1,9 @@
+<!-- //// Neoffice — added file (no upstream equivalent). The decision this whole fork rests on:
+     //// extend `frappe/payments` rather than start a third app, and put the
+     //// Provider × Channel × Driver ontology in it. Names the four apps the payment
+     //// code was scattered across (payments, twint_integration, neopay_integration,
+     //// POSNext's hard-coded Wallee import) and why each alternative was rejected.
+     //// Commits: e32ecf5 2026-05-13 "Phase 1". French. -->
 # ADR-001 — Unification des intégrations de paiement Neoffice
 
 - **Status** : Accepted

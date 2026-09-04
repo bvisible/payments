@@ -1,3 +1,7 @@
+<!-- //// Neoffice — added file (no upstream equivalent). Records which notes of this `docs/` tree were
+     //// promoted into the Obsidian vault on 2026-05-13 and how the two halves reference
+     //// each other. No upstream equivalent (no docs/ upstream).
+     //// Commits: e32ecf5 2026-05-13 "Phase 1". French. -->
 # Promotion vers Obsidian — FAITE le 2026-05-13
 
 > ✅ **Statut** : promotion exécutée le 2026-05-13 après accord Full Disk Access.

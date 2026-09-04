@@ -1,3 +1,10 @@
+<!-- //// Neoffice — added file (no upstream equivalent). The ontology, field by field. This is the
+     //// reference for every DocType JSON listed in `NEOFFICE_FORK_MARKERS.md`, and it
+     //// states the problem with upstream's pattern in one line: a single `*_settings`
+     //// DocType per PSP fuses credentials, channel config and business logic, so a
+     //// second channel means copying the credentials (Stripe web + terminal + billing
+     //// = three doctypes, same API keys three times).
+     //// Commits: e32ecf5 2026-05-13 "Phase 1". French. -->
 # ADR-004 — Ontologie Provider × Channel × Driver (séparation propre)
 
 - **Status** : Accepted

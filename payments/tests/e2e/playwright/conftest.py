@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Pytest fixtures for the suite. Every
+#//// backend call goes over HTTPS with an Administrator API key rather than SSH, so
+#//// the suite runs from any laptop or from CI. Needs `E2E_API_KEY` / `E2E_API_SECRET`
+#//// and targets `--base-url` (osiris by default).
+#//// Commits: 187b5c8 2026-05-20 "add Playwright Python suite with 9 webshop scenarios".
 """Pytest fixtures for the webshop E2E suite.
 
 The tests target the live Frappe site at ``--base-url`` (default

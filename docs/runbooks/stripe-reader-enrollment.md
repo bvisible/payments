@@ -1,3 +1,8 @@
+<!-- //// Neoffice — added file (no upstream equivalent). How to enrol a reader in server-driven
+     //// mode: the Terminal Location, the registration code, the `Payment Provider` and
+     //// `Provider Channel Settings` records it needs. The procedure behind
+     //// `payments/api/terminal.py`.
+     //// Commits: 7cfe7fa 2026-05-13 "Phase 7 runbooks". -->
 # Runbook — Enroll a Stripe Terminal Reader
 
 Applies to: BBPOS WisePOS E, Stripe Reader S700, Stripe Reader S710 (server-driven mode).

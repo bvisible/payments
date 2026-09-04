@@ -1,3 +1,8 @@
+<!-- //// Neoffice — added file (no upstream equivalent). How to run the Playwright suite: the
+     //// `.venv-e2e` virtualenv, the pytest markers (smoke / checkout / psp_*), the
+     //// API-key env vars, and the site it targets. Upstream has no browser test at all.
+     //// Commits: 187b5c8 2026-05-20 "test(e2e): add Playwright Python suite with 9
+     //// webshop scenarios". -->
 # Webshop E2E — Playwright Python
 
 ## Quick start

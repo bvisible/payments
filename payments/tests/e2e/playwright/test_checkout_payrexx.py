@@ -1,3 +1,13 @@
+#//// Neoffice — added file (no upstream equivalent). Checkout on Payrexx up to the hosted page.
+#//// Payrexx was the only gateway on the shop nothing watched — the tile, the terms
+#//// box and the button had only ever been eyeballed. Stops at the redirect on
+#//// purpose: what follows is asserted without a browser by
+#//// `payments.tests.payrexx_webshop_smoke`.
+#//// Commits: 5babaea 2026-08-30 "cover Payrexx, and stop the checkout helpers
+#//// testing the wrong things"; aba52be 2026-08-31 (one gateway serving several
+#//// restricted tiles); f59d601 2026-08-31 (the card tile keeps the shopper on the
+#//// shop); c2fb4c4 + 32b1a0e 2026-09-01 (the action is veiled, not locked, before
+#//// the terms are accepted).
 """Webshop checkout with Payrexx — login → cart → checkout → redirect.
 
 Payrexx was the only gateway on the shop that nothing watched: the tile, the

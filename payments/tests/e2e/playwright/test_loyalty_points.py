@@ -1,3 +1,8 @@
+#//// Neoffice — added file (no upstream equivalent). Loyalty points applied at checkout drop the
+#//// grand total, and removing them puts it back. Self-bootstrapping: the fixture
+#//// provisions the programme and a positive balance on the fixed test customer.
+#//// Commits: 8e06c1a 2026-05-20 "test(e2e): loyalty points apply/remove on webshop
+#//// checkout".
 """Loyalty points — apply on checkout, assert the order total drops, then remove.
 
 The fixed test customer ("Test E2E Webshop") has a Loyalty Program assigned

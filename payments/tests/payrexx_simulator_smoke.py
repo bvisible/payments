@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Proves a Payrexx terminal payment can be
+#//// exercised with no hardware: start on a simulated device, accept from the
+#//// simulator panel, refund. It also checks the two guards, because a simulator
+#//// that leaked into production would mark real invoices paid.
+#//// Commits: a5a38e7 2026-08-11 "test(payrexx): smoke for the simulated terminal";
+#//// 1839ac7 2026-08-11 (simulate a terminal until the NexGo arrives).
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Prove a Payrexx terminal payment can be exercised without hardware.

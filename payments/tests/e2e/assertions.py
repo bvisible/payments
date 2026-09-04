@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent). The assertions the runbook calls between
+#//// browser steps: given a Payment Intent, report the PI / Payment Request / Sales
+#//// Order triplet. Whitelisted so the Playwright suite can reach them over HTTPS.
+#//// Commits: f29b04b 2026-05-20 "webshop E2E framework".
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """E2E assertion helpers — run via bench execute after each PSP test step."""

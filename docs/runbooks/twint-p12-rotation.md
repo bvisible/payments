@@ -1,3 +1,8 @@
+<!-- //// Neoffice — added file (no upstream equivalent). Rotating a TWINT merchant P12. The one
+     //// fact worth reading twice: the certificate lives on neoservice ONLY — client
+     //// instances hold its password (encrypted) and never the file. That split is why
+     //// `Twint Bridge Settings` looks the way it does.
+     //// Commits: 7cfe7fa 2026-05-13 "Phase 7 runbooks". -->
 # Runbook — Rotate a TWINT Merchant P12 certificate
 
 Applies when TWINT issues a new certificate (annual renewal or compromise).

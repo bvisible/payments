@@ -1,3 +1,12 @@
+<!-- //// Neoffice — added file (no upstream equivalent). Upstream has no `docs/` directory at all.
+     //// The in-repo source of truth for the unified payments architecture: the
+     //// Provider × Channel × Driver ontology, the DocTypes, the Payment Intent FSM, the
+     //// drivers and the TWINT PHP bridge. The narrative version lives in Obsidian
+     //// (`Neoffice/Payments/`); this stays the technical one (file:line, ADR detail).
+     //// Commits: e32ecf5 2026-05-13 "Phase 1"; d0c6ff8 2026-05-14 "final state —
+     //// Phases 2-8 recap + bug log + security debt".
+     //// Written in French. Marker in English (RULE #00); the document itself is prose,
+     //// not code, and is left as it is. -->
 # Payments — Architecture unifiée (Neoffice)
 
 > **Note** : ce document est la version "source de vérité dans le repo" de l'architecture paiements de Neoffice. Il sera **promu vers Obsidian** (`Neoffice/Paiements/00-README.md`) dès que les permissions Full Disk Access seront accordées au runtime Claude Code (cf. `docs/OBSIDIAN_PROMOTION_TODO.md`).

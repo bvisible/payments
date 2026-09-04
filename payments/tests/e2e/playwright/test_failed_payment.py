@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent). A declined Stripe card lands on
+#//// /payment-failed and a retry is still possible. Commits: 187b5c8 2026-05-20.
 """Stripe declined card → /payment-failed → assert retry possible."""
 
 from __future__ import annotations

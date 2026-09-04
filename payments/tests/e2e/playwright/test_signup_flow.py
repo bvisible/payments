@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent). Guest signup then on to checkout. Stops at
+#//// the cart → checkout transition (no Sales Order): enough to validate the signup
+#//// form and the auto-login chain. Commits: 187b5c8 2026-05-20.
 """Guest signup → checkout flow.
 
 Pattern : a brand-new user goes to a product page, adds to cart, then is

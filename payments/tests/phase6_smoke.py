@@ -1,3 +1,9 @@
+#//// Neoffice — added file (no upstream equivalent). Phase 6 smoke for auto-reconciliation:
+#//// idempotency, an intent with no reference_doctype, the hooks.py wiring, and an
+#//// unsupported reference doctype returning cleanly instead of crashing. It does
+#//// NOT cover the invoice append path end to end — see its own docstring.
+#//// Commits: 7dd1ab0 2026-05-13 "Phase 6 — auto-reconciliation Payment Intent →
+#//// invoice payment row".
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Phase 6 smoke test — auto-reconciliation of succeeded Payment Intents.

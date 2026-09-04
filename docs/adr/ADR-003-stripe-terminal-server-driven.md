@@ -1,3 +1,9 @@
+<!-- //// Neoffice — added file (no upstream equivalent). Why Stripe Terminal is driven from the
+     //// SERVER, not from the cashier's browser: the JS SDK needs the browser and the
+     //// reader on the same LAN (mDNS discovery), which kept breaking on guest WiFi and
+     //// segmented VLANs — the failure mode inherited from Wallee. Explains the shape of
+     //// `payments/drivers/stripe/terminal_driver.py` and `payments/api/terminal.py`.
+     //// Commits: e32ecf5 2026-05-13 "Phase 1". French. -->
 # ADR-003 — Stripe Terminal en mode server-driven (pas SDK JS client)
 
 - **Status** : Accepted
