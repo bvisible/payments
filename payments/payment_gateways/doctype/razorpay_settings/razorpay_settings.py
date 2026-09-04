@@ -670,11 +670,13 @@ def order_payment_failure(integration_request, params):
 	        integration_request (TYPE): Description
 	        params (TYPE): error data to be updated
 	"""
-	#//// Neoffice — upstream: `frappe.log_error(params, "Razorpay Payment Failure")`.
-	#//// `params` is the error payload and became the TITLE — truncated at 140, and a
-	#//// new Error Log group per payload. TO REVIEW: our constant title is the generic
-	#//// one, so the "Payment Failure" distinction upstream carried is lost.
-	frappe.log_error("Error in Razorpay payment processing", params)
+	#//// Neoffice — the arguments are upstream's, the right way round. Upstream:
+	#//// `frappe.log_error(params, "Razorpay Payment Failure")`, which under v15 makes
+	#//// the error PAYLOAD the title — cut at 140 characters, and one Error Log group
+	#//// per distinct payload. Swapped: the title stays upstream's, because that is what
+	#//// makes the entry findable, and the payload becomes the message where it fits
+	#//// whole. A generic constant title stood here until 2026-09-04.
+	frappe.log_error("Razorpay Payment Failure", params)
 	params = json.loads(params)
 	integration = frappe.get_doc("Integration Request", integration_request)
 	integration.update_status(params, integration.status)
