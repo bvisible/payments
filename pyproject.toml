@@ -10,10 +10,20 @@ dynamic = ["version"]
 dependencies = [
     "paytmchecksum~=1.7.0",
     "razorpay~=1.4.2",
+    #//// Neoffice — upstream pins `stripe~=10.12.0`. Raised to 11.6 for Terminal in
+    #//// server-driven mode (0efe5ef, 2026-05-13 "Phase 2"): the reader is driven from
+    #//// the server through `stripe.terminal.Reader.process_payment_intent`, which the
+    #//// 10.x client does not expose (ADR-003). TO REVIEW at merge: upstream may have
+    #//// moved this pin on its own since.
     "stripe~=11.6.0",
     "braintree~=4.20.0",
     "pycryptodome>=3.18.0,<4.0.0",
     "gocardless-pro~=1.22.0",
+    #//// Neoffice — the three dependencies below are ours: upstream's list ends at
+    #//// gocardless-pro. `wallee` (49af519, 2026-05-18) and `payrexx` (4c05756,
+    #//// 2026-08-11) are the Swiss acceptance platforms this fork adds and upstream has
+    #//// no notion of. The payrexx one is a git URL because Payrexx publishes no
+    #//// official Python SDK — the repo behind it is ours.
     "wallee>=6.4.0",
     # Payrexx client — no official Python SDK exists, so this is ours:
     # https://github.com/neoserviceai/payrexx-python

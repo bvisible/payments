@@ -1,3 +1,15 @@
+#//// Neoffice — added file content: upstream ships payments/patches.txt EMPTY (0
+#//// bytes), this app has never had a patch. Every entry below is ours, and each
+#//// one provisions records the driver layer cannot work without:
+#////   v15_03 merge_wallee_integration      99e929c 2026-05-19 (ADR-005)
+#////   v15_04 merge_twint_integration       ec69d96 2026-05-19 (Phase 11)
+#////   v15_05 provision_wallee_web_channel  f2543ee 2026-06-01
+#////   v15_06 provision_payrexx_channels    4c05756 2026-08-11
+#////   v15_07 provision_payrexx_tap_to_pay  a8087dc 2026-08-11
+#////   v15_08 provision_mobile_payment_...  d06eb26 2026-09-03
+#//// The first two absorb apps we retired (`wallee_integration`, `twint_integration`)
+#//// into this one. Keep the `[pre_model_sync]` / `[post_model_sync]` headers: a
+#//// patches.txt without them raises KeyError at install-app time.
 [pre_model_sync]
 
 [post_model_sync]

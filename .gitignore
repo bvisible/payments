@@ -7,6 +7,10 @@ payments/docs/current
 node_modules/
 __pycache__/
 
+#//// Neoffice — the two rules below are ours; upstream's .gitignore ends at
+#//// `__pycache__/`. They cover the Playwright e2e suite (187b5c8, 2026-05-20 "add
+#//// Playwright Python suite with 9 webshop scenarios" and 23a7fc1): its own
+#//// virtualenv, and the `_inspect*` scratch dumps a failing scenario leaves behind.
 # E2E test virtualenv (local, do not commit)
 .venv-e2e/
 
