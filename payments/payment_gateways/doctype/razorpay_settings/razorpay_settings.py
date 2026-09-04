@@ -14,10 +14,12 @@
 #//// because that only fires when a message is passed too. A constant title also
 #//// groups the entries, instead of one Error Log group per distinct message.
 #////
-#//// This file got the roughest pass of the six: four sites lost the Razorpay API
-#//// response body that upstream logged, and one lost a `frappe.throw`. They are
-#//// marked TO REVIEW below — read them before merging, they are not just log
-#//// lines. Each other site carries the upstream form it replaces.
+#//// That pass went too far at four sites, all repaired on 2026-09-04: three had
+#//// lost the Razorpay API response body upstream logged (swapped for a traceback
+#//// taken outside any `except`, so it named our own frame), and `create_order` had
+#//// lost upstream's `frappe.throw` — `get_razorpay_order()` fell off the end and
+#//// handed razorpay.js a null order instead of an error. Each site carries the
+#//// upstream form it replaces.
 #//// ═══════════════════════════════════════════════════════════════════════════
 """
 # Integrating RazorPay
@@ -289,13 +291,15 @@ class RazorpaySettings(Document):
 					headers={"content-type": "application/json"},
 				)
 				if not resp.get("id"):
-					#//// Neoffice — TO REVIEW. Upstream: `frappe.log_error(message=str(resp),
-					#//// title="Razorpay Failed while creating subscription")` — already the right
-					#//// pair, and it carried the Razorpay response body. Ours replaces that body with
-					#//// `frappe.get_traceback()`, but no exception is in flight on this branch (we are
-					#//// in an `if`/`else`, not an `except`), so the traceback is the caller's own frame
-					#//// and the only thing that said WHY Razorpay refused is gone.
-					frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
+					#//// Neoffice — the pair is upstream's, written positionally. Upstream:
+					#//// `frappe.log_error(message=str(resp), title="Razorpay Failed while creating
+					#//// subscription")`; v15 signs it `log_error(title, message)`, so spelling it out
+					#//// removes any doubt about which argument is the one cut at 140 characters by
+					#//// `Error Log.method` (Data). The message stays the Razorpay response body: no
+					#//// exception is in flight on this branch (`if`/`else`, not `except`), so a
+					#//// traceback would only name our own frame while the body is the only thing that
+					#//// says WHY Razorpay refused. 7b99cbf swapped the two; restored 2026-09-04.
+					frappe.log_error("Razorpay Failed while creating subscription", str(resp))
 		except Exception:
 			#//// Neoffice — upstream: bare `frappe.log_error()`. That works (the title falls
 			#//// back to "Error" and the traceback is derived) but every failure in the file
@@ -337,13 +341,15 @@ class RazorpaySettings(Document):
 				frappe.flags.status = "created"
 				return kwargs
 			else:
-				#//// Neoffice — TO REVIEW. Upstream: `frappe.log_error(message=str(resp),
-				#//// title="Razorpay Failed while creating subscription")` — already the right
-				#//// pair, and it carried the Razorpay response body. Ours replaces that body with
-				#//// `frappe.get_traceback()`, but no exception is in flight on this branch (we are
-				#//// in an `if`/`else`, not an `except`), so the traceback is the caller's own frame
-				#//// and the only thing that said WHY Razorpay refused is gone.
-				frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
+				#//// Neoffice — the pair is upstream's, written positionally. Upstream:
+				#//// `frappe.log_error(message=str(resp), title="Razorpay Failed while creating
+				#//// subscription")`; v15 signs it `log_error(title, message)`, so spelling it out
+				#//// removes any doubt about which argument is the one cut at 140 characters by
+				#//// `Error Log.method` (Data). The message stays the Razorpay response body: no
+				#//// exception is in flight on this branch (`if`/`else`, not `except`), so a
+				#//// traceback would only name our own frame while the body is the only thing that
+				#//// says WHY Razorpay refused. 7b99cbf swapped the two; restored 2026-09-04.
+				frappe.log_error("Razorpay Failed while creating subscription", str(resp))
 
 		except Exception:
 			#//// Neoffice — upstream: bare `frappe.log_error()`. That works (the title falls
@@ -393,14 +399,16 @@ class RazorpaySettings(Document):
 				order["integration_request"] = integration_request.name
 				return order  # Order returned to be consumed by razorpay.js
 			except Exception:
-				#//// Neoffice — TO REVIEW, this one changes behaviour. Upstream ran TWO lines
-				#//// here: `frappe.log(frappe.get_traceback())` then
-				#//// `frappe.throw(_("Could not create razorpay order"))`. The throw was dropped
-				#//// and not replaced, so `get_razorpay_order()` now falls off the end and returns
-				#//// None where it used to raise — razorpay.js receives a null order instead of an
-				#//// error. (The `frappe.log` it replaced was itself wrong: that only appends to
-				#//// `debug_log`, it never writes an Error Log.)
+				#//// Neoffice — only the log line diverges. Upstream ran TWO statements here:
+				#//// `frappe.log(frappe.get_traceback())` then the throw below. We replace the
+				#//// first: `frappe.log` merely appends to `debug_log`, it never writes an Error
+				#//// Log, so the traceback was lost on a real production failure. A traceback is
+				#//// legitimate here — unlike the branches above, an exception IS in flight.
+				#//// The throw is upstream's and must stay: without it `get_razorpay_order()` falls
+				#//// off the end and hands razorpay.js a null order instead of an error, which is
+				#//// exactly what dropping it in 7b99cbf caused. Restored 2026-09-04.
 				frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
+				frappe.throw(_("Could not create razorpay order"))
 
 	def create_request(self, data):
 		self.data = frappe._dict(data)
@@ -457,12 +465,13 @@ class RazorpaySettings(Document):
 					self.flags.status_changed_to = "Verified"
 
 			else:
-				#//// Neoffice — TO REVIEW. Upstream: `frappe.log_error(message=str(resp),
-				#//// title="Razorpay Payment not authorized")`. Same loss as the subscription
-				#//// sites above — the response body is replaced by a traceback taken outside any
-				#//// `except` — and the title no longer says the payment was *not authorized*,
-				#//// which is what made this entry findable.
-				frappe.log_error("Error in Razorpay payment processing", frappe.get_traceback())
+				#//// Neoffice — the pair is upstream's, written positionally (v15 signs it
+				#//// `log_error(title, message)`). Upstream: `frappe.log_error(message=str(resp),
+				#//// title="Razorpay Payment not authorized")`. The title is kept verbatim because
+				#//// it is what makes the entry findable, and the message stays the response body:
+				#//// no exception is in flight here, so a traceback would name our own frame and
+				#//// say nothing about the refusal. 7b99cbf swapped both; restored 2026-09-04.
+				frappe.log_error("Razorpay Payment not authorized", str(resp))
 
 		except Exception:
 			#//// Neoffice — upstream: bare `frappe.log_error()`. That works (the title falls
