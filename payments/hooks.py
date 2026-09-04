@@ -85,6 +85,11 @@ after_install = [
 	"payments.utils.make_custom_fields",
 	# A fresh site runs no patch, so the shipped Payment Channels are created here.
 	"payments.setup.payment_channels.provision_payment_channels",
+	#//// Neoffice — the EMV block a card receipt is printed from lived only as Custom
+	#//// Fields posted by hand on the instances, so a fresh site had none: the receipt
+	#//// wrote onto attributes that are not columns and nothing was persisted (issue
+	#//// #192). Created here for a fresh site, by patch v15_09 for the sites that migrate.
+	"payments.setup.card_receipt_fields.provision_card_receipt_fields",
 ]
 
 # Uninstallation
