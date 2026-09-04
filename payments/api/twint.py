@@ -9,18 +9,22 @@
 #////          9a8e74f 2026-06-30 "feat(twint): enqueue fast-poll for POS (qr_bridge) so the till validates in a few seconds, not up to 1 min…"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
-"""TWINT scheduler + helpers (POS terminal + webshop consumer).
+"""TWINT scheduler + helpers (POS terminal, webshop consumer, operator's phone).
 
 Since TWINT does not push webhooks, the bridge does not signal state changes
-proactively. We poll for both channels:
+proactively. We poll for the three channels of ``_TWINT_CHANNELS``:
 
-- ``qr_bridge`` (POS terminal) : the cashier dialog watches via SocketIO; a
+- ``qr_bridge`` (POS terminal): the cashier dialog watches via SocketIO; an
   every-minute cron is enough since the cashier is staring at the screen and
   will see the update within a beat.
-- ``twint_web`` (webshop consumer) : the buyer is waiting on a checkout page,
+- ``twint_web`` (webshop consumer): the buyer is waiting on a checkout page,
   so we enqueue a **fast-poll job** at intent creation that polls every 5s for
   5 min, then backs off to 30s for another 10 min. The per-minute cron is the
   safety net for missed enqueues.
+- ``twint_mobile`` (operator's phone): the same bridge flow drawn by the app in
+  front of the customer. It settles through these pollers like the other two;
+  it is a separate channel because a payment at the customer's door is not a
+  webshop order and must not run the shop's settlement hook.
 
 Status transitions publish ``payment.intent.<name>.updated`` via SocketIO so
 the JS overlay can redirect without polling.

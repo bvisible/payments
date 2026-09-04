@@ -8,9 +8,17 @@
 # License: MIT. See LICENSE
 """Public whitelisted API surface for the unified payments app.
 
-Modules:
+Modules (this list is the index — add a module here when you add one):
+
 - ``intent``: create/get/cancel/refund Payment Intents
-- ``webhook_stripe``: Stripe webhook endpoint (raw body + signature + dedup + RQ)
-- ``terminal``: Stripe Terminal management (Phase 2)
-- ``twint``: TWINT scheduler + helpers (Phase 4)
+- ``reconciliation``: match settled payments against their accounting entries
+- ``mobile_payments``: the phone's surface — collect without a document, poll,
+  and the Tap to Pay session
+- ``card_receipt`` / ``terminal_receipt``: the card receipt a card-present
+  payment must be able to produce
+- ``terminal``: Stripe Terminal management (readers, locations)
+- ``twint``: TWINT scheduler + helpers (no webhook exists, so state is polled)
+- ``payrexx_setup``: one-call provisioning of the Payrexx provider and bindings
+- ``webhook_stripe`` / ``webhook_wallee`` / ``webhook_payrexx``: the per-PSP
+  receivers (raw body + signature + dedup + RQ)
 """

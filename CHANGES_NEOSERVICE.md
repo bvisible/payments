@@ -2,10 +2,11 @@
      //// at the start of the work (e32ecf5, 2026-05-13).
      //// 
      //// STALE — it says "Last update : 2026-05-13" and it means it. It predates the
-     //// Wallee fold-in, the TWINT fold-in, Payrexx, Tap to Pay and the mobile surface,
-     //// and at least one of its claims never happened (it announces two new fields on
-     //// `stripe_settings.json`; that file was never touched — those settings live in
-     //// `Provider Channel Settings.config_json`).
+     //// Wallee fold-in, the TWINT fold-in, Payrexx, Tap to Pay and the mobile surface.
+     //// The one claim that was plainly false — two new fields on
+     //// `stripe_settings.json` — was corrected on 2026-09-04: that file has never
+     //// diverged from upstream, the settings live in
+     //// `Provider Channel Settings.config_json`.
      //// The current map of the divergence is the `//// Neoffice` markers in the source
      //// plus `NEOFFICE_FORK_MARKERS.md` at the root. Read those, not this. -->
 # Divergences vs upstream `frappe/payments`
@@ -46,11 +47,10 @@ Tous nos ajouts sont dans des **fichiers/dossiers nouveaux** pour minimiser les 
 
 ## 2. Modifications de fichiers existants (à minimiser)
 
-### `payments/payment_gateways/doctype/stripe_settings/stripe_settings.json` (Phase 2)
-- **Ajout** : champ `terminal_enabled` (Check, default 0)
-- **Ajout** : champ `terminal_default_location_id` (Data)
-- **Raison** : permettre l'activation du driver Terminal sur les credentials existantes Stripe Web (mêmes API keys)
-- **Risque rebase** : faible (ajout de champs en fin de doctype JSON, rarement modifié upstream)
+### `payments/payment_gateways/doctype/stripe_settings/stripe_settings.json` (Phase 2) — ABANDONNÉ
+- **Prévu** : champs `terminal_enabled` (Check) et `terminal_default_location_id` (Data), pour activer le driver Terminal sur les credentials Stripe Web existantes.
+- **Ce qui s'est passé** : jamais fait. `git diff upstream -- stripe_settings.json` est vide. La configuration par canal vit dans `Provider Channel Settings.config_json` (`terminal_default_location_id`, `webhook_secret_override`, …) — c'est précisément ce que l'ontologie ADR-004 existe pour éviter de dupliquer dans un `<psp>_settings` par PSP.
+- **Risque rebase** : nul, le fichier ne diverge pas.
 
 ### `payments/hooks.py` (Phases 1, 4)
 - **Ajout** : `website_route_rules` pour `/api/method/payments.api.webhook_stripe.handle`
@@ -88,8 +88,8 @@ git rebase upstream/version-15
 
 Conflits attendus uniquement sur :
 - `hooks.py` (ajouts simples)
-- `stripe_settings.json` (ajouts simples)
-- `stripe_checkout.py` (potentiellement)
+- `stripe_checkout.py` / `stripe_checkout.html` / `includes/stripe_checkout.js` (page refaite)
+- `razorpay_settings.py` (nos `log_error`)
 - `pyproject.toml` (potentiellement)
 
 Pour chacun : garder nos ajouts + accepter les changements upstream.

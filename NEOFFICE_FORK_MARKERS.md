@@ -130,10 +130,15 @@ their absence from a `grep -rn "////"` is a recorded decision, not an oversight.
 Ported from the retired `twint_integration` app by `ec69d96` (2026-05-19, *"Phase 11
 fusion twint_integration → payments"*). Upstream ships no image of any kind.
 
-Binary (listed here; the nine sibling `.svg` files carry their own `<!-- //// -->` header):
+Binary (listed here; the eight sibling `.svg` files carry their own `<!-- //// -->` header):
 
 - `payments/public/images/twint/line.png`
 - `payments/public/images/twint/twint-app-icon.png`
+
+`loading-spinner.svg` shipped with the same port and was deleted on 2026-09-04: nothing
+ever referenced it. The overlay draws its wait spinner from the CSS rule
+`.loading-spinner` in `public/css/twint_dialog.css`, on a `<div>` built by
+`public/js/twint_dialog.js` — no image is loaded.
 
 ### Translations
 

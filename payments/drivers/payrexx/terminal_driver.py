@@ -34,11 +34,17 @@ wrong charges a customer twice:
    wait for the webhook and match on ``paymentReference``) rather than resend.
 
 .. warning::
-   **It does not trust the ECR status field.** Payrexx's OpenAPI declares
-   ``payment_status`` as a bare string and enumerates no values, so it is recorded
-   for the till UI but never mapped onto the FSM. Authoritative state comes from
-   the transaction webhook (``type == "POS-Terminal"``), whose statuses are
-   documented.
+   **It maps the ECR status, but never guesses at one.** Payrexx's OpenAPI declares
+   ``payment_status`` as a bare string and enumerates no values, so until
+   2026-08-18 nothing was mapped and :meth:`get_status` answered ``processing``
+   whatever the terminal said — a payment the terminal had already ended left the
+   till waiting on nothing. Payrexx confirmed the nine values in writing that day
+   (``ee09517``) and they now drive the FSM through ``_STATUS_TO_FSM``. Two are
+   deliberately left out: an **unmapped** value still yields ``processing`` rather
+   than an outcome we cannot back up, and ``TERMINATED`` is unmapped on purpose —
+   it ends a paid payment *and* a cancelled one, so only the transaction webhook
+   (``type == "POS-Terminal"``), whose statuses are documented, can tell the two
+   apart. The raw value always travels in ``next_action_payload`` for the till.
 
 Payrexx documents no ECR sandbox, so a terminal payment cannot be exercised at
 all until a NexGo arrives. To unblock that, a ``Payment Device`` whose
