@@ -417,6 +417,52 @@ def simulate_success(intent_name: str) -> dict[str, Any]:
 	return get_intent_status(doc.name)
 
 
+# ──────────────────────────────────────────── what a document has collected ──
+# The intervention screen, the project, the invoice: each wants to know how
+# much was already taken on site for a given document, without re-deriving
+# the channel and status rules. One reader for all of them, importable from
+# any app, and exposed to the phone.
+
+
+def paid_total_for(reference_doctype: str, reference_name: str) -> dict[str, Any]:
+	"""What was collected on site for one document: settled intents only.
+
+	Returns minor units, the currency of the settled intents (the site's when
+	there are none), the number of settled payments and the last settlement
+	time. Refunded intents count as not paid. Open intents are listed apart,
+	so a screen can say "a payment is in progress" without counting it.
+	"""
+	if not reference_doctype or not reference_name:
+		return {"paid_total": 0, "currency": _currency(), "count": 0, "last_paid_at": None, "open": 0}
+	rows = frappe.get_all(
+		"Payment Intent",
+		filters={
+			"channel": ["in", list(MOBILE_CHANNELS)],
+			"reference_doctype": reference_doctype,
+			"reference_name": reference_name,
+			"status": ["in", ["succeeded", *OPEN_STATES]],
+		},
+		fields=["amount", "currency", "status", "modified"],
+		order_by="modified desc",
+	)
+	settled = [r for r in rows if r.status == "succeeded"]
+	return {
+		"paid_total": sum(int(r.amount or 0) for r in settled),
+		"currency": settled[0].currency if settled else _currency(),
+		"count": len(settled),
+		"last_paid_at": str(settled[0].modified)[:19] if settled else None,
+		"open": len(rows) - len(settled),
+	}
+
+
+@frappe.whitelist()
+def mobile_paid_total(reference_doctype: str, reference_name: str) -> dict[str, Any]:
+	"""The phone's view of :func:`paid_total_for`, gated like the list of payments."""
+	if not frappe.has_permission(reference_doctype, "read", doc=reference_name):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	return paid_total_for(reference_doctype, reference_name)
+
+
 # ───────────────────────────────────────────────────────────────── receipts ──
 # Apple requires that a digital receipt can be sent to the customer for every
 # Tap to Pay transaction, approved or declined (requirement 5.10). Swiss card

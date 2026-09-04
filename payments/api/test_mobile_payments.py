@@ -263,6 +263,24 @@ class TestMobilePayments(FrappeTestCase):
 			push.assert_called_once()
 			self.assertEqual(push.call_args.args[0].name, out["intent_name"])
 
+	def test_paid_total_counts_only_settled_intents(self) -> None:
+		if not self.reference:
+			self.skipTest("no on-site payment method is set up on this site")
+		if not frappe.conf.get("enable_e2e_simulators"):
+			self.skipTest("enable_e2e_simulators is off on this site")
+		before = mp.paid_total_for(*self.reference)
+		open_one = self._start(self.ctx["methods"][0], amount=900)
+		paid_one = self._start(self.ctx["methods"][0], amount=1100)
+		mp.simulate_success(paid_one["intent_name"])
+		after = mp.paid_total_for(*self.reference)
+		self.assertEqual(after["paid_total"], before["paid_total"] + 1100, "the open one is not counted")
+		self.assertEqual(after["count"], before["count"] + 1)
+		self.assertGreaterEqual(after["open"], 1)
+		self.assertTrue(after["last_paid_at"])
+		# The phone reads the same thing, behind the document's read permission.
+		self.assertEqual(mp.mobile_paid_total(*self.reference)["paid_total"], after["paid_total"])
+		mp.mobile_abandon_payment(open_one["intent_name"])
+
 	# --------------------------------------------------------------- common
 
 	def test_payments_for_lists_open_intents_newest_first_with_their_method(self) -> None:
