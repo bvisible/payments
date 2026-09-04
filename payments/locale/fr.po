@@ -3380,3 +3380,36 @@ msgstr "Moyen de paiement"
 #: payments/api/mobile_payments.py
 msgid "This site cannot send email at the moment. Ask an administrator to check the outgoing email account."
 msgstr "Ce site ne peut pas envoyer d'e-mail pour le moment. Demandez à un administrateur de vérifier le compte e-mail sortant."
+
+
+#: payments/setup/payment_channels.py
+msgid "POS Terminal"
+msgstr "Terminal de paiement (TPE)"
+
+#: payments/setup/payment_channels.py
+msgid "TWINT Web (QR consumer)"
+msgstr "TWINT Web (QR client)"
+
+#: payments/setup/payment_channels.py
+msgid "Wallee Web (hosted checkout)"
+msgstr "Wallee Web (paiement hébergé)"
+
+#: payments/setup/payment_channels.py
+msgid "Payrexx Web Checkout"
+msgstr "Payrexx Web (paiement hébergé)"
+
+#: payments/setup/payment_channels.py
+msgid "Payrexx Tap to Pay"
+msgstr "Payrexx Tap to Pay"
+
+#: payments/setup/payment_channels.py
+msgid "TWINT in person"
+msgstr "TWINT sur place"
+
+#: payments/integrations/wallee/api.py
+msgid "Bluetooth + Wi-Fi, cylindrical black touchscreen. The most common model."
+msgstr "Bluetooth + Wi-Fi, écran tactile noir cylindrique. Le modèle le plus courant."
+
+#: payments/integrations/wallee/api.py
+msgid "Successor to the WisePOS, with a wider screen."
+msgstr "Successeur du WisePOS, avec un écran plus large."

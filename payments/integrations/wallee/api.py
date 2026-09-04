@@ -645,15 +645,21 @@ def get_terminal_types() -> list[dict[str, Any]]:
 	This is currently hard-coded from the Wallee documentation. A future
 	extension could fetch it from the Wallee API when their SDK exposes it.
 	"""
+	#//// Neoffice — the two descriptions are read by the operator picking a
+	#//// terminal model, so they go through `_()`. They were French literals
+	#//// outside any translation call until 2026-09-04: untranslatable for a
+	#//// German or Italian till, and a RULE #00 breach in the source.
 	return [
 		{
 			"id": "1568379599819",
 			"name": "BBPOS WisePOS E",
-			"description": "Bluetooth + Wi-Fi, écran tactile noir cylindrique. Modèle le plus courant.",
+			"description": _(
+				"Bluetooth + Wi-Fi, cylindrical black touchscreen. The most common model."
+			),
 		},
 		{
 			"id": "wisepos_pro",
 			"name": "BBPOS WisePOS Pro",
-			"description": "Successeur WisePOS, écran plus large.",
+			"description": _("Successor to the WisePOS, with a wider screen."),
 		},
 	]
