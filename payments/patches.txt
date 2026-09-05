@@ -24,3 +24,7 @@ payments.patches.v15_08.provision_mobile_payment_channels
 # //// printed from was Custom Fields posted by hand on the instances, no app
 # //// created them, so a fresh site had none and the receipt wrote nowhere.
 payments.patches.v15_09.provision_card_receipt_fields
+# //// Neoffice — v15_10 (2026-09-05, issue #221): the POS TWINT channel qr_bridge was
+# //// never shipped; existing sites had it from the retired twint_integration app, a
+# //// fresh site had no way to bind TWINT at the till.
+payments.patches.v15_10.provision_qr_bridge_channel

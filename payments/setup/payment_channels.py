@@ -145,6 +145,24 @@ CHANNELS: list[dict] = [
 			"requires_redirect": False,
 		},
 	},
+	{
+		# //// Neoffice — the POS TWINT channel (drivers/twint/php_bridge_driver.py, code
+		# //// "qr_bridge"), polled by api/twint.py. Existing instances got the record from the
+		# //// retired twint_integration app; nothing shipped it, so a fresh site came up with
+		# //// seven channels and no way to bind TWINT at the till. Tracker #221. Capabilities
+		# //// mirror the live record (osiris, created 2026-05-13) plus the keys its siblings
+		# //// declare.
+		"channel_code": "qr_bridge",
+		"display_label": _lt("TWINT QR Bridge"),
+		"ui_kind": "qr_display",
+		"capabilities": {
+			"supports_refund": True,
+			"supports_partial_refund": True,
+			"async": True,
+			"requires_qr_scan": True,
+			"requires_device": False,
+		},
+	},
 ]
 
 
