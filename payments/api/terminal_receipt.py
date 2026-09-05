@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Lays the card receipt of a terminal
-#//// payment out as Star Document Markup and hands the job to CloudPRNT. The Payrexx
-#//// NexGo N86 prints a slip branded by the acceptance platform and exposes no API to
-#//// drive its printer, so the device's printing is switched off (`print_slip=False`)
-#//// and the receipt is printed on the merchant's own paper from the `slip` the payment
-#//// left on the intent. Upstream knows no terminal and no receipt.
-#//// Commits: 23b7f0e 2026-08-21 "feat(payrexx): print the card receipt ourselves, on our own paper"
-#////          40cf6d0 2026-08-21 "feat(payrexx): render the receipt as it comes off the roll"
+# //// Neoffice — added file (no upstream equivalent). Lays the card receipt of a terminal
+# //// payment out as Star Document Markup and hands the job to CloudPRNT. The Payrexx
+# //// NexGo N86 prints a slip branded by the acceptance platform and exposes no API to
+# //// drive its printer, so the device's printing is switched off (`print_slip=False`)
+# //// and the receipt is printed on the merchant's own paper from the `slip` the payment
+# //// left on the intent. Upstream knows no terminal and no receipt.
+# //// Commits: 23b7f0e 2026-08-21 "feat(payrexx): print the card receipt ourselves, on our own paper"
+# ////          40cf6d0 2026-08-21 "feat(payrexx): render the receipt as it comes off the roll"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Print a card receipt for a terminal payment, on our own paper.

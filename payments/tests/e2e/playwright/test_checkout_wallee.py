@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Checkout on Wallee up to the hosted page
-#//// and back. Deliberately stops before the Sales Order: that half is finalised by
-#//// the server-side poller `payments.drivers.wallee.terminal_driver.
-#//// poll_pending_transactions`, not by the browser.
-#//// Commits: 187b5c8 2026-05-20; 23a7fc1 2026-05-20 "server-side reconciliation
-#//// finalizes the webshop Sales Order".
+# //// Neoffice — added file (no upstream equivalent). Checkout on Wallee up to the hosted page
+# //// and back. Deliberately stops before the Sales Order: that half is finalised by
+# //// the server-side poller `payments.drivers.wallee.terminal_driver.
+# //// poll_pending_transactions`, not by the browser.
+# //// Commits: 187b5c8 2026-05-20; 23a7fc1 2026-05-20 "server-side reconciliation
+# //// finalizes the webshop Sales Order".
 """Webshop checkout with Wallee — login → cart → checkout → redirect → pay.
 
 What this test asserts (deterministic, fast):

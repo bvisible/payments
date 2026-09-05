@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). `Payment Provider` is level 1
-#//// of the Provider × Channel × Driver ontology (ADR-004 §1): one record per PSP,
-#//// holding the credentials and the default driver class shared by every channel.
-#//// Upstream fuses credentials, channel config and business logic into a single
-#//// `<psp>_settings` DocType per PSP, so each new channel would mean copying the
-#//// same API keys into yet another settings doctype.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# //// Neoffice — added file (no upstream equivalent). `Payment Provider` is level 1
+# //// of the Provider × Channel × Driver ontology (ADR-004 §1): one record per PSP,
+# //// holding the credentials and the default driver class shared by every channel.
+# //// Upstream fuses credentials, channel config and business logic into a single
+# //// `<psp>_settings` DocType per PSP, so each new channel would mean copying the
+# //// same API keys into yet another settings doctype.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 

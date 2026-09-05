@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). Upstream declares no dev dependencies.
-#//// Needed because frappe's test runner imports every `test_*.py` of the app in a
-#//// single process, and the Playwright e2e modules import pytest/playwright at
-#//// module level — so `bench run-tests --app payments` died on the import before a
-#//// single unit test ran. See the note below, and payments/tests/e2e/playwright/.
-#//// Commits: 9f49b4e 2026-09-03 "test: dev-requirements.txt — the e2e suite imports
-#//// playwright/pytest at module level".
+# //// Neoffice — added file (no upstream equivalent). Upstream declares no dev dependencies.
+# //// Needed because frappe's test runner imports every `test_*.py` of the app in a
+# //// single process, and the Playwright e2e modules import pytest/playwright at
+# //// module level — so `bench run-tests --app payments` died on the import before a
+# //// single unit test ran. See the note below, and payments/tests/e2e/playwright/.
+# //// Commits: 9f49b4e 2026-09-03 "test: dev-requirements.txt — the e2e suite imports
+# //// playwright/pytest at module level".
 # Development-only requirements, installed by `bench setup requirements --dev`.
 # The Playwright e2e suite (payments/tests/e2e/playwright) imports these at module
 # level; frappe's test runner imports every test_*.py of the app in one process,

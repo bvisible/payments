@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Copies the EMV mentions a Swiss
-#//// customer copy is expected to carry — masked PAN, scheme, AID, authorisation — from
-#//// the Payment Intent that took the payment onto the `Sales Invoice Payment` row.
-#//// It exists because the terminal no longer prints anything of its own: its paper
-#//// carries the acceptance platform's branding, so the document the customer takes
-#//// away is the one the till prints, and empty fields make it not a card receipt.
-#//// Upstream has neither a card terminal nor a Payment Intent to read this from.
-#//// Commits: 2c37e66 2026-08-22 "feat(payments): fill the card mentions on a POS invoice from its Payment Intent"
+# //// Neoffice — added file (no upstream equivalent). Copies the EMV mentions a Swiss
+# //// customer copy is expected to carry — masked PAN, scheme, AID, authorisation — from
+# //// the Payment Intent that took the payment onto the `Sales Invoice Payment` row.
+# //// It exists because the terminal no longer prints anything of its own: its paper
+# //// carries the acceptance platform's branding, so the document the customer takes
+# //// away is the one the till prints, and empty fields make it not a card receipt.
+# //// Upstream has neither a card terminal nor a Payment Intent to read this from.
+# //// Commits: 2c37e66 2026-08-22 "feat(payments): fill the card mentions on a POS invoice from its Payment Intent"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Fill the card mentions on a POS invoice from the Payment Intent that took them.

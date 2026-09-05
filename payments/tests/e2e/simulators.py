@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent). Dev-only simulators. Stripe and Wallee
-#//// need none (the sandbox card 4242… does the job); TWINT does, because the QR
-#//// would otherwise need a real phone — that live simulator sits in
-#//// `payments.api.twint.simulate_consumer_success`, gated.
-#//// Commits: f29b04b 2026-05-20 "webshop E2E framework".
+# //// Neoffice — added file (no upstream equivalent). Dev-only simulators. Stripe and Wallee
+# //// need none (the sandbox card 4242… does the job); TWINT does, because the QR
+# //// would otherwise need a real phone — that live simulator sits in
+# //// `payments.api.twint.simulate_consumer_success`, gated.
+# //// Commits: f29b04b 2026-05-20 "webshop E2E framework".
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """E2E payment simulators (dev-only).

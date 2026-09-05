@@ -1,12 +1,12 @@
-#//// Neoffice — added file (no upstream equivalent). Wallee Terminal driver,
-#//// server-driven through the Wallee Python SDK and mirroring the Stripe Terminal
-#//// two-step flow; state changes arrive by webhook with a polling fallback.
-#//// Upstream has neither Wallee nor any physical-terminal concept. Note the shape
-#//// this imposes: Wallee exposes no idempotency-key header, so uniqueness rests on
-#//// `merchant_reference` = the Frappe Payment Intent name, and the API layer must
-#//// call create_intent at most once per intent.
-#//// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
-#////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+# //// Neoffice — added file (no upstream equivalent). Wallee Terminal driver,
+# //// server-driven through the Wallee Python SDK and mirroring the Stripe Terminal
+# //// two-step flow; state changes arrive by webhook with a polling fallback.
+# //// Upstream has neither Wallee nor any physical-terminal concept. Note the shape
+# //// this imposes: Wallee exposes no idempotency-key header, so uniqueness rests on
+# //// `merchant_reference` = the Frappe Payment Intent name, and the API layer must
+# //// call create_intent at most once per intent.
+# //// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
+# ////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Wallee Terminal driver — server-driven via the Wallee Python SDK.

@@ -6,11 +6,11 @@ import frappe
 from frappe import _
 from frappe.utils import cint, fmt_money
 
-#//// Neoffice — this file diverges in `get_context` only (c187f68, 2026-08-24
-#//// "un montant sans devise, un titre en double, deux libellés anglais"), plus the
-#//// `neoffice_amount` helper it adds. Both are marked in place below. The helper's
-#//// French locals and comments were rewritten in English on 2026-09-04 (RULE #00);
-#//// no behaviour changed with them.
+# //// Neoffice — this file diverges in `get_context` only (c187f68, 2026-08-24
+# //// "un montant sans devise, un titre en double, deux libellés anglais"), plus the
+# //// `neoffice_amount` helper it adds. Both are marked in place below. The helper's
+# //// French locals and comments were rewritten in English on 2026-09-04 (RULE #00);
+# //// no behaviour changed with them.
 from payments.payment_gateways.doctype.stripe_settings.stripe_settings import (
 	get_gateway_controller,
 )
@@ -44,17 +44,17 @@ def get_context(context):
 		context.publishable_key = get_api_key(context.reference_docname, gateway_controller)
 		context.image = get_header_image(context.reference_docname, gateway_controller)
 
-		#//// Neoffice — the amount carries its CURRENCY. `fmt_money` drops the symbol
-		#//// as soon as the global default `hide_currency_symbol` is "Yes" — which it
-		#//// is here, and defensibly so on the desk where every column announces its
-		#//// own — so the payment page showed a bare "156.00". On the screen where
-		#//// someone takes out a card, the unit is not a detail.
+		# //// Neoffice — the amount carries its CURRENCY. `fmt_money` drops the symbol
+		# //// as soon as the global default `hide_currency_symbol` is "Yes" — which it
+		# //// is here, and defensibly so on the desk where every column announces its
+		# //// own — so the payment page showed a bare "156.00". On the screen where
+		# //// someone takes out a card, the unit is not a detail.
 		context["amount"] = neoffice_amount(context["amount"], context["currency"])
 
-		#//// Neoffice — the URL's `title` parameter holds the COMPANY name, and writing
-		#//// it to `context.title` made it the page title: the theme repeated it as a
-		#//// heading and in the breadcrumb, above a card that already said it. Moved to
-		#//// `payee`, and the page gets its own name back.
+		# //// Neoffice — the URL's `title` parameter holds the COMPANY name, and writing
+		# //// it to `context.title` made it the page title: the theme repeated it as a
+		# //// heading and in the breadcrumb, above a card that already said it. Moved to
+		# //// `payee`, and the page gets its own name back.
 		context["payee"] = context.get("title")
 		context["title"] = _("Payment")
 
@@ -79,14 +79,14 @@ def get_context(context):
 		raise frappe.Redirect
 
 
-#//// Neoffice — added helper (no upstream equivalent): an amount a customer can
-#//// read, currency included. `fmt_money` omits the symbol when the global default
-#//// `hide_currency_symbol` is "Yes", so the number is formatted on its own and the
-#//// symbol put back on the side the Currency record says it belongs.
+# //// Neoffice — added helper (no upstream equivalent): an amount a customer can
+# //// read, currency included. `fmt_money` omits the symbol when the global default
+# //// `hide_currency_symbol` is "Yes", so the number is formatted on its own and the
+# //// symbol put back on the side the Currency record says it belongs.
 def neoffice_amount(amount, currency: str = None) -> str:
 	"""Format an amount for a payment screen, currency symbol included."""
-	#//// Neoffice — the three locals were French (`montant`, `symbole`,
-	#//// `a_droite`) until 2026-09-04. Renamed only; the logic is untouched.
+	# //// Neoffice — the three locals were French (`montant`, `symbole`,
+	# //// `a_droite`) until 2026-09-04. Renamed only; the logic is untouched.
 	formatted = fmt_money(amount=amount)
 	if not currency:
 		return formatted

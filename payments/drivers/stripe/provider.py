@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). Stripe credentials and SDK
-#//// access shared by every Stripe channel (web, terminal, tap-to-pay). Upstream's
-#//// `Stripe Settings` fuses the keys with the web-checkout config, so a second
-#//// channel would mean a second copy of the same secret keys — the very problem
-#//// ADR-004 removes. Never mutates the module-level `stripe.api_key`: Frappe is
-#//// multi-tenant and another site in the process may use another account.
-#//// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
+# //// Neoffice — added file (no upstream equivalent). Stripe credentials and SDK
+# //// access shared by every Stripe channel (web, terminal, tap-to-pay). Upstream's
+# //// `Stripe Settings` fuses the keys with the web-checkout config, so a second
+# //// channel would mean a second copy of the same secret keys — the very problem
+# //// ADR-004 removes. Never mutates the module-level `stripe.api_key`: Frappe is
+# //// multi-tenant and another site in the process may use another account.
+# //// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Stripe provider — credentials + lifecycle.

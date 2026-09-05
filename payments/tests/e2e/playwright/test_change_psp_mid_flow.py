@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Pick Stripe, switch to Wallee, assert no
-#//// half-baked state is left behind — the failure mode a multi-PSP checkout invites
-#//// and that upstream, with one gateway per page, cannot have.
-#//// Commits: 187b5c8 2026-05-20; c2b14af 2026-06-02 (fixed assertions).
+# //// Neoffice — added file (no upstream equivalent). Pick Stripe, switch to Wallee, assert no
+# //// half-baked state is left behind — the failure mode a multi-PSP checkout invites
+# //// and that upstream, with one gateway per page, cannot have.
+# //// Commits: 187b5c8 2026-05-20; c2b14af 2026-06-02 (fixed assertions).
 """Select Stripe → switch to Wallee → assert no half-baked state."""
 
 from __future__ import annotations

@@ -2,22 +2,22 @@
 # For license information, please see license.txt
 
 
-#//// ═══════════════════════════════════════════════════════════════════════════
-#//// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
-#//// 2025-02-28 "update error log and stripe version"). Nothing else in the file
-#//// diverges from upstream.
-#////
-#//// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
-#//// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
-#//// body goes to `error` (Code, unbounded). Upstream calls it here with the
-#//// traceback as the ONLY argument: the traceback lands in the title and is
-#//// truncated, and the swap hack in `frappe/utils/error.py` cannot rescue it
-#//// because that only fires when a message is passed too. A constant title also
-#//// groups the entries, instead of one Error Log group per distinct message.
-#////
-#//// Each call site below carries the upstream form it replaces. Sites marked
-#//// TO REVIEW change behaviour, not just the log line — read them before merging.
-#//// ═══════════════════════════════════════════════════════════════════════════
+# //// ═══════════════════════════════════════════════════════════════════════════
+# //// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
+# //// 2025-02-28 "update error log and stripe version"). Nothing else in the file
+# //// diverges from upstream.
+# ////
+# //// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
+# //// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
+# //// body goes to `error` (Code, unbounded). Upstream calls it here with the
+# //// traceback as the ONLY argument: the traceback lands in the title and is
+# //// truncated, and the swap hack in `frappe/utils/error.py` cannot rescue it
+# //// because that only fires when a message is passed too. A constant title also
+# //// groups the entries, instead of one Error Log group per distinct message.
+# ////
+# //// Each call site below carries the upstream form it replaces. Sites marked
+# //// TO REVIEW change behaviour, not just the log line — read them before merging.
+# //// ═══════════════════════════════════════════════════════════════════════════
 from json import dumps, loads
 
 import frappe
@@ -330,9 +330,9 @@ def process_balance_info(**kwargs):
 			)
 		except Exception:
 			request.handle_failure(account_balance_response)
-			#//// Neoffice — cosmetic only. Upstream already passed the right pair, by
-			#//// keyword and over three lines (`title=…, message=account_balance_response`);
-			#//// this is the same call written positionally on one line. No behaviour change.
+			# //// Neoffice — cosmetic only. Upstream already passed the right pair, by
+			# //// keyword and over three lines (`title=…, message=account_balance_response`);
+			# //// this is the same call written positionally on one line. No behaviour change.
 			frappe.log_error("Mpesa Account Balance Processing Error", account_balance_response)
 	else:
 		request.handle_failure(account_balance_response)

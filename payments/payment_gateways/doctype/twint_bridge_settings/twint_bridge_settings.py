@@ -1,17 +1,17 @@
-#//// Neoffice — added file (no upstream equivalent). The per-merchant TWINT
-#//// configuration DocType: merchant UUID, the .p12 unlock password, and the
-#//// certificate's notAfter date. The certificate FILE never stays here — on save
-#//// the bytes are pushed to neoservice (`/home/neoffice/twint-certs/<uuid>.p12`)
-#//// and the local copy is deleted; deleting or rotating the record removes the
-#//// remote file too. `check_certificate_expiry` mails a reminder over the 45 days
-#//// before expiry, because an expired .p12 takes TWINT payments down.
-#//// Upstream has no TWINT anything: in-store TWINT runs through our central PHP
-#//// bridge on neoservice (twint-ag/sdk), not Stripe's TWINT QR (ADR-002). The
-#//// DocType was renamed from `Twint Settings` by cc503b1 to stop colliding with
-#//// the legacy `twint_integration` app still listed in the bench's apps.txt.
-#//// Commits: cc503b1 2026-05-13 "fix(payments): rename Twint Settings → Twint Bridge Settings + scheduler cron syntax"
-#////          29cac07 2026-06-21 "feat(twint): upload P12 from Twint Bridge Settings form, lifecycle-synced to neoservice; clarify field help + Admin role perms"
-#////          cf61f54 2026-06-21 "feat(twint): certificate expiry monitoring — store notAfter on upload, daily reminder email + form banner within 45 days (+ POS alert API)"
+# //// Neoffice — added file (no upstream equivalent). The per-merchant TWINT
+# //// configuration DocType: merchant UUID, the .p12 unlock password, and the
+# //// certificate's notAfter date. The certificate FILE never stays here — on save
+# //// the bytes are pushed to neoservice (`/home/neoffice/twint-certs/<uuid>.p12`)
+# //// and the local copy is deleted; deleting or rotating the record removes the
+# //// remote file too. `check_certificate_expiry` mails a reminder over the 45 days
+# //// before expiry, because an expired .p12 takes TWINT payments down.
+# //// Upstream has no TWINT anything: in-store TWINT runs through our central PHP
+# //// bridge on neoservice (twint-ag/sdk), not Stripe's TWINT QR (ADR-002). The
+# //// DocType was renamed from `Twint Settings` by cc503b1 to stop colliding with
+# //// the legacy `twint_integration` app still listed in the bench's apps.txt.
+# //// Commits: cc503b1 2026-05-13 "fix(payments): rename Twint Settings → Twint Bridge Settings + scheduler cron syntax"
+# ////          29cac07 2026-06-21 "feat(twint): upload P12 from Twint Bridge Settings form, lifecycle-synced to neoservice; clarify field help + Admin role perms"
+# ////          cf61f54 2026-06-21 "feat(twint): certificate expiry monitoring — store notAfter on upload, daily reminder email + form banner within 45 days (+ POS alert API)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 

@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). Edit an address through the Web Form and
-#//// assert it persisted. Commits: 187b5c8 2026-05-20; ff99e4b 2026-06-02 (it was
-#//// not driving the Web Form at all).
+# //// Neoffice — added file (no upstream equivalent). Edit an address through the Web Form and
+# //// assert it persisted. Commits: 187b5c8 2026-05-20; ff99e4b 2026-06-02 (it was
+# //// not driving the Web Form at all).
 """Login → /addresses → edit address via Web Form → assert persisted."""
 
 from __future__ import annotations

@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Payrexx hosted payment page
-#//// (`POST /Gateway/`), structurally the twin of the Wallee web driver: create a
-#//// gateway, redirect the shopper, land on a return page that finalises the Sales
-#//// Order, webhook authoritative with a scheduler poll as the safety net. Upstream
-#//// has no Payrexx anything. **No idempotency**: two identical POSTs with the same
-#//// referenceId mint two gateways (verified live), hence the id persisted at once.
-#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
-#////          c842654 2026-08-31 "fix(payrexx): prefill the contact details the hosted page refuses to do without"
+# //// Neoffice — added file (no upstream equivalent). Payrexx hosted payment page
+# //// (`POST /Gateway/`), structurally the twin of the Wallee web driver: create a
+# //// gateway, redirect the shopper, land on a return page that finalises the Sales
+# //// Order, webhook authoritative with a scheduler poll as the safety net. Upstream
+# //// has no Payrexx anything. **No idempotency**: two identical POSTs with the same
+# //// referenceId mint two gateways (verified live), hence the id persisted at once.
+# //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+# ////          c842654 2026-08-31 "fix(payrexx): prefill the contact details the hosted page refuses to do without"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Payrexx Web driver — hosted payment page (``POST /Gateway/``).

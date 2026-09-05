@@ -1,22 +1,22 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-#//// ═══════════════════════════════════════════════════════════════════════════
-#//// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
-#//// 2025-02-28 "update error log and stripe version"). Nothing else in the file
-#//// diverges from upstream.
-#////
-#//// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
-#//// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
-#//// body goes to `error` (Code, unbounded). Upstream calls it here with the
-#//// traceback as the ONLY argument: the traceback lands in the title and is
-#//// truncated, and the swap hack in `frappe/utils/error.py` cannot rescue it
-#//// because that only fires when a message is passed too. A constant title also
-#//// groups the entries, instead of one Error Log group per distinct message.
-#////
-#//// Each call site below carries the upstream form it replaces. Sites marked
-#//// TO REVIEW change behaviour, not just the log line — read them before merging.
-#//// ═══════════════════════════════════════════════════════════════════════════
+# //// ═══════════════════════════════════════════════════════════════════════════
+# //// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
+# //// 2025-02-28 "update error log and stripe version"). Nothing else in the file
+# //// diverges from upstream.
+# ////
+# //// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
+# //// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
+# //// body goes to `error` (Code, unbounded). Upstream calls it here with the
+# //// traceback as the ONLY argument: the traceback lands in the title and is
+# //// truncated, and the swap hack in `frappe/utils/error.py` cannot rescue it
+# //// because that only fires when a message is passed too. A constant title also
+# //// groups the entries, instead of one Error Log group per distinct message.
+# ////
+# //// Each call site below carries the upstream form it replaces. Sites marked
+# //// TO REVIEW change behaviour, not just the log line — read them before merging.
+# //// ═══════════════════════════════════════════════════════════════════════════
 """
 # Integrating PayPal
 
@@ -313,8 +313,8 @@ def get_express_checkout_details(token):
 		frappe.local.response["location"] = get_redirect_uri(doc, token, response.get("PAYERID")[0])
 
 	except Exception:
-		#//// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
-		#//// title, truncated at 140). See the file header.
+		# //// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
+		# //// title, truncated at 140). See the file header.
 		frappe.log_error("Error in PayPal payment processing", frappe.get_traceback())
 
 
@@ -362,8 +362,8 @@ def confirm_payment(token):
 		setup_redirect(data, redirect_url, custom_redirect_to)
 
 	except Exception:
-		#//// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
-		#//// title, truncated at 140). See the file header.
+		# //// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
+		# //// title, truncated at 140). See the file header.
 		frappe.log_error("Error in PayPal payment processing", frappe.get_traceback())
 
 
@@ -433,8 +433,8 @@ def create_recurring_profile(token, payerid):
 		setup_redirect(data, redirect_url, custom_redirect_to)
 
 	except Exception:
-		#//// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
-		#//// title, truncated at 140). See the file header.
+		# //// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
+		# //// title, truncated at 140). See the file header.
 		frappe.log_error("Error in PayPal payment processing", frappe.get_traceback())
 
 
@@ -504,11 +504,11 @@ def ipn_handler():
 	except frappe.InvalidStatusError:
 		pass
 	except Exception as e:
-		#//// Neoffice — upstream: `frappe.log(frappe.log_error(title=e))`. Two faults in
-		#//// one line: `title=e` hands an Exception object where a string title is
-		#//// expected, and `frappe.log()` only appends to `debug_log` (it never writes an
-		#//// Error Log) so it merely stringified the doc that log_error had just written.
-		#//// TO REVIEW: `e` is now bound but unused in this except clause.
+		# //// Neoffice — upstream: `frappe.log(frappe.log_error(title=e))`. Two faults in
+		# //// one line: `title=e` hands an Exception object where a string title is
+		# //// expected, and `frappe.log()` only appends to `debug_log` (it never writes an
+		# //// Error Log) so it merely stringified the doc that log_error had just written.
+		# //// TO REVIEW: `e` is now bound but unused in this except clause.
 		frappe.log_error("Error in PayPal webhook handling", frappe.get_traceback())
 
 

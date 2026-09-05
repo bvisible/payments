@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). The post-merge guard for the retired
-#//// `webshopsi_integration` app, now folded into `webshop`: picking "Facture" must
-#//// still render the installment selector, which proves template discovery at the
-#//// new webshop path and that the relocated whitelisted method resolves over HTTP.
-#//// This file is the documentation of where that feature went.
-#//// Commits: b002600 2026-05-26 "Facture checkout renders + deterministic test item".
+# //// Neoffice — added file (no upstream equivalent). The post-merge guard for the retired
+# //// `webshopsi_integration` app, now folded into `webshop`: picking "Facture" must
+# //// still render the installment selector, which proves template discovery at the
+# //// new webshop path and that the relocated whitelisted method resolves over HTTP.
+# //// This file is the documentation of where that feature went.
+# //// Commits: b002600 2026-05-26 "Facture checkout renders + deterministic test item".
 """Facture (pay-by-invoice / installments) renders at checkout.
 
 This is the post-merge guard for the former ``webshopsi_integration`` app,

@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). Everything in the Tap to Pay server lot
-#//// that works without a phone: the channel exists, the driver resolves, the intent
-#//// carries the handoff payload, and `native_app_handoff` is actually accepted by
-#//// the doctype — it is a Select, and writing outside its options leaves the field
-#//// silently unset.
-#//// Commits: a8087dc 2026-08-11 "feat(payrexx): Tap to Pay server lot — the phone
-#//// initiates, the server records".
+# //// Neoffice — added file (no upstream equivalent). Everything in the Tap to Pay server lot
+# //// that works without a phone: the channel exists, the driver resolves, the intent
+# //// carries the handoff payload, and `native_app_handoff` is actually accepted by
+# //// the doctype — it is a Select, and writing outside its options leaves the field
+# //// silently unset.
+# //// Commits: a8087dc 2026-08-11 "feat(payrexx): Tap to Pay server lot — the phone
+# //// initiates, the server records".
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Smoke the Tap to Pay server lot — everything that works without a phone.

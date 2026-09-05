@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Smoke over the REAL Payrexx API through
-#//// the real driver stack: create an intent, get the hosted page URL back, cancel,
-#//// clean up. No payment is ever completed so no money moves — but it does reach a
-#//// live account, so point it at a test one. Credentials from
-#//// `~/.config/payrexx-secrets.env`.
-#//// Commits: 4e7f47e 2026-08-11 "test(payrexx): end-to-end smoke against the live API".
+# //// Neoffice — added file (no upstream equivalent). Smoke over the REAL Payrexx API through
+# //// the real driver stack: create an intent, get the hosted page URL back, cancel,
+# //// clean up. No payment is ever completed so no money moves — but it does reach a
+# //// live account, so point it at a test one. Credentials from
+# //// `~/.config/payrexx-secrets.env`.
+# //// Commits: 4e7f47e 2026-08-11 "test(payrexx): end-to-end smoke against the live API".
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """End-to-end smoke test: real Payrexx API through the real driver stack.

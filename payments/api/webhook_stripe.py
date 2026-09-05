@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). The Stripe webhook receiver of the
-#//// unified hub: raw body, signature check, dedup on the unique `Webhook Event Log`
-#//// index, enqueue with a deterministic job_id, answer 200 in under a second, then
-#//// drive the Payment Intent FSM from the driver's `handle_webhook`. Upstream's Stripe
-#//// integration ends at its hosted checkout page — at the fork point the word
-#//// "webhook" appears nowhere in the app but GoCardless.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
-#////          e860ab9 2026-06-22 "fix(stripe-terminal): capture-after-action — read PI id from process_payment_intent"
+# //// Neoffice — added file (no upstream equivalent). The Stripe webhook receiver of the
+# //// unified hub: raw body, signature check, dedup on the unique `Webhook Event Log`
+# //// index, enqueue with a deterministic job_id, answer 200 in under a second, then
+# //// drive the Payment Intent FSM from the driver's `handle_webhook`. Upstream's Stripe
+# //// integration ends at its hosted checkout page — at the fork point the word
+# //// "webhook" appears nowhere in the app but GoCardless.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# ////          e860ab9 2026-06-22 "fix(stripe-terminal): capture-after-action — read PI id from process_payment_intent"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Stripe webhook endpoint.

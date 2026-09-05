@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Creates the `payrexx_tap_to_pay`
-#//// Payment Channel on the sites that already exist. Its own channel rather than a
-#//// reuse of `terminal`: a terminal payment is driven by REST to a device addressed by
-#//// serial, a Tap to Pay payment is handed off to another app on the operator's phone
-#//// and cannot be initiated from the server at all — and reporting wants them apart,
-#//// the fees differ. Creates no provider and no binding: enabling Tap to Pay for a
-#//// client is a commercial act, billed per active device.
-#//// Commits: a8087dc 2026-08-11 "feat(payrexx): Tap to Pay server lot — the phone initiates, the server records"
+# //// Neoffice — added file (no upstream equivalent). Creates the `payrexx_tap_to_pay`
+# //// Payment Channel on the sites that already exist. Its own channel rather than a
+# //// reuse of `terminal`: a terminal payment is driven by REST to a device addressed by
+# //// serial, a Tap to Pay payment is handed off to another app on the operator's phone
+# //// and cannot be initiated from the server at all — and reporting wants them apart,
+# //// the fees differ. Creates no provider and no binding: enabling Tap to Pay for a
+# //// client is a commercial act, billed per active device.
+# //// Commits: a8087dc 2026-08-11 "feat(payrexx): Tap to Pay server lot — the phone initiates, the server records"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Create the ``payrexx_tap_to_pay`` Payment Channel.

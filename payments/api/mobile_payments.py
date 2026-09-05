@@ -1,17 +1,17 @@
-#//// Neoffice — added file (no upstream equivalent). The server side of collecting
-#//// on site from the mobile app: Stripe Tap to Pay (the server mints the
-#//// PaymentIntent and hands the phone its client_secret) and merchant-presented
-#//// TWINT QR, chosen once in Mobile Payment Settings. Upstream is a web-checkout
-#//// hub only — it has no mobile surface, no Tap to Pay and no TWINT.
-#//// The point of these endpoints is that the SERVER stays the only authority on
-#//// whether the money arrived: the app follows the Payment Intent and never
-#//// trusts an SDK result on its own.
-#//// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap
-#//// to Pay et par QR TWINT"; 3788073 2026-09-03 (what Apple requires of the
-#//// server for Tap to Pay on iPhone: receipt, notified decline, terms);
-#//// d910b8d + 5b40846 2026-09-03 (the card poll re-reads Stripe when the webhook
-#//// is late, and stands down when the webhook won the race); 7e5f680 2026-09-03
-#//// (collecting with no document behind it).
+# //// Neoffice — added file (no upstream equivalent). The server side of collecting
+# //// on site from the mobile app: Stripe Tap to Pay (the server mints the
+# //// PaymentIntent and hands the phone its client_secret) and merchant-presented
+# //// TWINT QR, chosen once in Mobile Payment Settings. Upstream is a web-checkout
+# //// hub only — it has no mobile surface, no Tap to Pay and no TWINT.
+# //// The point of these endpoints is that the SERVER stays the only authority on
+# //// whether the money arrived: the app follows the Payment Intent and never
+# //// trusts an SDK result on its own.
+# //// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap
+# //// to Pay et par QR TWINT"; 3788073 2026-09-03 (what Apple requires of the
+# //// server for Tap to Pay on iPhone: receipt, notified decline, terms);
+# //// d910b8d + 5b40846 2026-09-03 (the card poll re-reads Stripe when the webhook
+# //// is late, and stands down when the webhook won the race); 7e5f680 2026-09-03
+# //// (collecting with no document behind it).
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Collecting on site from the mobile app — what the phone asks the server.
@@ -417,7 +417,7 @@ def simulate_success(intent_name: str) -> dict[str, Any]:
 	return get_intent_status(doc.name)
 
 
-#//// Neoffice ▼▼▼ — added `paid_total_for` / `mobile_paid_total`: what a document (intervention, project, invoice) has already collected on site — total in minor units, currency, count of settled payments, last settlement date, and still-open intents apart — without re-deriving the channel and status rules; exposed to the phone behind the document's read permission (137488f "feat(mobile): ce qu'un document a déjà encaissé sur place — paid_total_for")
+# //// Neoffice ▼▼▼ — added `paid_total_for` / `mobile_paid_total`: what a document (intervention, project, invoice) has already collected on site — total in minor units, currency, count of settled payments, last settlement date, and still-open intents apart — without re-deriving the channel and status rules; exposed to the phone behind the document's read permission (137488f "feat(mobile): ce qu'un document a déjà encaissé sur place — paid_total_for")
 # ──────────────────────────────────────────── what a document has collected ──
 # The intervention screen, the project, the invoice: each wants to know how
 # much was already taken on site for a given document, without re-deriving
@@ -622,10 +622,10 @@ def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 		if receipt["approved"]
 		else _("Payment declined — {0}").format(receipt["merchant"])
 	)
-	#//// Neoffice — Frappe checks the outgoing mail account when queuing, so a broken
-	#//// default account (e.g. a test fixture account left active) raised a raw 417 to the
-	#//// phone; catch it, log the cause, and still return the receipt for the screen
-	#//// (6138dcf "fix(mobile): un site sans messagerie sortante ne casse pas l'envoi du reçu")
+	# //// Neoffice — Frappe checks the outgoing mail account when queuing, so a broken
+	# //// default account (e.g. a test fixture account left active) raised a raw 417 to the
+	# //// phone; catch it, log the cause, and still return the receipt for the screen
+	# //// (6138dcf "fix(mobile): un site sans messagerie sortante ne casse pas l'envoi du reçu")
 	try:
 		frappe.sendmail(
 			recipients=[email],

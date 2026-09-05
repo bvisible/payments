@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). `Provider Channel Settings` is
-#//// the junction of the ontology (ADR-004 §3): one record per (Provider, Channel)
-#//// pair, holding the driver-class override and the config that differs per channel
-#//// (`terminal_location_id` for Stripe × Terminal, `merchant_uuid` for TWINT × QR
-#//// bridge) plus the conventional webhook endpoint. It is what keeps credentials in
-#//// ONE place while the N×M combinations stay configurable — the thing upstream's
-#//// per-PSP settings pattern cannot do without duplicating the keys.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# //// Neoffice — added file (no upstream equivalent). `Provider Channel Settings` is
+# //// the junction of the ontology (ADR-004 §3): one record per (Provider, Channel)
+# //// pair, holding the driver-class override and the config that differs per channel
+# //// (`terminal_location_id` for Stripe × Terminal, `merchant_uuid` for TWINT × QR
+# //// bridge) plus the conventional webhook endpoint. It is what keeps credentials in
+# //// ONE place while the N×M combinations stay configurable — the thing upstream's
+# //// per-PSP settings pattern cannot do without duplicating the keys.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 

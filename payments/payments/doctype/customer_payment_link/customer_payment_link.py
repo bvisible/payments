@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). `Customer Payment Link` maps an
-#//// ERPNext Customer to its identity at one provider (`cus_xxx` at Stripe, …) so a
-#//// saved payment method can be found again, and enforces a single default per
-#//// (customer, provider) — ADR-004 §8. Upstream's per-PSP settings doctypes hold no
-#//// customer mapping at all.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# //// Neoffice — added file (no upstream equivalent). `Customer Payment Link` maps an
+# //// ERPNext Customer to its identity at one provider (`cus_xxx` at Stripe, …) so a
+# //// saved payment method can be found again, and enforces a single default per
+# //// (customer, provider) — ADR-004 §8. Upstream's per-PSP settings doctypes hold no
+# //// customer mapping at all.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 

@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent). The B2B differentiator, used live in client
-#//// presentations: a Pricing Rule scoped to the `B2B` Customer Group must actually
-#//// reach the cart total. Sets up the group, the rule and `activate_b2b_checkout`,
-#//// then drives a fresh user through signup and checkout.
-#//// Commits: c316645 2026-06-02 "test(e2e): B2B checkout differentiator".
+# //// Neoffice — added file (no upstream equivalent). The B2B differentiator, used live in client
+# //// presentations: a Pricing Rule scoped to the `B2B` Customer Group must actually
+# //// reach the cart total. Sets up the group, the rule and `activate_b2b_checkout`,
+# //// then drives a fresh user through signup and checkout.
+# //// Commits: c316645 2026-06-02 "test(e2e): B2B checkout differentiator".
 """B2B checkout differentiator — pricing rule applied for B2B Customer Group.
 
 Demo flow (used live in client presentations):

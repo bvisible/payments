@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Payrexx credentials lookup +
-#//// reachability probe. Nothing to host, unlike TWINT: Payrexx is a SaaS reached over
-#//// HTTPS and all HTTP work lives in the standalone `payrexx` library. Worth carrying
-#//// forward wherever these credentials are handled: **Payrexx API keys are not
-#//// scoped** — a key the back office labels *POS* still reads the merchant API and
-#//// the account balance, so a key deployed on a terminal is a full credential.
-#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
-#////          a8087dc 2026-08-11 "feat(payrexx): Tap to Pay server lot — the phone initiates, the server records"
+# //// Neoffice — added file (no upstream equivalent). Payrexx credentials lookup +
+# //// reachability probe. Nothing to host, unlike TWINT: Payrexx is a SaaS reached over
+# //// HTTPS and all HTTP work lives in the standalone `payrexx` library. Worth carrying
+# //// forward wherever these credentials are handled: **Payrexx API keys are not
+# //// scoped** — a key the back office labels *POS* still reads the merchant API and
+# //// the account balance, so a key deployed on a terminal is a full credential.
+# //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+# ////          a8087dc 2026-08-11 "feat(payrexx): Tap to Pay server lot — the phone initiates, the server records"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Payrexx provider — credentials lookup + health check.

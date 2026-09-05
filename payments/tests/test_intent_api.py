@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent). Exercises `payments.api.intent.*` →
-#//// `resolve_driver` → `MockDriver` → the Payment Intent FSM, touching no external
-#//// service. The only test in the repo that can run anywhere, on any site.
-#//// Commits: e32ecf5 2026-05-13 "Phase 1".
+# //// Neoffice — added file (no upstream equivalent). Exercises `payments.api.intent.*` →
+# //// `resolve_driver` → `MockDriver` → the Payment Intent FSM, touching no external
+# //// service. The only test in the repo that can run anywhere, on any site.
+# //// Commits: e32ecf5 2026-05-13 "Phase 1".
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """End-to-end tests for the public intent API using the MockDriver.

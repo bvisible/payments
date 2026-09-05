@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent). Smoke: the Playwright + Frappe login chain
-#//// works end to end. Commits: 187b5c8 2026-05-20.
+# //// Neoffice — added file (no upstream equivalent). Smoke: the Playwright + Frappe login chain
+# //// works end to end. Commits: 187b5c8 2026-05-20.
 """Smoke test — validates the Playwright + Frappe login chain works end-to-end."""
 
 import pytest

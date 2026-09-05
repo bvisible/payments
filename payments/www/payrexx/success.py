@@ -1,12 +1,12 @@
-#//// Neoffice — added file (no upstream equivalent). Controller of `/payrexx/success`:
-#//// look the Payment Intent up, refresh it from Payrexx (the redirect can beat the
-#//// settlement), finalise the Sales Order through `webshop.controllers.payment_handler`
-#//// and redirect to /thank_you, otherwise render the pending or failed state. The
-#//// polling is bounded — hard on the first load while the shopper watches, light on the
-#//// reloads after — because every attempt is an API call and Payrexx rate-limits at
-#//// ~600 requests per five minutes per account.
-#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
-#////          a009847 2026-08-31 "fix(payrexx): the return page span for ever on a payment that never came"
+# //// Neoffice — added file (no upstream equivalent). Controller of `/payrexx/success`:
+# //// look the Payment Intent up, refresh it from Payrexx (the redirect can beat the
+# //// settlement), finalise the Sales Order through `webshop.controllers.payment_handler`
+# //// and redirect to /thank_you, otherwise render the pending or failed state. The
+# //// polling is bounded — hard on the first load while the shopper watches, light on the
+# //// reloads after — because every attempt is an API call and Payrexx rate-limits at
+# //// ~600 requests per five minutes per account.
+# //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+# ////          a009847 2026-08-31 "fix(payrexx): the return page span for ever on a payment that never came"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """``/payrexx/success`` — landing page after a Payrexx hosted checkout.

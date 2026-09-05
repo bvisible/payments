@@ -1,12 +1,12 @@
-#//// Neoffice — added file (no upstream equivalent). Backend of the
-#//// `payment-terminal-wizard` desk page (the page itself is JS, no DocType): the
-#//// Step 1 provider chooser, which derives kind = stripe / wallee / other from
-#//// `driver_class`, and the Step 4 binding of a `Payment Device` into
-#//// `POS Profile.custom_active_payment_devices`. Provider-specific endpoints stay in
-#//// `payments.api.terminal` and `payments.integrations.wallee.api`. Came in with the
-#//// fold-in of the retired `wallee_integration` app (99e929c, ADR-005), replacing its
-#//// `wallee_terminal_wizard`. Upstream enrols no hardware — it builds checkout URLs.
-#//// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+# //// Neoffice — added file (no upstream equivalent). Backend of the
+# //// `payment-terminal-wizard` desk page (the page itself is JS, no DocType): the
+# //// Step 1 provider chooser, which derives kind = stripe / wallee / other from
+# //// `driver_class`, and the Step 4 binding of a `Payment Device` into
+# //// `POS Profile.custom_active_payment_devices`. Provider-specific endpoints stay in
+# //// `payments.api.terminal` and `payments.integrations.wallee.api`. Came in with the
+# //// fold-in of the retired `wallee_integration` app (99e929c, ADR-005), replacing its
+# //// `wallee_terminal_wizard`. Upstream enrols no hardware — it builds checkout URLs.
+# //// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Backend helpers for the unified ``payment_terminal_wizard`` Frappe Page.

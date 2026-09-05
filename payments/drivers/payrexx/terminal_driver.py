@@ -1,14 +1,14 @@
-#//// Neoffice — added file (no upstream equivalent). Payrexx card-present driver for
-#//// a NexGo terminal (ECR), sharing the `terminal` channel with Stripe and Wallee so
-#//// a till can move card to Payrexx while keeping TWINT on the PHP bridge. Upstream
-#//// has no terminal concept at all. Two shapes are deliberate, both because getting
-#//// them wrong charges a customer twice: it never retries a payment request (Payrexx
-#//// documents no idempotency, and duplicates were reproduced live), and a simulated
-#//// `Payment Device` short-circuits every ECR call — Payrexx ships no ECR sandbox,
-#//// so nothing could be exercised before the physical NexGo arrived.
-#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
-#////          1839ac7 2026-08-11 "feat(payrexx): simulate a terminal until the NexGo arrives"
-#////          38eeef5 2026-08-20 "fix(payrexx): map the terminal payment_status instead of always saying processing"
+# //// Neoffice — added file (no upstream equivalent). Payrexx card-present driver for
+# //// a NexGo terminal (ECR), sharing the `terminal` channel with Stripe and Wallee so
+# //// a till can move card to Payrexx while keeping TWINT on the PHP bridge. Upstream
+# //// has no terminal concept at all. Two shapes are deliberate, both because getting
+# //// them wrong charges a customer twice: it never retries a payment request (Payrexx
+# //// documents no idempotency, and duplicates were reproduced live), and a simulated
+# //// `Payment Device` short-circuits every ECR call — Payrexx ships no ECR sandbox,
+# //// so nothing could be exercised before the physical NexGo arrived.
+# //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+# ////          1839ac7 2026-08-11 "feat(payrexx): simulate a terminal until the NexGo arrives"
+# ////          38eeef5 2026-08-20 "fix(payrexx): map the terminal payment_status instead of always saying processing"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Payrexx Terminal driver — card present on a NexGo terminal (ECR).

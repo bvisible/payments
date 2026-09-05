@@ -1,17 +1,17 @@
-#//// Neoffice — added file (no upstream equivalent). `Payment Intent` is the single
-#//// fact table of the ontology (ADR-004 §5): one row per payment attempt whatever
-#//// the PSP and the channel, plus the state machine (`ALLOWED_TRANSITIONS` and
-#//// `transition_to`) that every driver and webhook goes through, writing a
-#//// `Payment Event` per move. Upstream keeps no unified transaction record — each
-#//// PSP settings doctype tracks its own, so nothing can be reported across PSPs.
-#//// The two July fixes explain why `failed` is NOT terminal here: a soft PIN
-#//// decline is retried by the PSP on the SAME provider intent, so a `succeeded`
-#//// arriving after `payment_failed` was being dropped (card charged, cashier rang
-#//// the sale again), and a settled intent kept the earlier decline code and read as
-#//// "paid AND refused" in the desk and in reconciliation queries.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
-#////          717f41d 2026-07-27 "fix(intent): failed n'est plus terminal - un refus PIN suivi d'une reprise reussie etait perdu"
-#////          db5d557 2026-07-27 "fix(intent): purger le code de refus quand l'intent finit par etre encaisse"
+# //// Neoffice — added file (no upstream equivalent). `Payment Intent` is the single
+# //// fact table of the ontology (ADR-004 §5): one row per payment attempt whatever
+# //// the PSP and the channel, plus the state machine (`ALLOWED_TRANSITIONS` and
+# //// `transition_to`) that every driver and webhook goes through, writing a
+# //// `Payment Event` per move. Upstream keeps no unified transaction record — each
+# //// PSP settings doctype tracks its own, so nothing can be reported across PSPs.
+# //// The two July fixes explain why `failed` is NOT terminal here: a soft PIN
+# //// decline is retried by the PSP on the SAME provider intent, so a `succeeded`
+# //// arriving after `payment_failed` was being dropped (card charged, cashier rang
+# //// the sale again), and a settled intent kept the earlier decline code and read as
+# //// "paid AND refused" in the desk and in reconciliation queries.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# ////          717f41d 2026-07-27 "fix(intent): failed n'est plus terminal - un refus PIN suivi d'une reprise reussie etait perdu"
+# ////          db5d557 2026-07-27 "fix(intent): purger le code de refus quand l'intent finit par etre encaisse"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 

@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). TWINT in-store driver, calling
-#//// the central `twint-ag/sdk` PHP bridge on neoservice rather than Stripe's TWINT
-#//// QR (ADR-002): 1.3% direct against 1.9% + CHF 0.30, and TWINT is not available
-#//// on Stripe's physical readers at all. TWINT exposes no Stripe-style webhook, so
-#//// handle_webhook is unused and a scheduler poll drives the FSM instead.
-#//// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
-#////          fc43f8f 2026-06-30 "fix(twint): POS capture flow — poll confirm_payment on ORDER_CONFIRMATION_PENDING + map ORDER_OK/abort/timeout statuses"
+# //// Neoffice — added file (no upstream equivalent). TWINT in-store driver, calling
+# //// the central `twint-ag/sdk` PHP bridge on neoservice rather than Stripe's TWINT
+# //// QR (ADR-002): 1.3% direct against 1.9% + CHF 0.30, and TWINT is not available
+# //// on Stripe's physical readers at all. TWINT exposes no Stripe-style webhook, so
+# //// handle_webhook is unused and a scheduler poll drives the FSM instead.
+# //// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
+# ////          fc43f8f 2026-06-30 "fix(twint): POS capture flow — poll confirm_payment on ORDER_CONFIRMATION_PENDING + map ORDER_OK/abort/timeout statuses"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """TWINT driver — calls the PHP bridge hosted on ``neoservice.neoffice.me``.

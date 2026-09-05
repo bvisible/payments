@@ -1,13 +1,13 @@
-#//// Neoffice — added file (no upstream equivalent). Controller of `/wallee/success`:
-#//// find the Payment Intent (or the legacy `payment_request`), refresh its status from
-#//// Wallee through the driver — Wallee can take a few seconds to confirm after the
-#//// redirect — then on `succeeded` finalise the Sales Order via
-#//// `webshop.controllers.payment_handler.handle_payment_success` and redirect to
-#//// /thank_you. Renamed from `www/wallee_success.py`: Frappe's www resolver maps
-#//// `/wallee/success` to the path hierarchy, so the underscore file was a 404 for every
-#//// returning buyer even though the payment had succeeded server-side.
-#//// Commits: ce478ca 2026-05-28 "fix(wallee-web): /wallee/success and /wallee/failed routes (404 → working)"
-#////          7f412d0 2026-06-08 "fix(wallee): route success debug to the bench logger instead of the Error Log doctype"
+# //// Neoffice — added file (no upstream equivalent). Controller of `/wallee/success`:
+# //// find the Payment Intent (or the legacy `payment_request`), refresh its status from
+# //// Wallee through the driver — Wallee can take a few seconds to confirm after the
+# //// redirect — then on `succeeded` finalise the Sales Order via
+# //// `webshop.controllers.payment_handler.handle_payment_success` and redirect to
+# //// /thank_you. Renamed from `www/wallee_success.py`: Frappe's www resolver maps
+# //// `/wallee/success` to the path hierarchy, so the underscore file was a 404 for every
+# //// returning buyer even though the payment had succeeded server-side.
+# //// Commits: ce478ca 2026-05-28 "fix(wallee-web): /wallee/success and /wallee/failed routes (404 → working)"
+# ////          7f412d0 2026-06-08 "fix(wallee): route success debug to the bench logger instead of the Error Log doctype"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """``/wallee/success`` — landing page after a Wallee web checkout.

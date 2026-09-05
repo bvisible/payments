@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Phase 4 smoke for the TWINT PHP bridge
-#//// wiring — runs with NO P12 certificate: the HTTP layer is mocked, so it only
-#//// proves the driver loads, the registry resolves it, the payload is right and the
-#//// scheduler entry does not explode.
-#//// Commits: 258f8cf 2026-05-13 "Phase 4 — TWINT PHP bridge driver + scheduler poll".
-#////          cc503b1 2026-05-13 "rename Twint Settings → Twint Bridge Settings"
-#////                   (the docstring was corrected on 2026-09-04, not the code:
-#////                   the check below never named the DocType).
+# //// Neoffice — added file (no upstream equivalent). Phase 4 smoke for the TWINT PHP bridge
+# //// wiring — runs with NO P12 certificate: the HTTP layer is mocked, so it only
+# //// proves the driver loads, the registry resolves it, the payload is right and the
+# //// scheduler entry does not explode.
+# //// Commits: 258f8cf 2026-05-13 "Phase 4 — TWINT PHP bridge driver + scheduler poll".
+# ////          cc503b1 2026-05-13 "rename Twint Settings → Twint Bridge Settings"
+# ////                   (the docstring was corrected on 2026-09-04, not the code:
+# ////                   the check below never named the DocType).
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Phase 4 smoke test for TWINT PHP Bridge wiring.
@@ -132,8 +132,8 @@ def run_all() -> dict:
 	# 2. Fixtures.
 	try:
 		_ensure_fixtures()
-		#//// Neoffice — the DocType is `Twint Bridge Settings` since cc503b1; this
-		#//// line still printed the pre-rename name until 2026-09-04.
+		# //// Neoffice — the DocType is `Twint Bridge Settings` since cc503b1; this
+		# //// line still printed the pre-rename name until 2026-09-04.
 		add("Provider + Channel + binding + Twint Bridge Settings present", True, MERCHANT_UUID)
 	except Exception as exc:  # noqa: BLE001
 		add("Fixtures", False, repr(exc))

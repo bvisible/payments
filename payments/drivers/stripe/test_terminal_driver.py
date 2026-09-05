@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Unit tests for the Stripe
-#//// Terminal driver: the SDK is monkeypatched, so they assert the arguments the
-#//// driver builds and its reaction to canned responses without reaching
-#//// api.stripe.com. The end-to-end run lives in payments.tests.phase2_smoke.
-#//// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
-#////          0530096 2026-05-13 "fix(stripe-terminal): body-aware idempotency key (intent_name + sha256[body][:12])"
+# //// Neoffice — added file (no upstream equivalent). Unit tests for the Stripe
+# //// Terminal driver: the SDK is monkeypatched, so they assert the arguments the
+# //// driver builds and its reaction to canned responses without reaching
+# //// api.stripe.com. The end-to-end run lives in payments.tests.phase2_smoke.
+# //// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
+# ////          0530096 2026-05-13 "fix(stripe-terminal): body-aware idempotency key (intent_name + sha256[body][:12])"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Unit tests for the Stripe Terminal driver.

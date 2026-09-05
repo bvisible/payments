@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). Cart: add two items, change a quantity,
-#//// remove one, assert the totals. Commits: 187b5c8 2026-05-20; ff99e4b 2026-06-02
-#//// (scoped item selector — the loose one matched the wrong row).
+# //// Neoffice — added file (no upstream equivalent). Cart: add two items, change a quantity,
+# //// remove one, assert the totals. Commits: 187b5c8 2026-05-20; ff99e4b 2026-06-02
+# //// (scoped item selector — the loose one matched the wrong row).
 """Cart lifecycle : add 2 items → change qty → remove 1 → assert totals."""
 
 from __future__ import annotations

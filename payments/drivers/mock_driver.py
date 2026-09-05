@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). In-memory test double,
-#//// registered as the `driver_class` of a mock Payment Provider, so the whole
-#//// intent API and FSM can be exercised without any external PSP. Upstream has
-#//// no driver contract, hence nothing to fake; it also serves as the smallest
-#//// complete example of the contract (see docs/adding-a-new-psp.md).
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# //// Neoffice — added file (no upstream equivalent). In-memory test double,
+# //// registered as the `driver_class` of a mock Payment Provider, so the whole
+# //// intent API and FSM can be exercised without any external PSP. Upstream has
+# //// no driver contract, hence nothing to fake; it also serves as the smallest
+# //// complete example of the contract (see docs/adding-a-new-psp.md).
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """In-memory mock driver used by tests and developer sandboxes.

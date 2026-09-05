@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Shared plumbing for the Payrexx
-#//// drivers: client building and the Payrexx-status → Payment Intent FSM table. HTTP
-#//// itself lives in the standalone `payrexx` library, so nothing here re-implements
-#//// it. The mapping is the interesting part: Payrexx's two authorities (the webhook
-#//// reference and the PHP SDK constants) disagree and are both incomplete, so
-#//// map_status returns None rather than guess — an unmapped value must not move a payment.
-#//// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
-#////          ee09517 2026-08-18 "fix(payrexx): match POS payments on invoice.purpose, and map the ECR statuses"
+# //// Neoffice — added file (no upstream equivalent). Shared plumbing for the Payrexx
+# //// drivers: client building and the Payrexx-status → Payment Intent FSM table. HTTP
+# //// itself lives in the standalone `payrexx` library, so nothing here re-implements
+# //// it. The mapping is the interesting part: Payrexx's two authorities (the webhook
+# //// reference and the PHP SDK constants) disagree and are both incomplete, so
+# //// map_status returns None rather than guess — an unmapped value must not move a payment.
+# //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
+# ////          ee09517 2026-08-18 "fix(payrexx): match POS payments on invoice.purpose, and map the ECR statuses"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Shared plumbing for the Payrexx drivers: status mapping and client building.

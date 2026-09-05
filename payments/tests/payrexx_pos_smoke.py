@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). The POSNext path for Payrexx terminal
-#//// payments: the till resolves the mapping to the terminal driver, create_intent
-#//// reaches the ECR API, and a missing terminal fails cleanly. Everything except an
-#//// actual card read. **Addresses the SIMULATOR, never the real terminal** (7e7066d
-#//// — it used to point at the device on someone's counter).
-#//// Commits: d4454f1 2026-08-11 "smoke tests for the webshop and POS paths";
-#//// 7e7066d + eb14cde 2026-08-21 (simulator only, and assert on the simulated run).
+# //// Neoffice — added file (no upstream equivalent). The POSNext path for Payrexx terminal
+# //// payments: the till resolves the mapping to the terminal driver, create_intent
+# //// reaches the ECR API, and a missing terminal fails cleanly. Everything except an
+# //// actual card read. **Addresses the SIMULATOR, never the real terminal** (7e7066d
+# //// — it used to point at the device on someone's counter).
+# //// Commits: d4454f1 2026-08-11 "smoke tests for the webshop and POS paths";
+# //// 7e7066d + eb14cde 2026-08-21 (simulator only, and assert on the simulated run).
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Exercise the POSNext path for Payrexx terminal payments.

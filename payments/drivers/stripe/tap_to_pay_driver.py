@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). Stripe Tap to Pay driver: the
-#//// merchant's phone IS the reader, so there is no device for the server to address.
-#//// create_intent mints a card-present PaymentIntent with **automatic** capture and
-#//// hands back its client_secret for the phone's Terminal SDK; the phone confirms and
-#//// the payment_intent.succeeded webhook drives the FSM. Automatic capture because
-#//// nobody is standing at a till to capture an authorisation afterwards.
-#//// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap to Pay et par QR TWINT, réglés en un seul endroit"
+# //// Neoffice — added file (no upstream equivalent). Stripe Tap to Pay driver: the
+# //// merchant's phone IS the reader, so there is no device for the server to address.
+# //// create_intent mints a card-present PaymentIntent with **automatic** capture and
+# //// hands back its client_secret for the phone's Terminal SDK; the phone confirms and
+# //// the payment_intent.succeeded webhook drives the FSM. Automatic capture because
+# //// nobody is standing at a till to capture an authorisation afterwards.
+# //// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap to Pay et par QR TWINT, réglés en un seul endroit"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Stripe Tap to Pay driver — the phone is the reader, the server keeps the books.

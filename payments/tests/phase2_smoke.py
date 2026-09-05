@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Phase 2 smoke against the REAL Stripe
-#//// sandbox: create_intent → confirm → reader simulator → webhook, through the
-#//// server-driven Terminal API (ADR-003). Needs a Stripe test-mode secret key.
-#//// Commits: 0efe5ef 2026-05-13 "Phase 2 — Stripe Terminal server-driven driver";
-#//// 24f5f66 (metadata must be deterministic for idempotency); 41252c9 (redact the
-#//// client_secret from the report).
+# //// Neoffice — added file (no upstream equivalent). Phase 2 smoke against the REAL Stripe
+# //// sandbox: create_intent → confirm → reader simulator → webhook, through the
+# //// server-driven Terminal API (ADR-003). Needs a Stripe test-mode secret key.
+# //// Commits: 0efe5ef 2026-05-13 "Phase 2 — Stripe Terminal server-driven driver";
+# //// 24f5f66 (metadata must be deterministic for idempotency); 41252c9 (redact the
+# //// client_secret from the report).
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Phase 2 acceptance smoke test against real Stripe sandbox.

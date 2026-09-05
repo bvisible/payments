@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Creates the EMV block a card receipt
-#//// is printed from on the sites that already exist. It only delegates: the block is
-#//// specified in `payments.setup.card_receipt_fields`, which `after_install` runs on a
-#//// fresh site, where a patch never runs (`bench install-app` marks them all completed).
-#//// Needed on existing sites too: the fields were posted by hand there, so a site is as
-#//// likely to be missing them as a new one — that is what issue #192 measured.
+# //// Neoffice — added file (no upstream equivalent). Creates the EMV block a card receipt
+# //// is printed from on the sites that already exist. It only delegates: the block is
+# //// specified in `payments.setup.card_receipt_fields`, which `after_install` runs on a
+# //// fresh site, where a patch never runs (`bench install-app` marks them all completed).
+# //// Needed on existing sites too: the fields were posted by hand there, so a site is as
+# //// likely to be missing them as a new one — that is what issue #192 measured.
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Create the card receipt fields on ``Sales Invoice Payment`` on the sites that exist.

@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Unit tests for the Payrexx ECR
-#//// driver against a fake replaying canned terminal states. They exist to pin
-#//// behaviour observed on a real NexGo N86 on 2026-08-21: the ECR reply carries the
-#//// payment's *current* state and never the outcome of the request, and a cancel sent
-#//// right after the payment request is silently dropped — which is why cancel_intent
-#//// polls instead of believing the reply.
-#//// Commits: 0d62ce2 2026-08-21 "fix(payrexx): stop reporting a terminal cancellation the reader never made"
-#////          896e1e1 2026-08-22 "fix(payrexx): TERMINATED is not a cancellation — stop booking paid sales as canceled"
+# //// Neoffice — added file (no upstream equivalent). Unit tests for the Payrexx ECR
+# //// driver against a fake replaying canned terminal states. They exist to pin
+# //// behaviour observed on a real NexGo N86 on 2026-08-21: the ECR reply carries the
+# //// payment's *current* state and never the outcome of the request, and a cancel sent
+# //// right after the payment request is silently dropped — which is why cancel_intent
+# //// polls instead of believing the reply.
+# //// Commits: 0d62ce2 2026-08-21 "fix(payrexx): stop reporting a terminal cancellation the reader never made"
+# ////          896e1e1 2026-08-22 "fix(payrexx): TERMINATED is not a cancellation — stop booking paid sales as canceled"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Unit tests for the Payrexx Terminal (ECR) driver.

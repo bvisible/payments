@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Unit tests for the Wallee
-#//// Terminal driver; the Wallee SDK is monkeypatched, so nothing reaches
-#//// api-wallee.com. End-to-end validation stays manual on Osiris with a physical
-#//// terminal, there being no Wallee reader simulator.
-#//// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
-#////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+# //// Neoffice — added file (no upstream equivalent). Unit tests for the Wallee
+# //// Terminal driver; the Wallee SDK is monkeypatched, so nothing reaches
+# //// api-wallee.com. End-to-end validation stays manual on Osiris with a physical
+# //// terminal, there being no Wallee reader simulator.
+# //// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
+# ////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Unit tests for the Wallee Terminal driver.

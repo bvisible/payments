@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). `Webhook Event Log` stores every
-#//// raw provider webhook, with the provider's `event_id` as the DocType name so that
-#//// idempotency is a database constraint and not a code path (ADR-004 §7). Upstream
-#//// verifies signatures inline inside each PSP's settings doctype and keeps no
-#//// shared, dedupable event trail.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# //// Neoffice — added file (no upstream equivalent). `Webhook Event Log` stores every
+# //// raw provider webhook, with the provider's `event_id` as the DocType name so that
+# //// idempotency is a database constraint and not a code path (ADR-004 §7). Upstream
+# //// verifies signatures inline inside each PSP's settings doctype and keeps no
+# //// shared, dedupable event trail.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 

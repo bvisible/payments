@@ -1,12 +1,12 @@
-#//// Neoffice — added file (no upstream equivalent). Upstream ships an EMPTY
-#//// `patches.txt` and has never had a patch; every entry in ours is one of these.
-#//// This one absorbs the retired `wallee_integration` app (ADR-005): it promotes the
-#//// legacy `Wallee Settings` single into a per-provider row, turns each `Wallee Payment
-#//// Terminal` into a `Payment Device`, then drops the legacy state tables (Wallee
-#//// Transaction / Transaction Item / Webhook Log) and the legacy POS Profile and
-#//// Payment Gateway Account custom fields — after which `bench uninstall-app
-#//// wallee_integration` is safe. Idempotent.
-#//// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+# //// Neoffice — added file (no upstream equivalent). Upstream ships an EMPTY
+# //// `patches.txt` and has never had a patch; every entry in ours is one of these.
+# //// This one absorbs the retired `wallee_integration` app (ADR-005): it promotes the
+# //// legacy `Wallee Settings` single into a per-provider row, turns each `Wallee Payment
+# //// Terminal` into a `Payment Device`, then drops the legacy state tables (Wallee
+# //// Transaction / Transaction Item / Webhook Log) and the legacy POS Profile and
+# //// Payment Gateway Account custom fields — after which `bench uninstall-app
+# //// wallee_integration` is safe. Idempotent.
+# //// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Patch v15.03 — merge ``wallee_integration`` into ``payments`` (ADR-005).

@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Stripe Terminal driver in
-#//// **server-driven** mode (ADR-003): the server calls api.stripe.com, which
-#//// drives the reader over Stripe's own cloud channel, so the cashier's browser
-#//// never speaks to the hardware — no mDNS/LAN discovery, which is what broke on
-#//// guest WiFi and segmented VLANs with the Wallee JS mode. Upstream `payments`
-#//// is a web-checkout hub and has no notion of a physical card terminal.
-#//// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
-#////          0530096 2026-05-13 "fix(stripe-terminal): body-aware idempotency key (intent_name + sha256[body][:12])"
+# //// Neoffice — added file (no upstream equivalent). Stripe Terminal driver in
+# //// **server-driven** mode (ADR-003): the server calls api.stripe.com, which
+# //// drives the reader over Stripe's own cloud channel, so the cashier's browser
+# //// never speaks to the hardware — no mDNS/LAN discovery, which is what broke on
+# //// guest WiFi and segmented VLANs with the Wallee JS mode. Upstream `payments`
+# //// is a web-checkout hub and has no notion of a physical card terminal.
+# //// Commits: 0efe5ef 2026-05-13 "feat(payments): Phase 2 — Stripe Terminal server-driven driver"
+# ////          0530096 2026-05-13 "fix(stripe-terminal): body-aware idempotency key (intent_name + sha256[body][:12])"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Stripe Terminal driver — **server-driven** mode.

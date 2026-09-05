@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). TWINT credentials lookup +
-#//// bridge health check. TWINT has no Python SDK: the official one is PHP and needs
-#//// the merchant P12 certificate on disk, so we host it on neoservice and every
-#//// instance calls it over HTTP (ADR-002, the EBICS pattern). The credentials are
-#//// therefore a service_url + a Frappe token, not a PSP API key.
-#//// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
-#////          ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
+# //// Neoffice — added file (no upstream equivalent). TWINT credentials lookup +
+# //// bridge health check. TWINT has no Python SDK: the official one is PHP and needs
+# //// the merchant P12 certificate on disk, so we host it on neoservice and every
+# //// instance calls it over HTTP (ADR-002, the EBICS pattern). The credentials are
+# //// therefore a service_url + a Frappe token, not a PSP API key.
+# //// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
+# ////          ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """TWINT provider — credentials lookup + bridge health check.

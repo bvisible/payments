@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). ONE fixed test Customer / Address / User,
-#//// reused across runs, reset before each. The names live in `site_config.json`
-#//// (`e2e_test_customer`, `e2e_test_user_email`) so several deployments can run the
-#//// suite without colliding.
-#//// Commits: f29b04b 2026-05-20 "webshop E2E framework"; b002600 2026-05-26
-#//// (a deterministic test item); c316645 2026-06-02 (the B2B group + pricing rule).
+# //// Neoffice — added file (no upstream equivalent). ONE fixed test Customer / Address / User,
+# //// reused across runs, reset before each. The names live in `site_config.json`
+# //// (`e2e_test_customer`, `e2e_test_user_email`) so several deployments can run the
+# //// suite without colliding.
+# //// Commits: f29b04b 2026-05-20 "webshop E2E framework"; b002600 2026-05-26
+# //// (a deterministic test item); c316645 2026-06-02 (the B2B group + pricing rule).
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """E2E fixture helpers — fixed test Customer / Address / User + state reset.

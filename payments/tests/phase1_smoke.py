@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent). Phase 1 acceptance smoke, run through
-#//// `bench --site <site> execute payments.tests.phase1_smoke.run_all`. Idempotent:
-#//// it cleans up its own fixtures, so it can be re-run on a live site.
-#//// Commits: ac7482b 2026-05-13 "add phase1_smoke runnable via bench execute";
-#//// 07d40cc 2026-05-13 (a self-transition logs no Payment Event).
+# //// Neoffice — added file (no upstream equivalent). Phase 1 acceptance smoke, run through
+# //// `bench --site <site> execute payments.tests.phase1_smoke.run_all`. Idempotent:
+# //// it cleans up its own fixtures, so it can be re-run on a live site.
+# //// Commits: ac7482b 2026-05-13 "add phase1_smoke runnable via bench execute";
+# //// 07d40cc 2026-05-13 (a self-transition logs no Payment Event).
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
 """Phase 1 acceptance smoke test, callable from `bench execute`.

@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). The webshop TWINT QR, shown on
-#//// the operator's phone at the customer's door. It subclasses TwintWebDriver and
-#//// adds no behaviour: it exists as a separate **channel** so a payment collected on
-#//// site is not booked as a webshop order — reports, fees and the shop's settlement
-#//// hook (`_finalize_webshop_sales_order`, which only runs on `twint_web`) want them apart.
-#//// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap to Pay et par QR TWINT, réglés en un seul endroit"
+# //// Neoffice — added file (no upstream equivalent). The webshop TWINT QR, shown on
+# //// the operator's phone at the customer's door. It subclasses TwintWebDriver and
+# //// adds no behaviour: it exists as a separate **channel** so a payment collected on
+# //// site is not booked as a webshop order — reports, fees and the shop's settlement
+# //// hook (`_finalize_webshop_sales_order`, which only runs on `twint_web`) want them apart.
+# //// Commits: d06eb26 2026-09-03 "feat(mobile): encaisser sur place par Stripe Tap to Pay et par QR TWINT, réglés en un seul endroit"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """TWINT on the operator's phone — the same QR as the shop, shown on site.

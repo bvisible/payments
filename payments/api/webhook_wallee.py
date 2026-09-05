@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). The Wallee webhook receiver, same
-#//// shape as the Stripe one: the driver verifies the HMAC-SHA256 signature against
-#//// `Wallee Settings.webhook_secret` and builds a deterministic event id from
-#//// listenerEntityTechnicalName + entityId + state, because Wallee emits no global
-#//// event id. Wallee arrived with the retired `wallee_integration` app (99e929c,
-#//// ADR-005); upstream has no Wallee anything.
-#//// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
+# //// Neoffice — added file (no upstream equivalent). The Wallee webhook receiver, same
+# //// shape as the Stripe one: the driver verifies the HMAC-SHA256 signature against
+# //// `Wallee Settings.webhook_secret` and builds a deterministic event id from
+# //// listenerEntityTechnicalName + entityId + state, because Wallee emits no global
+# //// event id. Wallee arrived with the retired `wallee_integration` app (99e929c,
+# //// ADR-005); upstream has no Wallee anything.
+# //// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Wallee webhook endpoint.

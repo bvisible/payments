@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Public entry points of the
-#//// Wallee drivers (terminal + hosted page). Wallee arrived with the retired
-#//// `wallee_integration` app, folded in by ADR-005; upstream has no Wallee anything.
-#//// The SDK is imported lazily inside each method so sites without Wallee pay nothing.
-#//// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
-#////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+# //// Neoffice — added file (no upstream equivalent). Public entry points of the
+# //// Wallee drivers (terminal + hosted page). Wallee arrived with the retired
+# //// `wallee_integration` app, folded in by ADR-005; upstream has no Wallee anything.
+# //// The SDK is imported lazily inside each method so sites without Wallee pay nothing.
+# //// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
+# ////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Wallee drivers.

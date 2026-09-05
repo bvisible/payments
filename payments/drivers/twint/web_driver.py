@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent). Consumer-initiated TWINT QR
-#//// for the webshop (`twint_web`), ported here when the retired `twint_integration`
-#//// app was folded into `payments` (Phase 11). Same bridge calls as the POS driver,
-#//// which it subclasses; only the pairing artifact differs — the token is wrapped
-#//// into an inline SVG QR rendered on the buyer's checkout page.
-#//// Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
+# //// Neoffice — added file (no upstream equivalent). Consumer-initiated TWINT QR
+# //// for the webshop (`twint_web`), ported here when the retired `twint_integration`
+# //// app was folded into `payments` (Phase 11). Same bridge calls as the POS driver,
+# //// which it subclasses; only the pairing artifact differs — the token is wrapped
+# //// into an inline SVG QR rendered on the buyer's checkout page.
+# //// Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """TWINT consumer-initiated driver (webshop QR checkout).

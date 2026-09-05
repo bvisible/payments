@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). Resolves a (provider_name,
-#//// channel_code) couple into a concrete PaymentDriverBase instance, by reading
-#//// `Payment Provider` + `Payment Channel` + `Provider Channel Settings` and
-#//// importing the resolved driver class. Upstream dispatches straight onto a
-#//// `<psp>_settings` DocType, so it has no couple to resolve and no registry.
-#//// Deliberately uncached: Frappe forks workers and credentials may rotate.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# //// Neoffice — added file (no upstream equivalent). Resolves a (provider_name,
+# //// channel_code) couple into a concrete PaymentDriverBase instance, by reading
+# //// `Payment Provider` + `Payment Channel` + `Provider Channel Settings` and
+# //// importing the resolved driver class. Upstream dispatches straight onto a
+# //// `<psp>_settings` DocType, so it has no couple to resolve and no registry.
+# //// Deliberately uncached: Frappe forks workers and credentials may rotate.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Driver registry.

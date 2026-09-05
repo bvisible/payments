@@ -1,10 +1,10 @@
-#//// Neoffice — added file (no upstream equivalent). A probe, not a test: it answers the one
-#//// question the whole Tap to Pay design depended on and that no documentation
-#//// settles — does the `order_reference` handed to the SDK come back as
-#//// `referenceId` in the webhook? If not, a phone-initiated payment cannot be tied
-#//// to a Payment Intent and the design changes. Kept as the record of the answer.
-#//// Commits: f9dc031 2026-08-11 "test(payrexx): probe what a Tap to Pay webhook
-#//// actually contains".
+# //// Neoffice — added file (no upstream equivalent). A probe, not a test: it answers the one
+# //// question the whole Tap to Pay design depended on and that no documentation
+# //// settles — does the `order_reference` handed to the SDK come back as
+# //// `referenceId` in the webhook? If not, a phone-initiated payment cannot be tied
+# //// to a Payment Intent and the design changes. Kept as the record of the answer.
+# //// Commits: f9dc031 2026-08-11 "test(payrexx): probe what a Tap to Pay webhook
+# //// actually contains".
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Read what Payrexx actually sends for a Tap to Pay payment.

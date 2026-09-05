@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). The Payment Intent lifecycle API —
-#//// create / status / cancel / refund — uniform across PSPs: it resolves a driver from
-#//// the (provider, channel) binding of ADR-001/004 and drives the single fact table.
-#//// Upstream fuses PSP credentials, channel and business logic into one settings
-#//// doctype per PSP, so it has no Payment Intent, no driver registry, and no
-#//// cross-PSP entry point to expose.
-#//// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
-#////          78d9240 2026-08-21 "fix(payments): actually release a frozen card reader instead of just reporting it"
+# //// Neoffice — added file (no upstream equivalent). The Payment Intent lifecycle API —
+# //// create / status / cancel / refund — uniform across PSPs: it resolves a driver from
+# //// the (provider, channel) binding of ADR-001/004 and drives the single fact table.
+# //// Upstream fuses PSP credentials, channel and business logic into one settings
+# //// doctype per PSP, so it has no Payment Intent, no driver registry, and no
+# //// cross-PSP entry point to expose.
+# //// Commits: e32ecf5 2026-05-13 "feat(payments): Phase 1 — unified payment driver layer (Provider × Channel × Driver)"
+# ////          78d9240 2026-08-21 "fix(payments): actually release a frozen card reader instead of just reporting it"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Public API for Payment Intent lifecycle.

@@ -1,12 +1,12 @@
-#//// Neoffice — added file (no upstream equivalent). The EMV block a card receipt is
-#//// printed from, on `Sales Invoice Payment`. Until now these thirteen fields were
-#//// Custom Fields posted BY HAND on the instances — `module = null`, no app created
-#//// them — so they exist where someone once typed them and nowhere else. On a fresh
-#//// site (the CI, and every new instance of the fleet) the row had none of them:
-#//// `payments.api.card_receipt` wrote its mentions onto attributes that are not
-#//// columns, nothing was persisted, the till printed a sales receipt where a card
-#//// receipt is required, and two tests died on `AttributeError` — issue #192.
-#//// Upstream has neither a card terminal nor a card receipt, so nothing to provision.
+# //// Neoffice — added file (no upstream equivalent). The EMV block a card receipt is
+# //// printed from, on `Sales Invoice Payment`. Until now these thirteen fields were
+# //// Custom Fields posted BY HAND on the instances — `module = null`, no app created
+# //// them — so they exist where someone once typed them and nowhere else. On a fresh
+# //// site (the CI, and every new instance of the fleet) the row had none of them:
+# //// `payments.api.card_receipt` wrote its mentions onto attributes that are not
+# //// columns, nothing was persisted, the till printed a sales receipt where a card
+# //// receipt is required, and two tests died on `AttributeError` — issue #192.
+# //// Upstream has neither a card terminal nor a card receipt, so nothing to provision.
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """The EMV fields a card receipt is printed from, provisioned once per site.

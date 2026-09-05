@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent). Full checkout on Stripe: login → cart →
-#//// the 4-step checkout → card 4242 → Sales Order. Commits: 187b5c8 2026-05-20.
+# //// Neoffice — added file (no upstream equivalent). Full checkout on Stripe: login → cart →
+# //// the 4-step checkout → card 4242 → Sales Order. Commits: 187b5c8 2026-05-20.
 """Full checkout flow with Stripe — login → cart → checkout 4-step → 4242 → SO."""
 
 from __future__ import annotations

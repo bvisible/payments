@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Wallee credentials + health
-#//// check. Unlike the other providers it reads a per-provider `Wallee Settings`
-#//// DocType brought over by the ADR-005 fusion of the retired `wallee_integration`
-#//// app (richer schema: POS toggles, terminal defaults, webshop options), so
-#//// `Payment Provider.credentials_json` stays empty and two Wallee accounts can
-#//// cohabit on one site.
-#//// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
-#////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
+# //// Neoffice — added file (no upstream equivalent). Wallee credentials + health
+# //// check. Unlike the other providers it reads a per-provider `Wallee Settings`
+# //// DocType brought over by the ADR-005 fusion of the retired `wallee_integration`
+# //// app (richer schema: POS toggles, terminal defaults, webshop options), so
+# //// `Payment Provider.credentials_json` stays empty and two Wallee accounts can
+# //// cohabit on one site.
+# //// Commits: 49af519 2026-05-18 "feat(drivers): Wallee Terminal driver (server-driven, webhook + polling fallback)"
+# ////          99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Wallee provider — credentials lookup + health check.

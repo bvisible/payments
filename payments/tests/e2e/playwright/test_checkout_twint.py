@@ -1,11 +1,11 @@
-#//// Neoffice — added file (no upstream equivalent). Checkout on TWINT: the overlay dialog,
-#//// the simulator, the Sales Order. Records a real decision — TWINT is deliberately
-#//// NOT on the intent engine: putting it there was tried and reverted on 2026-09-01
-#//// because the engine draws its own tile, which reduced TWINT to a bare QR and
-#//// dropped the dialog (amount, pairing code, countdown, the three phone steps and
-#//// the poller that redirects on confirmation).
-#//// Commits: 187b5c8 2026-05-20; b2c5c3d 2026-06-02 (idempotent terms acceptance);
-#//// cf46815 2026-09-01 "rendre à TWINT son dialogue, et le tenir par un test".
+# //// Neoffice — added file (no upstream equivalent). Checkout on TWINT: the overlay dialog,
+# //// the simulator, the Sales Order. Records a real decision — TWINT is deliberately
+# //// NOT on the intent engine: putting it there was tried and reverted on 2026-09-01
+# //// because the engine draws its own tile, which reduced TWINT to a bare QR and
+# //// dropped the dialog (amount, pairing code, countdown, the three phone steps and
+# //// the poller that redirects on confirmation).
+# //// Commits: 187b5c8 2026-05-20; b2c5c3d 2026-06-02 (idempotent terms acceptance);
+# //// cf46815 2026-09-01 "rendre à TWINT son dialogue, et le tenir par un test".
 """Checkout with TWINT — login → cart → overlay dialog → simulate → SO.
 
 TWINT is deliberately NOT on the intent engine. Flipping it there was tried and

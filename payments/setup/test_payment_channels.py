@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent). Guards the channel registry: the
-#//// database holds every shipped channel, provisioning is idempotent, and a deleted
-#//// channel comes back with its ui_kind and capabilities. Upstream has no Payment
-#//// Channel doctype.
-#//// Commits: 7a0f7ca 2026-09-03 "fix(install): provision the shipped Payment Channels on a fresh site"
+# //// Neoffice — added file (no upstream equivalent). Guards the channel registry: the
+# //// database holds every shipped channel, provisioning is idempotent, and a deleted
+# //// channel comes back with its ui_kind and capabilities. Upstream has no Payment
+# //// Channel doctype.
+# //// Commits: 7a0f7ca 2026-09-03 "fix(install): provision the shipped Payment Channels on a fresh site"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 import frappe

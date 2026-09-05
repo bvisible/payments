@@ -1,15 +1,15 @@
-#//// Neoffice — added file (no upstream equivalent). Smoke run over the whole
-#//// Payrexx webshop path: create_payment_request → the payments pivot that mints
-#//// the Payment Intent and returns the hosted URL → the finalised Sales Order,
-#//// including the closed-tab case (an injected `confirmed` delivery must produce
-#//// the order on its own, and replaying the return page must not duplicate it).
-#//// Run with `bench --site <site> execute payments.tests.payrexx_webshop_smoke.run`
-#//// against a site where Payrexx is wired into the checkout — it talks to the
-#//// live Payrexx API.
-#//// Commits: d4454f1 2026-08-11 "test(payrexx): smoke tests for the webshop and
-#//// POS paths"; f5813b6 2026-08-11 (the closed-tab case).
-#//// NOTE: the `////` inside the docstring below is a reference to a patch of OURS
-#//// in the `webshop` app — not a marker of this file. This header is the marker.
+# //// Neoffice — added file (no upstream equivalent). Smoke run over the whole
+# //// Payrexx webshop path: create_payment_request → the payments pivot that mints
+# //// the Payment Intent and returns the hosted URL → the finalised Sales Order,
+# //// including the closed-tab case (an injected `confirmed` delivery must produce
+# //// the order on its own, and replaying the return page must not duplicate it).
+# //// Run with `bench --site <site> execute payments.tests.payrexx_webshop_smoke.run`
+# //// against a site where Payrexx is wired into the checkout — it talks to the
+# //// live Payrexx API.
+# //// Commits: d4454f1 2026-08-11 "test(payrexx): smoke tests for the webshop and
+# //// POS paths"; f5813b6 2026-08-11 (the closed-tab case).
+# //// NOTE: the `////` inside the docstring below is a reference to a patch of OURS
+# //// in the `webshop` app — not a marker of this file. This header is the marker.
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Exercise the Payrexx checkout, from the button to the finalised order.
