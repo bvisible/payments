@@ -28,3 +28,8 @@ payments.patches.v15_09.provision_card_receipt_fields
 # //// never shipped; existing sites had it from the retired twint_integration app, a
 # //// fresh site had no way to bind TWINT at the till.
 payments.patches.v15_10.provision_qr_bridge_channel
+# //// Neoffice — v15_11 (2026-09-06, issue #219): the webhook endpoint was built
+# //// from the provider RECORD name, so `wallee_test` carried a path that 404s and
+# //// it was rewritten on every save. Nothing reads the field — a human copies it
+# //// into the PSP dashboard — so the wrong value cost a webhook, silently.
+payments.patches.v15_11.repair_webhook_endpoints
