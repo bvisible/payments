@@ -78,6 +78,7 @@ class ProviderChannelSettings(Document):
 				return name[: -len(suffix)]
 		return name
 
+	# //// Neoffice — see the block marker above: webhook endpoint fix (#219)
 	def _compute_webhook_endpoint(self):
 		"""Fill in the conventional endpoint — never overwrite a human's, never lie.
 
