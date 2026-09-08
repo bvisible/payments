@@ -73,15 +73,7 @@ class ProviderChannelSettings(Document):
 		"""The family the shipped receiver is named after: `wallee_live` -> `wallee`.
 
 		Uses the provider's own `mode` when it has one, so the suffix is not guessed;
-		falls back to the conventional suffixes for records that predate it.
-
-		`_migrated` is one of those: the twint_integration / webshopsi_integration
-		merge into `payments` left providers named `wallee_migrated` (mode=test) and
-		`twint_migrated` (mode=live) on live sites, where the suffix is part of the
-		historical NAME and not the mode. Measured 2026-09-08 on dmis, demo and
-		blowbackshop: without it the family stayed `wallee_migrated`, no receiver
-		matched, and an enabled provider was left with an empty endpoint — honest,
-		but useless to whoever has to register the URL with the provider.
+		falls back to the two conventional suffixes for records that predate it.
 		"""
 		name = (self.provider or "").strip()
 		if not name:
