@@ -33,3 +33,9 @@ payments.patches.v15_10.provision_qr_bridge_channel
 # //// it was rewritten on every save. Nothing reads the field — a human copies it
 # //// into the PSP dashboard — so the wrong value cost a webhook, silently.
 payments.patches.v15_11.repair_webhook_endpoints
+# //// Neoffice — v15_12 (2026-09-08, issue #219): `_migrated` is part of the provider
+# //// NAME, not its mode — a leftover of the twint_integration merge. v15_11 could not
+# //// resolve those families and cleared their endpoint, leaving enabled providers on
+# //// dmis, demo and blowbackshop with no URL to register. v15_11 is already logged
+# //// everywhere, so it cannot re-run.
+payments.patches.v15_12.repair_migrated_webhook_endpoints

@@ -46,6 +46,14 @@ class TestProviderChannelSettingsWebhookEndpoint(FrappeTestCase):
 		"""Records that predate the `mode` field still resolve to their family."""
 		self.assertEqual(self._compute("payrexx_live", ""), f"{PREFIX}payrexx.handle")
 
+	def test_the_migrated_suffix_is_a_name_not_a_mode(self):
+		"""dmis / demo carry `wallee_migrated` (mode=test) from the twint_integration merge."""
+		self.assertEqual(self._compute("wallee_migrated", "test"), f"{PREFIX}wallee.handle")
+
+	def test_a_migrated_family_with_no_receiver_still_gets_nothing(self):
+		"""blowbackshop carries `twint_migrated`: TWINT ships no webhook receiver."""
+		self.assertFalse(self._compute("twint_migrated", "live"))
+
 	def test_no_receiver_means_no_endpoint_rather_than_a_404(self):
 		self.assertFalse(self._compute("acme_test", "test"))
 
