@@ -46,6 +46,9 @@ class TestProviderChannelSettingsWebhookEndpoint(FrappeTestCase):
 		"""Records that predate the `mode` field still resolve to their family."""
 		self.assertEqual(self._compute("payrexx_live", ""), f"{PREFIX}payrexx.handle")
 
+	# //// Neoffice — added tests (f6155a6 "fix(webhooks): `_migrated` is part of the provider
+	# //// NAME, not its mode (#219, second pass)"): pin both `_migrated` outcomes — wallee
+	# //// resolves to its shipped receiver, twint stays empty since it has none.
 	def test_the_migrated_suffix_is_a_name_not_a_mode(self):
 		"""dmis / demo carry `wallee_migrated` (mode=test) from the twint_integration merge."""
 		self.assertEqual(self._compute("wallee_migrated", "test"), f"{PREFIX}wallee.handle")

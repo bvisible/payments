@@ -63,6 +63,12 @@ class ProviderChannelSettings(Document):
 	WEBHOOK_PREFIX = "/api/method/payments.api.webhook_"
 	WEBHOOK_SUFFIX = ".handle"
 
+	# //// Neoffice — `_migrated` added to the recognised suffixes (f6155a6 "fix(webhooks):
+	# //// `_migrated` is part of the provider NAME, not its mode (#219, second pass)"): the
+	# //// twint_integration / webshopsi_integration merge left `wallee_migrated` (mode=test)
+	# //// and `twint_migrated` (mode=live) on dmis, demo and blowbackshop, where the suffix is
+	# //// part of the historical NAME rather than the mode; without it the family stayed
+	# //// unresolved and an enabled provider was left with no webhook endpoint at all.
 	def _provider_family(self) -> str:
 		"""The family the shipped receiver is named after: `wallee_live` -> `wallee`.
 
@@ -81,6 +87,7 @@ class ProviderChannelSettings(Document):
 		if not name:
 			return ""
 		mode = frappe.db.get_value("Payment Provider", name, "mode") or ""
+		# //// Neoffice — see the marker above _provider_family: `_migrated` suffix added (f6155a6)
 		for suffix in (f"_{mode}" if mode else "", "_test", "_live", "_migrated"):
 			if suffix and name.endswith(suffix) and len(name) > len(suffix):
 				return name[: -len(suffix)]
