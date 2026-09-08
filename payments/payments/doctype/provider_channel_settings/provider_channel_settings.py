@@ -70,6 +70,9 @@ class ProviderChannelSettings(Document):
 	# //// part of the historical NAME rather than the mode; without it the family stayed
 	# //// unresolved and an enabled provider was left with no webhook endpoint at all.
 	def _provider_family(self) -> str:
+		# //// Neoffice — docstring reverted to the upstream wording (d2ff791 "chore(fork): our
+		# //// reasoning belongs in the //// marker, not in a docstring"): the `_migrated`
+		# //// explanation lives only in the marker above this method, not in the docstring.
 		"""The family the shipped receiver is named after: `wallee_live` -> `wallee`.
 
 		Uses the provider's own `mode` when it has one, so the suffix is not guessed;
