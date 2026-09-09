@@ -255,10 +255,29 @@ class StripeSettings(Document):
 				# //// distinct decline, and the constant label buried in the body.
 				frappe.log_error("Stripe Payment not completed", charge.failure_message)
 
-		except Exception:
-			# //// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
-			# //// title, truncated at 140). See the file header.
-			frappe.log_error("Error in Stripe payment processing", frappe.get_traceback())
+		except Exception as exc:
+			# //// Neoffice — a declined card is not an application error. Stripe reports a refusal
+			# //// by RAISING CardError, so "insufficient funds" and "your card was declined" landed
+			# //// in Error Log exactly like a broken API key would: the signature bridge then opened
+			# //// a tracker issue for a customer's bank saying no (#167). Three occurrences on a
+			# //// live shop in four days, all of them normal payment outcomes. Logging them as
+			# //// system errors is how a real Stripe failure stops standing out.
+			# //// The refusal is recorded where it belongs — on the Integration Request, which is
+			# //// the log of this payment attempt — and the reason is handed to the customer, who
+			# //// otherwise landed on a bare "payment-failed" page with nothing to act on. Stripe's
+			# //// user_message is written to be shown; the raw exception never is.
+			card_error = getattr(getattr(stripe, "error", stripe), "CardError", ())
+			if card_error and isinstance(exc, card_error):
+				reason = getattr(exc, "user_message", None) or str(exc)
+				self.integration_request.db_set(
+					"error", reason[:1000], update_modified=False
+				)
+				self.integration_request.db_set("status", "Failed", update_modified=False)
+				self.data.redirect_message = reason
+			else:
+				# //// upstream: `frappe.log_error(frappe.get_traceback())` (traceback as title,
+				# //// truncated at 140). See the file header.
+				frappe.log_error("Error in Stripe payment processing", frappe.get_traceback())
 
 		return self.finalize_request()
 
