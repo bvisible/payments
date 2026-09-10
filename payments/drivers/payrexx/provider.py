@@ -13,7 +13,7 @@
 Payrexx is a Swiss PSP (Thun) that covers in one contract what we currently
 address with two integrations: card-present at the terminal (ECR on NexGo), TWINT,
 and web checkout. It is added as a **third provider alongside** Stripe Terminal
-and the TWINT PHP bridge, not as a replacement — guigoz runs in production on
+and the TWINT PHP bridge, not as a replacement — clients run in production on
 those and must not regress. The choice is per client, through
 ``Payment Provider`` + ``POS Payment Driver Mapping``.
 
