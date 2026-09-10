@@ -2,8 +2,8 @@
 # //// v15_11 derived the endpoint from the provider FAMILY, but only knew the `_test`
 # //// and `_live` suffixes plus the provider's own `mode`. The twint_integration /
 # //// webshopsi_integration merge into `payments` left providers named
-# //// `wallee_migrated` (mode=test, on dmis and demo) and `twint_migrated` (mode=live,
-# //// on blowbackshop) where `_migrated` is part of the historical NAME. The family
+# //// `wallee_migrated` (mode=test, on two instances) and `twint_migrated` (mode=live,
+# //// on a third) where `_migrated` is part of the historical NAME. The family
 # //// stayed `wallee_migrated`, no receiver matched, and v15_11 CLEARED the field:
 # //// an enabled provider on a live site left with no URL to register.
 # //// v15_11 is already in Patch Log everywhere, so it cannot re-run — hence this one.

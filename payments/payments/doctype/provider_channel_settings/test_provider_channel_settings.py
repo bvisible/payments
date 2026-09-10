@@ -50,11 +50,11 @@ class TestProviderChannelSettingsWebhookEndpoint(FrappeTestCase):
 	# //// NAME, not its mode (#219, second pass)"): pin both `_migrated` outcomes — wallee
 	# //// resolves to its shipped receiver, twint stays empty since it has none.
 	def test_the_migrated_suffix_is_a_name_not_a_mode(self):
-		"""dmis / demo carry `wallee_migrated` (mode=test) from the twint_integration merge."""
+		"""Two instances carry `wallee_migrated` (mode=test) from the twint_integration merge."""
 		self.assertEqual(self._compute("wallee_migrated", "test"), f"{PREFIX}wallee.handle")
 
 	def test_a_migrated_family_with_no_receiver_still_gets_nothing(self):
-		"""blowbackshop carries `twint_migrated`: TWINT ships no webhook receiver."""
+		"""A third carries `twint_migrated`: TWINT ships no webhook receiver."""
 		self.assertFalse(self._compute("twint_migrated", "live"))
 
 	def test_no_receiver_means_no_endpoint_rather_than_a_404(self):

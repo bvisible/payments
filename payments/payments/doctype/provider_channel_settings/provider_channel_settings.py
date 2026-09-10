@@ -66,7 +66,7 @@ class ProviderChannelSettings(Document):
 	# //// Neoffice — `_migrated` added to the recognised suffixes (f6155a6 "fix(webhooks):
 	# //// `_migrated` is part of the provider NAME, not its mode (#219, second pass)"): the
 	# //// twint_integration / webshopsi_integration merge left `wallee_migrated` (mode=test)
-	# //// and `twint_migrated` (mode=live) on dmis, demo and blowbackshop, where the suffix is
+	# //// and `twint_migrated` (mode=live) on three instances, where the suffix is
 	# //// part of the historical NAME rather than the mode; without it the family stayed
 	# //// unresolved and an enabled provider was left with no webhook endpoint at all.
 	def _provider_family(self) -> str:
