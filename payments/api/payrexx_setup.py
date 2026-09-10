@@ -45,26 +45,36 @@ PROVIDER = "payrexx"
 #: ``inline`` decides whether the payment page is shown inside the checkout. Card
 #: entry is a form and stays on the shop; TWINT hands over to the phone and
 #: cannot do that from inside a frame.
-TILES: dict[str, dict[str, Any]] = {
-	"card": {
-		"suffix": "Carte",
-		"methods": ["visa", "mastercard"],
-		"inline": True,
-		"label": _("Card"),
-	},
-	"twint": {
-		"suffix": "TWINT",
-		"methods": ["twint"],
-		"inline": False,
-		"label": "TWINT",
-	},
-	"all": {
-		"suffix": "",
-		"methods": [],
-		"inline": False,
-		"label": _("All methods"),
-	},
-}
+# A FUNCTION, not a module constant: `_()` at module level runs at IMPORT, and a
+# worker imports every app before it connects to a site. `frappe.cache` is None
+# there, so each of these labels logged "Unable to load translations" with a bare
+# AttributeError on every restart (neoffice-maintenance#325, #326) -- and any label
+# that did come back was frozen in whatever language was active at import, for the
+# lifetime of the process. Called per use, both go away.
+#
+# Named `payment_tiles` and not `tiles`: this module already has a local `tiles`
+# list, which would shadow the function and turn every call into a TypeError.
+def payment_tiles() -> dict[str, dict[str, Any]]:
+	return {
+		"card": {
+			"suffix": "Carte",
+			"methods": ["visa", "mastercard"],
+			"inline": True,
+			"label": _("Card"),
+		},
+		"twint": {
+			"suffix": "TWINT",
+			"methods": ["twint"],
+			"inline": False,
+			"label": "TWINT",
+		},
+		"all": {
+			"suffix": "",
+			"methods": [],
+			"inline": False,
+			"label": _("All methods"),
+		},
+	}
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +109,7 @@ def get_current_setup() -> dict[str, Any]:
 	)
 
 	tiles = []
-	for key, spec in TILES.items():
+	for key, spec in payment_tiles().items():
 		account = _account_name(spec["suffix"])
 		if not account or not frappe.db.exists("Payment Gateway Account", account):
 			continue
@@ -253,7 +263,7 @@ def setup_tiles(tiles: list[str] | str, currency: str = "CHF") -> dict[str, Any]
 
 	if isinstance(tiles, str):
 		tiles = frappe.parse_json(tiles)
-	inconnu = [t for t in tiles if t not in TILES]
+	inconnu = [t for t in tiles if t not in payment_tiles()]
 	if inconnu:
 		frappe.throw(_("Unknown tiles: {0}").format(", ".join(inconnu)))
 
@@ -261,7 +271,7 @@ def setup_tiles(tiles: list[str] | str, currency: str = "CHF") -> dict[str, Any]
 	crees = []
 
 	for key in tiles:
-		spec = TILES[key]
+		spec = payment_tiles()[key]
 		gateway = _gateway_name(spec["suffix"])
 
 		if not frappe.db.exists("Payment Gateway", gateway):
