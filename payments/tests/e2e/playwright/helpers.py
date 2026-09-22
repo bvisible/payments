@@ -356,21 +356,61 @@ def fill_wallee_redirect_card(
 
 	# 2. Click an EXACT "Use" button (get_by_role exact avoids matching the
 	#    Simulation header which also contains the substring "use").
+	#
+	# //// Neoffice — this shortcut STOPPED FILLING ANYTHING (measured 2026-09-22 on
+	# //// the sandbox). Five buttons whose text is "Use" are in the DOM, none of them
+	# //// is exposed to the accessibility tree under that exact name, and clicking one
+	# //// by its text leaves every card field empty. The fallback below then typed the
+	# //// card the caller passes — Stripe's 4242… by default — which Wallee answers
+	# //// with "The authorization is declined": Wallee has its OWN test cards, listed
+	# //// in that panel. The run showed none of this: the test waited for a redirect
+	# //// that was never coming and died on a timeout naming nothing.
 	use_btn = page.get_by_role("button", name="Use", exact=True).first
 	if use_btn.count() > 0:
 		use_btn.click()
 		page.wait_for_timeout(2_500)
-	else:
-		# Production fallback — type into the card fields directly.
+
+	if not _card_fields_filled(page):
+		# The shortcut did not fill: type the card the caller asked for.
 		page.locator("input[name='ccnumber']").first.fill(card)
 		page.locator("input[id$='expiryDate-month']").first.fill(exp_month)
 		page.locator("input[id$='expiryDate-year']").first.fill(exp_year)
 		page.locator("input[id$='cardVerificationCode-input']").first.fill(cvc)
+		page.wait_for_timeout(1_000)
+
+	assert _card_fields_filled(page), (
+		"Wallee's card form is still empty after both the Simulation shortcut and the "
+		"manual entry — its hosted page changed shape again."
+	)
 
 	# 3. Submit.
 	pay = page.locator("button[type='submit']", has_text="Pay").first
 	pay.scroll_into_view_if_needed()
 	pay.click()
+
+	# 4. Say what Wallee answered, rather than let the caller time out on a
+	#    redirect that is not coming. A decline is a verdict, not a silence.
+	page.wait_for_timeout(6_000)
+	refus = page.get_by_text("declined", exact=False)
+	if refus.count() > 0:
+		raise AssertionError(
+			f"Wallee declined the card {card[:4]}…{card[-4:]}: "
+			f"{refus.first.inner_text().strip()[:120]}. Its sandbox only accepts ITS own "
+			"test cards, listed in the Simulation panel of the hosted page."
+		)
+
+
+def _card_fields_filled(page: Page) -> bool:
+	"""Does Wallee's card form actually carry a number and a CVC?"""
+	return page.evaluate(
+		"""
+		() => {
+			const value = (sel) => (document.querySelector(sel) || {}).value || '';
+			return value("input[name='ccnumber']").replace(/\\s/g, '').length >= 12
+				&& value("input[id$='cardVerificationCode-input']").length >= 3;
+		}
+		"""
+	)
 
 
 def read_twint_intent_from_overlay(page: Page) -> str | None:

@@ -64,6 +64,12 @@ def test_checkout_wallee_redirect_and_pay(logged_in_page, paying_item, base_url)
 
 	# (3) Wallee redirects the buyer back to the shop (either /wallee/success
 	#     polling page or straight to /thank_you).
+	#
+	# //// Neoffice — raising this budget was tried first and proved nothing: at 180 s
+	# //// the buyer was still on app-wallee.com (2026-09-22). The wait was never the
+	# //// problem — Wallee was DECLINING the card, and `fill_wallee_redirect_card` now
+	# //// says so instead of letting this line time out on a redirect that is not
+	# //// coming. Kept at 60 s: once the payment is accepted, the return is immediate.
 	page.wait_for_url("**osiris.neoffice.me/**", timeout=60_000)
 	assert "osiris.neoffice.me" in page.url, f"Did not return to the shop: {page.url}"
 	assert any(seg in page.url for seg in ("/wallee/success", "/thank_you")), (
