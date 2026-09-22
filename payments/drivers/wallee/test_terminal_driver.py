@@ -145,7 +145,10 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		if not frappe.db.exists("DocType", "Wallee Settings"):
-			raise cls.skipTest(cls, "wallee_integration app not installed on this site")
+			# //// Neoffice — the condition is the doctype, not an app: Wallee came from the
+			# //// retired `wallee_integration` and lives in `payments` since ADR-005, so naming
+			# //// that app made this read like a dependency it is not (2026-09-22).
+			raise cls.skipTest(cls, "Wallee Settings doctype absent: payments not installed on this site")
 		_ensure_fixtures()
 
 	# --------- create_intent ---------
