@@ -506,7 +506,10 @@ def ensure_b2b_environment() -> dict[str, Any]:
 
 	# 2. Pricing Rule — 10% off transaction for Customer Group B2B
 	discount_pct = 10
-	if not frappe.db.exists("Pricing Rule", _B2B_PRICING_RULE):
+	# Look the rule up by its title: a Pricing Rule is named PRLE-####, so
+	# exists("Pricing Rule", title) never matched and every run inserted one more
+	# identical rule (26 on the dev instance by 2026-09-25, neoffice-maintenance#770).
+	if not frappe.db.exists("Pricing Rule", {"title": _B2B_PRICING_RULE}):
 		frappe.get_doc(
 			{
 				"doctype": "Pricing Rule",
