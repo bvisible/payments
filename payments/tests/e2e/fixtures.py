@@ -185,35 +185,100 @@ def ensure_test_customer() -> dict[str, Any]:
 	}
 
 
+# Name of the savepoint a single reset step runs under, so a step that fails is undone as a whole.
+_RESET_SAVEPOINT = "e2e_reset_step"
+
+
 def _safe_cancel_and_delete(doctype: str, name: str) -> bool:
-	"""Cancel-if-submitted then delete. Returns True if deleted, False otherwise."""
+	"""Bring one test document back to a state the suite can ignore, without rewriting the books.
+
+	* a draft (docstatus 0) is deleted: nothing can cite a document that was never submitted;
+	* a submitted document (docstatus 1) is CANCELLED AND KEPT. A cancelled document keeps its number,
+	  so the naming series is not reverted and no later document is handed a name that a surviving
+	  record still cites. It used to be deleted with ``force=True``, which left submitted invoices
+	  citing orders that no longer existed, and, once the series had been reused, orders of OTHER
+	  customers (#778);
+	* a cancelled one (docstatus 2) is left alone.
+
+	``force=True`` (it skips the link check) is only used on drafts, which are throw-away artefacts
+	such as a Payment Intent still referenced by its Payment Request. It is never used on a document
+	that was submitted.
+
+	Why a failure is rolled back, not just caught: when Frappe refuses a cancel because a submitted
+	document still links to this one (``LinkExistsError``), it has ALREADY written docstatus 2 to the
+	row by the time it raises. The old code swallowed that error and deleted the half-cancelled row
+	with ``force=True``, which is how submitted invoices ended up citing orders that no longer existed
+	(measured on a clone of the dev instance, 2026-09-29). The savepoint undoes that write.
+
+	Returns True when the document was cancelled or deleted, False when there was nothing to do or it
+	could not be done. A failure is written to the Error Log and reported as False: it is never
+	swallowed.
+	"""
 	try:
 		doc = frappe.get_doc(doctype, name)
-		if getattr(doc, "docstatus", 0) == 1:
-			try:
-				doc.cancel()
-			except Exception:
-				pass  # carry on — force=True below handles linked-doc errors
-		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
-		return True
-	except Exception:
+	except frappe.DoesNotExistError:
 		return False
+
+	docstatus = int(getattr(doc, "docstatus", 0) or 0)
+	if docstatus == 2:
+		return False
+
+	frappe.db.savepoint(_RESET_SAVEPOINT)
+	try:
+		if docstatus == 1:
+			doc.cancel()
+		else:
+			frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+	except Exception:
+		frappe.db.rollback(save_point=_RESET_SAVEPOINT)
+		frappe.log_error(f"E2E reset left {doctype} {name} as it was", frappe.get_traceback())
+		return False
+
+	frappe.db.release_savepoint(_RESET_SAVEPOINT)
+	return True
+
+
+def _order_is_still_cited(sales_order: str, docstatus: int) -> bool:
+	"""True when a Sales Invoice line still cites this Sales Order, in a way that forbids touching it.
+
+	A submitted order must not be cancelled while a SUBMITTED invoice cites it (the invoice step
+	could not cancel that invoice). A draft order is deleted, so ANY invoice line citing it, even a
+	cancelled invoice that is kept, would be left with the name of an order that no longer exists.
+	"""
+	filters: dict[str, Any] = {"sales_order": sales_order}
+	if docstatus == 1:
+		filters["docstatus"] = 1
+	return bool(frappe.db.exists("Sales Invoice Item", filters))
 
 
 @frappe.whitelist()
 def reset_test_env() -> dict[str, Any]:
-	"""Cancel/delete Quotations + Sales Orders + Payment Requests + Payment Intents
-	linked to the fixed test customer. Safe to run before every test for
-	idempotence.
+	"""Reset what a test run leaves on the fixed test customer, so the next test starts clean.
 
-	Returns ``{quotations, sales_orders, payment_requests, payment_intents}``
-	counts for visibility.
+	Submitted Payment Entries, Payment Requests, Sales Invoices and Sales Orders are cancelled and
+	KEPT; drafts are deleted (see ``_safe_cancel_and_delete`` for why nothing submitted is deleted).
+	Documents of any other customer are never touched.
+
+	The order is the order of the links, measured on a clone of the dev instance: a submitted Payment
+	Request blocks the cancel of the order it is made for, and so does a submitted invoice, so it is
+	the money first (Payment Entries), then the requests, then the invoices, then the orders. A Sales
+	Order that a Sales Invoice still cites is left alone and counted in ``skipped_linked``.
+
+	Returns ``{payment_entries, payment_requests, payment_intents, sales_invoices, sales_orders,
+	quotations, skipped_linked}``: how many documents each step cancelled or deleted, for visibility.
 	"""
 	customer = _cfg("e2e_test_customer", _DEFAULT_CUSTOMER)
-	stats = {"quotations": 0, "sales_orders": 0, "payment_requests": 0, "payment_intents": 0}
+	stats = {
+		"quotations": 0,
+		"sales_orders": 0,
+		"sales_invoices": 0,
+		"payment_requests": 0,
+		"payment_intents": 0,
+		"skipped_linked": 0,
+	}
 
-	# 0. Payment Entries first — a submitted Payment Entry linked to a Sales
-	#    Order / Payment Request blocks the cascade below. Cancel + delete.
+	# 0. Payment Entries first — a submitted Payment Entry linked to a Payment
+	#    Request / Sales Invoice blocks the cascade below. Cancel; keep.
 	stats["payment_entries"] = 0
 	for pe in frappe.get_all(
 		"Payment Entry",
@@ -223,14 +288,9 @@ def reset_test_env() -> dict[str, Any]:
 		if _safe_cancel_and_delete("Payment Entry", pe):
 			stats["payment_entries"] += 1
 
-	# 1. Sales Orders attached to the test customer.
-	for so in frappe.get_all(
-		"Sales Order", filters={"customer": customer, "docstatus": ["<", 2]}, pluck="name"
-	):
-		if _safe_cancel_and_delete("Sales Order", so):
-			stats["sales_orders"] += 1
-
-	# 2. Payment Requests — every state (incl. cancelled) so no PI is orphaned.
+	# 1. Payment Requests — every state, so no Payment Intent is orphaned: the intents of each
+	#    request go first, the request is then cancelled (kept) or deleted (draft). Before the
+	#    orders: a submitted request blocks the cancel of the order it was made for.
 	for pr in frappe.get_all(
 		"Payment Request",
 		filters={"party_type": "Customer", "party": customer},
@@ -247,7 +307,32 @@ def reset_test_env() -> dict[str, Any]:
 		if _safe_cancel_and_delete("Payment Request", pr):
 			stats["payment_requests"] += 1
 
-	# 3. Stray Payment Intents (not yet linked, e.g. failed mid-create_intent).
+	# 2. Sales Invoices, before the orders they cite. The suite never used to touch them, so every
+	#    run left submitted invoices citing orders the next step deleted (#778). Returns first: an
+	#    invoice cannot be cancelled while a return against it is still submitted.
+	for si in frappe.get_all(
+		"Sales Invoice",
+		filters={"customer": customer, "docstatus": ["<", 2]},
+		order_by="is_return desc, creation desc",
+		pluck="name",
+	):
+		if _safe_cancel_and_delete("Sales Invoice", si):
+			stats["sales_invoices"] += 1
+
+	# 3. Sales Orders attached to the test customer — unless an invoice still cites them.
+	for so in frappe.get_all(
+		"Sales Order",
+		filters={"customer": customer, "docstatus": ["<", 2]},
+		fields=["name", "docstatus"],
+		order_by="creation desc",
+	):
+		if _order_is_still_cited(so["name"], so["docstatus"]):
+			stats["skipped_linked"] += 1
+			continue
+		if _safe_cancel_and_delete("Sales Order", so["name"]):
+			stats["sales_orders"] += 1
+
+	# 3b. Stray Payment Intents (not yet linked, e.g. failed mid-create_intent).
 	#    Filter via metadata when available (the webshop helper stores
 	#    twint_merchant_uuid + description "Webshop ACC-PRQ-...").
 	for pi in frappe.get_all(
@@ -255,8 +340,7 @@ def reset_test_env() -> dict[str, Any]:
 		filters={"status": ["in", ["requires_action", "processing"]]},
 		fields=["name", "reference_doctype", "reference_name"],
 	):
-		# Only clean intents whose PR (if any) is already gone — that means
-		# they're orphaned by step 2 above.
+		# Only clean intents whose PR (if any) is already gone — orphans.
 		ref = pi.get("reference_name")
 		if pi.get("reference_doctype") == "Payment Request" and ref:
 			if not frappe.db.exists("Payment Request", ref):
