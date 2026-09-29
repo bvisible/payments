@@ -22,6 +22,8 @@ from typing import Any
 import frappe
 from frappe import _
 
+from payments.tests.e2e.guard import e2e_only  # //// Neoffice — the guard of #952
+
 
 # Defaults used when site_config keys are absent — convenient on a brand-new
 # bench. Production sites should pin them in site_config to avoid surprises.
@@ -42,6 +44,7 @@ def ensure_test_customer() -> dict[str, Any]:
 	Returns the triplet (customer, user, password) so the runbook can copy
 	the password into the Chrome login form.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	customer_name = _cfg("e2e_test_customer", _DEFAULT_CUSTOMER)
 	email = _cfg("e2e_test_user_email", _DEFAULT_EMAIL)
 	password = frappe.conf.get("e2e_test_user_password")
@@ -267,6 +270,7 @@ def reset_test_env() -> dict[str, Any]:
 	Returns ``{payment_entries, payment_requests, payment_intents, sales_invoices, sales_orders,
 	quotations, skipped_linked}``: how many documents each step cancelled or deleted, for visibility.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	customer = _cfg("e2e_test_customer", _DEFAULT_CUSTOMER)
 	stats = {
 		"quotations": 0,
@@ -368,6 +372,7 @@ def get_e2e_site_config() -> dict[str, Any]:
 	without an SSH session. Returns ONLY the 4 e2e keys — no sensitive secrets
 	leak via this endpoint.
 	"""
+	e2e_only(needs_simulators=False)  # //// Neoffice — who may call this (#952)
 	return {
 		"e2e_test_customer": _cfg("e2e_test_customer", _DEFAULT_CUSTOMER),
 		"e2e_test_user_email": _cfg("e2e_test_user_email", _DEFAULT_EMAIL),
@@ -386,6 +391,7 @@ def get_loyalty_balance() -> dict[str, Any]:
 	has no program / no points, ``available_points`` is 0 and the loyalty
 	test should skip.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	import math
 
 	customer = _cfg("e2e_test_customer", _DEFAULT_CUSTOMER)
@@ -443,6 +449,7 @@ def ensure_loyalty_points(min_points: int = 50) -> dict[str, Any]:
 	Loyalty Program collection rules. For E2E we top up directly so the test
 	does not depend on a prior purchase flow.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	from frappe.utils import add_days, today
 
 	min_points = int(min_points)
@@ -510,6 +517,7 @@ def get_test_item_for_checkout() -> dict[str, Any]:
 	DESC`` ordering drifted to whatever item price was last edited — which
 	could be an out-of-stock product with no add-to-cart button).
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	row = frappe.db.sql(
 		"""
 		SELECT i.name AS item_code,
@@ -578,6 +586,7 @@ def ensure_b2b_environment() -> dict[str, Any]:
 	state (kept for diagnostics — restoration is intentionally NOT done so
 	the env stays B2B-ready between runs).
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	# 1. Customer Group
 	if not frappe.db.exists("Customer Group", _B2B_GROUP):
 		frappe.get_doc(
@@ -673,6 +682,7 @@ def wait_for_customer(email: str, timeout_s: int = 10) -> dict[str, Any]:
 	time the logged-in user touches the cart (add_to_cart / load /cart).
 	Returns ``{customer, attempts}`` or throws if the timeout elapses.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	import time
 
 	timeout_s = int(timeout_s)
@@ -701,6 +711,7 @@ def assign_customer_to_b2b(email: str) -> dict[str, Any]:
 	the B2B Pricing Rule on the line items — the Customer.customer_group
 	change alone leaves a stale snapshot on the Quotation.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	customer = _resolve_customer_for_email(email)
 	if not customer:
 		frappe.throw(_("No Customer linked to user {0}").format(email))
@@ -747,6 +758,7 @@ def get_b2b_quotation_summary(email: str) -> dict[str, Any]:
 	``additional_discount_percentage`` on the document — that's the
 	cleanest single attribute to assert against.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	customer = _resolve_customer_for_email(email)
 	if not customer:
 		frappe.throw(_("No Customer linked to user {0}").format(email))
@@ -802,6 +814,7 @@ def cleanup_b2b_user(email: str) -> dict[str, Any]:
 
 	Returns counters per doctype for visibility.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	stats = {
 		"quotations": 0,
 		"contacts": 0,

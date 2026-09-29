@@ -12,6 +12,8 @@ from typing import Any
 
 import frappe
 
+from payments.tests.e2e.guard import e2e_only  # //// Neoffice — the guard of #952
+
 
 @frappe.whitelist()
 def assert_payment_complete(payment_intent: str) -> dict[str, Any]:
@@ -20,6 +22,7 @@ def assert_payment_complete(payment_intent: str) -> dict[str, Any]:
 	The runbook calls this after each PSP step and asserts ``ok=True``. Failing
 	cases come back with ``ok=False`` plus enough fields to root-cause.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	pi = frappe.get_doc("Payment Intent", payment_intent)
 	out: dict[str, Any] = {
 		"payment_intent": pi.name,
@@ -70,6 +73,7 @@ def assert_recent_sales_order(minutes: int = 10) -> dict[str, Any]:
 	Returns ``{ok, sales_order, so_status, grand_total, payment_request,
 	pr_status}``.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	customer = frappe.conf.get("e2e_test_customer") or "Test E2E Webshop"
 	cutoff = frappe.utils.add_to_date(None, minutes=-int(minutes))
 
@@ -113,6 +117,7 @@ def list_recent_test_intents(minutes: int = 30) -> list[dict[str, Any]]:
 	Used when the runbook lost track of the intent_name (e.g. tab refresh) and
 	needs to recover it from the most recent test activity.
 	"""
+	e2e_only()  # //// Neoffice — who may call this (#952)
 	import json
 
 	customer = frappe.conf.get("e2e_test_customer") or "Test E2E Webshop"
