@@ -155,6 +155,63 @@ class TestTwintPHPBridgeDriver(FrappeTestCase):
 		self.assertEqual(result.error_code, "RuntimeException")
 		self.assertIn("Certificate expired", result.error_message or "")
 
+	def test_create_intent_says_which_http_status_the_bridge_answered(self):
+		# 30.09: the hub's portal gate answered 403 to the service account every till uses, with a Frappe
+		# error body (no "message"), and the till could only say "register_payment failed".
+		driver = _build_driver()
+		refusal = MagicMock()
+		refusal.ok = False
+		refusal.status_code = 403
+		refusal.headers = {"Content-Type": "application/json"}
+		refusal.json = MagicMock(return_value={"exc_type": "PermissionError", "_server_messages": "[]"})
+		with patch("requests.post", return_value=refusal):
+			result = driver.create_intent(
+				IntentRequest(
+					intent_name="PI-403-001",
+					amount=190,
+					currency="CHF",
+					metadata={"twint_merchant_uuid": MERCHANT_UUID},
+				)
+			)
+		self.assertEqual(result.status, "failed")
+		self.assertEqual(result.error_code, "PermissionError")
+		self.assertIn("HTTP 403", result.error_message or "")
+
+	def test_a_server_error_without_a_frappe_body_still_names_its_status(self):
+		driver = _build_driver()
+		broken = MagicMock()
+		broken.ok = False
+		broken.status_code = 502
+		broken.headers = {"Content-Type": "text/html"}
+		broken.json = MagicMock(return_value={})
+		with patch("requests.post", return_value=broken):
+			result = driver.create_intent(
+				IntentRequest(
+					intent_name="PI-502-001",
+					amount=190,
+					currency="CHF",
+					metadata={"twint_merchant_uuid": MERCHANT_UUID},
+				)
+			)
+		self.assertEqual(result.status, "failed")
+		self.assertIn("HTTP 502", result.error_message or "")
+
+	def test_a_success_still_reads_the_message(self):
+		driver = _build_driver()
+		with patch("requests.post") as mock_post:
+			mock_post.return_value = _mock_post_response(
+				{"success": True, "order_id": "order_ok", "pairing_token": "P"}
+			)
+			result = driver.create_intent(
+				IntentRequest(
+					intent_name="PI-ok-001",
+					amount=190,
+					currency="CHF",
+					metadata={"twint_merchant_uuid": MERCHANT_UUID},
+				)
+			)
+		self.assertEqual(result.status, "requires_action")
+
 	def test_create_intent_without_merchant_uuid_fails(self):
 		# Wipe the provider default and binding default first.
 		provider_doc = frappe.get_doc("Payment Provider", PROVIDER_NAME)

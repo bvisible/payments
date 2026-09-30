@@ -125,7 +125,9 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 		it. The P12 file itself lives only on neoservice.
 		"""
 		if not frappe.db.exists("Twint Bridge Settings", merchant_uuid):
-			frappe.throw(_("Twint Bridge Settings record not found for merchant_uuid {0}").format(merchant_uuid))
+			frappe.throw(
+				_("Twint Bridge Settings record not found for merchant_uuid {0}").format(merchant_uuid)
+			)
 		doc = frappe.get_doc("Twint Bridge Settings", merchant_uuid)
 		return {
 			"store_uuid": doc.store_uuid,
@@ -138,7 +140,9 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 	# HTTP plumbing
 	# ------------------------------------------------------------------------
 
-	def _call_bridge(self, command: str, merchant_uuid: str, params: dict[str, Any]) -> dict[str, Any]:
+	def _call_bridge(
+		self, command: str, merchant_uuid: str, params: dict[str, Any]
+	) -> dict[str, Any]:
 		"""POST to neoservice's neoffice_devops.api.twint.execute and parse the result."""
 		import requests
 
@@ -168,6 +172,17 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 			data = resp.json()
 		except ValueError:
 			return {"success": False, "error": f"non-JSON response (status={resp.status_code})"}
+		# Frappe answers an error with {exc_type, exception, _server_messages} and never a "message": read as
+		# "no result", the till showed only "register_payment failed" when the hub refused its service account
+		# (403, 30.09) and nothing said why. Say which HTTP status the bridge answered.
+		status = resp.status_code if isinstance(resp.status_code, int) else 200
+		if status >= 400:
+			exc_type = data.get("exc_type") if isinstance(data, dict) else None
+			return {
+				"success": False,
+				"error": f"TWINT bridge answered HTTP {status}" + (f" ({exc_type})" if exc_type else ""),
+				"exception": exc_type,
+			}
 		return data.get("message") if isinstance(data, dict) else data
 
 	# ------------------------------------------------------------------------
@@ -272,9 +287,7 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 				error_code="no_merchant_uuid",
 				error_message="cancel_intent requires merchant_uuid context",
 			)
-		result = self._call_bridge(
-			"cancel_payment", merchant_uuid, {"order_id": provider_intent_id}
-		)
+		result = self._call_bridge("cancel_payment", merchant_uuid, {"order_id": provider_intent_id})
 		if not (result or {}).get("success"):
 			return DriverResponse(
 				status="failed",
