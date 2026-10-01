@@ -142,6 +142,10 @@ class TestResetOrder(unittest.TestCase):
 			mock.patch.object(fixtures.frappe, "get_all", side_effect=get_all),
 			mock.patch.object(fixtures, "_cfg", return_value="Test Customer"),
 			mock.patch.object(fixtures, "_safe_cancel_and_delete", side_effect=self._record),
+			# //// Neoffice — the helper now asks who calls it (#952): a System Manager on a site that
+			# //// switched the simulators on. This class tests the ORDER of the work, not that guard
+			# //// (tests/test_e2e_guard.py does), and it has no site to ask: the check is a no-op here.
+			mock.patch.object(fixtures, "e2e_only"),
 		):
 			patcher.start()
 			self.addCleanup(patcher.stop)
@@ -231,7 +235,10 @@ class TestResetOnARealSite(FrappeTestCase):
 		self.customer = self._customer("reset test customer")
 		self.other_customer = self._customer("reset test bystander")
 		self.item = self._item()
-		config = mock.patch.dict(frappe.conf, {"e2e_test_customer": self.customer})
+		# //// Neoffice — the helper answers only on a site that switched the simulators on (#952).
+		config = mock.patch.dict(
+			frappe.conf, {"e2e_test_customer": self.customer, "enable_e2e_simulators": 1}
+		)
 		config.start()
 		self.addCleanup(config.stop)
 
