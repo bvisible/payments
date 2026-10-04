@@ -161,3 +161,12 @@ upstream counterpart:
   `bvisible/neoffice-ci`, `c58f020` (2026-09-03, wave 2)
 - `.github/workflows/fork-markers.yml` — the job that writes these very markers on an
   unmarked push, `d9c4ac8` (2026-09-03)
+
+### English msgids instead of French source strings (2026-10-04)
+
+House rule: the source text of a translatable string is English; the French lives in the
+catalogue and the French screen is unchanged. JSON and `.po` files cannot carry a comment, so
+those edits are recorded here (the code edits are marked in place with `//// Neoffice`).
+
+- `payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json` — `setup_guide_html` is the English text again (restored from `40d14a1^`, where a French literal had replaced it); the French reads exactly as before because the matching entry of `payments/locale/fr.po` now carries that same French.
+- `payments/locale/fr.po` — `Redirection vers TWINT` renamed to `Redirecting to TWINT`; the setup-guide entry's msgstr aligned with the French that was displayed.

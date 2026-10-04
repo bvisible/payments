@@ -45,17 +45,7 @@ msgid ""
 "<b>COMMERCES &rarr; Commerce en ligne</b>, edit the store.</li><li>Fill the "
 "fields below, upload the .p12 in <b>P12 Certificate</b>, then "
 "Save.</li></ol></div>"
-msgstr ""
-"<div class='alert alert-info' style='margin-bottom:10px'><b>Configuration de"
-" TWINT</b> — le certificat et les identifiants sont émis sur le <a "
-"href='https://portal.twint.ch/partner/gui/?login' target='_blank' "
-"rel='noopener'>portail marchand TWINT</a> :<ol style='margin:6px 0 0 "
-"18px'><li>Connectez-vous au portail marchand TWINT (bouton en haut à droite)"
-" et ouvrez votre boutique.</li><li><b>Générez / téléchargez le certificat "
-"(.p12)</b> et notez son <b>mot de passe</b>.</li><li>Copiez le <b>Store "
-"UUID</b> — menu du portail <b>COMMERCES &rarr; Commerce en ligne</b>, "
-"modifiez la boutique.</li><li>Remplissez les champs ci-dessous, téléversez "
-"le .p12 dans <b>Certificat P12</b>, puis enregistrez.</li></ol></div>"
+msgstr "<div class='alert alert-info' style='margin-bottom:10px'><b>Configurer TWINT</b> — le certificat et les identifiants sont délivrés sur le <a href='https://portal.twint.ch/partner/gui/?login' target='_blank' rel='noopener'>portail marchand TWINT</a> :<ol style='margin:6px 0 0 18px'><li>Connectez-vous au portail marchand TWINT (bouton en haut à droite) et ouvrez votre boutique.</li><li><b>Générez / téléchargez le certificat (.p12)</b> et notez son <b>mot de passe</b>.</li><li>Copiez le <b>Store UUID</b> — menu du portail <b>COMMERCES &rarr; Commerce en ligne</b>, éditez la boutique.</li><li>Remplissez les champs ci-dessous, téléversez le .p12 dans <b>Certificat P12</b>, puis Enregistrez.</li></ol></div>"
 
 #: payments/payments/doctype/provider_channel_settings/provider_channel_settings.py:32
 msgid "A Provider Channel Settings already exists for {0} × {1}: {2}"
@@ -2065,7 +2055,7 @@ msgstr ""
 "paiement intégré sur la page de paiement."
 
 #: payments/public/js/twint_dialog.js:652
-msgid "Redirection vers TWINT"
+msgid "Redirecting to TWINT"
 msgstr "Redirection vers TWINT"
 
 #: payments/www/wallee/failed.html:26 payments/www/wallee/success.html:22

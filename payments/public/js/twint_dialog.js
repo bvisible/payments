@@ -658,11 +658,12 @@ frappe.provide('frappe.twint');
                             // Format of the Android deep link
                             const androidDeepLink = `intent://payment#Intent;action=ch.twint.action.TWINT_PAYMENT;scheme=twint;S.code=${pairing_token};S.startingOrigin=EXTERNAL_WEB_BROWSER;S.browser_fallback_url=;end`;
                             
+                            //// Neoffice — msgid was French, now English (house rule); the French screen is unchanged, served by the translation catalogue.
                             // Create the content for Android with timer
                             selectorDiv.innerHTML = `
                                 <div style="background: white; padding: 20px; border-radius: 8px; max-width: 90%; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                        <h3 style="margin: 0; font-size: 18px;">${__('Redirection vers TWINT')}</h3>
+                                        <h3 style="margin: 0; font-size: 18px;">${__('Redirecting to TWINT')}</h3>
                                         <button id="twint-selector-close" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
                                     </div>
                                     
