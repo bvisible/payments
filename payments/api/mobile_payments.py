@@ -199,13 +199,16 @@ def mobile_start_payment(
 		if not reference_doctype or not reference_name:
 			frappe.throw(_("A document to pay for needs both its type and its name"))
 		if not frappe.db.exists(reference_doctype, reference_name):
-			frappe.throw(_("{0} {1} does not exist").format(reference_doctype, reference_name))
+			# //// Neoffice — the DocType name is injected into a translated template; translate it
+			# //// too, or the French sentence carries an English DocType name.
+			frappe.throw(_("{0} {1} does not exist").format(_(reference_doctype), reference_name))
 		# The generic create_intent inserts with ignore_permissions. Here the caller
 		# is a person on site, and an intent number is enough to watch a payment, so
 		# they must at least be allowed to read the document they claim to collect for.
 		if not frappe.has_permission(reference_doctype, "read", doc=reference_name):
+			# //// Neoffice — same as above: the DocType name is translated too.
 			frappe.throw(
-				_("Not permitted to collect a payment for {0} {1}").format(reference_doctype, reference_name),
+				_("Not permitted to collect a payment for {0} {1}").format(_(reference_doctype), reference_name),
 				frappe.PermissionError,
 			)
 	else:

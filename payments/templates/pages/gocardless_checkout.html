@@ -1,6 +1,8 @@
 {% extends "templates/web.html" %}
 
-{% block title %} Payment {% endblock %}
+{#- //// Neoffice — upstream wrote the page title as bare English text, so the browser tab stayed
+    English whatever the user language; the title goes through _() (msgid already translated). #}
+{% block title %} {{ _("Payment") }} {% endblock %}
 
 {%- block header -%}{% endblock %}
 

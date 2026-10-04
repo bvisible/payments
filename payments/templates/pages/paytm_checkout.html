@@ -1,10 +1,13 @@
 {% extends "templates/web.html" %}
 
-{% block title %} Payment {% endblock %}
+{#- //// Neoffice — upstream wrote the page title as bare English text, so the browser tab stayed
+    English whatever the user language; the title goes through _() (msgid already translated). #}
+{% block title %} {{ _("Payment") }} {% endblock %}
 
 {%- block header -%}
 <head>
-	<title>Merchant Checkout Page</title>
+	{#- //// Neoffice — upstream left this document title as bare English text. #}
+	<title>{{ _("Merchant Checkout Page") }}</title>
 </head>
 {% endblock %}
 
@@ -17,7 +20,8 @@
 {%- block page_content -%}
 <body>
 	<div class="centered">
-		<h2>Please do not refresh this page...</h2>
+		{#- //// Neoffice — upstream left this notice as bare English text. #}
+		<h2>{{ _("Please do not refresh this page...") }}</h2>
 
 		<form method="post" action="{{ url }}" name="paytm_form">
 			{% for name, value in payment_details.items() %}

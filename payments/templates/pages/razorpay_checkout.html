@@ -1,6 +1,8 @@
 {% extends "templates/web.html" %}
 
-{% block title %} Payment {% endblock %}
+{#- //// Neoffice — upstream wrote the page title as bare English text, so the browser tab stayed
+    English whatever the user language; the title goes through _() (msgid already translated). #}
+{% block title %} {{ _("Payment") }} {% endblock %}
 
 {%- block header -%}{% endblock %}
 
@@ -12,8 +14,10 @@
 {%- block page_content -%}
 
 <p class='lead text-center centered'>
-	<span class='razorpay-loading'>Loading Payment System</span>
-	<span class='razorpay-confirming hidden'>Confirming Payment</span>
+	{#- //// Neoffice — upstream left both status lines as bare English text (the Gocardless page
+	    next to it already passes the same sentence through _()). #}
+	<span class='razorpay-loading'>{{ _("Loading Payment System") }}</span>
+	<span class='razorpay-confirming hidden'>{{ _("Confirming Payment") }}</span>
 </p>
 
 {% endblock %}
