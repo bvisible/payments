@@ -169,4 +169,4 @@ catalogue and the French screen is unchanged. JSON and `.po` files cannot carry 
 those edits are recorded here (the code edits are marked in place with `//// Neoffice`).
 
 - `payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json` — `setup_guide_html` is the English text again (restored from `40d14a1^`, where a French literal had replaced it); the French reads exactly as before because the matching entry of `payments/locale/fr.po` now carries that same French.
-- `payments/locale/fr.po` — `Redirection vers TWINT` renamed to `Redirecting to TWINT`; the setup-guide entry's msgstr aligned with the French that was displayed.
+- Left as it is on purpose: `public/js/twint_dialog.js` keeps the French `Redirection vers TWINT`: it is website JS, and a website page only receives the curated list of JS strings of `neoffice_theme` (`WEBSHOP_JS_STRINGS`).

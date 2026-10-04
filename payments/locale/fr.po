@@ -2055,7 +2055,7 @@ msgstr ""
 "paiement intégré sur la page de paiement."
 
 #: payments/public/js/twint_dialog.js:652
-msgid "Redirecting to TWINT"
+msgid "Redirection vers TWINT"
 msgstr "Redirection vers TWINT"
 
 #: payments/www/wallee/failed.html:26 payments/www/wallee/success.html:22
