@@ -54,10 +54,13 @@ class TwintBridgeSettings(Document):
 		if not merchant:
 			frappe.throw(_("Merchant UUID is required"))
 		if "/" in merchant or ".." in merchant or "\\" in merchant:
-			frappe.throw(
-				_("Merchant UUID must not contain path separators (got: {0})").format(merchant)
-			)
+			frappe.throw(_("Merchant UUID must not contain path separators (got: {0})").format(merchant))
 		self.merchant_uuid = merchant
+		# //// Neoffice — the hub asks for the password that opens the certificate it already stores before it
+		# //// replaces or deletes it (maintenance#1372): the service key is the same on every till, so the key
+		# //// alone does not say whose certificate a call is about. The stored password is read HERE, before
+		# //// the save writes the new one to __Auth, because on_update would already read the new one.
+		self._stored_p12_password = "" if self.is_new() else self._read_stored_password()
 
 	def on_update(self):
 		# A freshly attached certificate triggers a push to neoservice. After a
@@ -93,15 +96,37 @@ class TwintBridgeSettings(Document):
 			)
 		return TwintProvider(frappe.get_doc("Payment Provider", name))
 
+	def _read_stored_password(self) -> str:
+		from frappe.utils.password import get_decrypted_password
+
+		return (
+			get_decrypted_password(self.doctype, self.name, "p12_password", raise_exception=False) or ""
+		)
+
+	def _upload_payload(self, raw: bytes) -> dict:
+		payload = {
+			"merchant_uuid": self.merchant_uuid,
+			"content_base64": base64.b64encode(raw).decode(),
+		}
+		# A first upload needs nothing more; replacing a stored certificate needs the password that opens it.
+		stored = getattr(self, "_stored_p12_password", "")
+		if stored:
+			payload["current_password"] = stored
+		return payload
+
+	def _delete_payload(self) -> dict:
+		payload = {"merchant_uuid": self.merchant_uuid}
+		password = self.get_password("p12_password", raise_exception=False)
+		if password:
+			payload["current_password"] = password
+		return payload
+
 	def _deploy_certificate(self):
 		provider = self._twint_provider()
 		file_doc = frappe.get_doc("File", {"file_url": self.p12_certificate})
 		with open(file_doc.get_full_path(), "rb") as fh:
 			raw = fh.read()
-		payload = {
-			"merchant_uuid": self.merchant_uuid,
-			"content_base64": base64.b64encode(raw).decode(),
-		}
+		payload = self._upload_payload(raw)
 		url = f"{provider.service_url}/api/method/neoffice_devops.api.twint.upload_certificate"
 		try:
 			resp = requests.post(url, headers=provider._auth_headers(), json=payload, timeout=30)
@@ -189,9 +214,7 @@ class TwintBridgeSettings(Document):
 					)
 					for line in (p2.stdout or b"").decode(errors="ignore").splitlines():
 						if line.startswith("notAfter="):
-							return datetime.strptime(
-								line.split("=", 1)[1].strip(), "%b %d %H:%M:%S %Y %Z"
-							).date()
+							return datetime.strptime(line.split("=", 1)[1].strip(), "%b %d %H:%M:%S %Y %Z").date()
 		except Exception:  # noqa: BLE001
 			return None
 		finally:
@@ -209,14 +232,25 @@ class TwintBridgeSettings(Document):
 			return
 		url = f"{provider.service_url}/api/method/neoffice_devops.api.twint.delete_certificate"
 		try:
-			requests.post(
+			resp = requests.post(
 				url,
 				headers=provider._auth_headers(),
-				json={"merchant_uuid": self.merchant_uuid},
+				json=self._delete_payload(),
 				timeout=30,
 			)
 		except requests.exceptions.RequestException as exc:
 			frappe.log_error("TWINT remote certificate delete failed", f"{self.name}: {exc!r}")
+			return
+		# The hub refuses to delete a stored certificate it was not given the password of: say so, the file stays.
+		try:
+			answer = (resp.json() or {}).get("message") or {}
+		except ValueError:
+			answer = {}
+		if not (resp.ok and answer.get("success")):
+			frappe.log_error(
+				"TWINT remote certificate delete refused",
+				f"{self.name}: {answer.get('error') or f'HTTP {resp.status_code}'}",
+			)
 
 
 # ---------------------------------------------------------------------------

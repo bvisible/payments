@@ -13,15 +13,28 @@ never the certificate file.
 
 ## Pre-requisites
 
-- SSH access to `neoservice.neoffice.me` (TransHub server `neoservice`).
+- SSH access to `neoservice.neoffice.me` (the `neoservice` server of the ssh-manager).
 - A `Twint Bridge Settings` record on each client site using this merchant.
 - The new P12 file + its password from TWINT.
+
+## Normal way: the form
+
+Open the merchant's `Twint Bridge Settings`, attach the new P12 and type the new password, save. The form
+pushes the file to neoservice and clears its own copy. Replacing a certificate that is already stored needs
+the **password of the stored one**: the form sends it by itself (it is the password the record held before
+this save), and neoservice refuses the replacement otherwise (the service key is the same on every till, so
+it does not say whose certificate a call is about). The same goes for deleting the record.
+
+If the form is refused with "A certificate is already stored for this merchant_uuid" (the record was deleted
+or retyped while the file stayed on neoservice, or the stored password was never right), a person with SSH
+access removes the stored file (Step 1 keeps a copy) and saves the form again. The steps below are that
+manual way, and the way back.
 
 ## Step 1 — Backup the existing certificate
 
 ```bash
 ssh neoservice
-cd /home/frappe/twint-certs
+cd /home/neoffice/twint-certs
 mkdir -p .archive
 cp -p <merchant_uuid>.p12 .archive/<merchant_uuid>-$(date +%F).p12
 ```
@@ -29,18 +42,18 @@ cp -p <merchant_uuid>.p12 .archive/<merchant_uuid>-$(date +%F).p12
 ## Step 2 — Drop in the new certificate
 
 ```bash
-# From your local machine, upload via TransHub MCP or scp:
+# From your local machine, upload with the ssh-manager or scp:
 scp ~/Downloads/new_<merchant_uuid>.p12 neoservice:/tmp/
 
 ssh neoservice
-sudo install -m 0600 -o frappe -g frappe /tmp/new_<merchant_uuid>.p12 /home/frappe/twint-certs/<merchant_uuid>.p12
+sudo install -m 0600 -o neoffice -g neoffice /tmp/new_<merchant_uuid>.p12 /home/neoffice/twint-certs/<merchant_uuid>.p12
 shred -u /tmp/new_<merchant_uuid>.p12
 ```
 
 Verify:
 ```bash
-ls -l /home/frappe/twint-certs/<merchant_uuid>.p12
-# -rw------- 1 frappe frappe ... <merchant_uuid>.p12
+ls -l /home/neoffice/twint-certs/<merchant_uuid>.p12
+# -rw------- 1 neoffice neoffice ... <merchant_uuid>.p12
 ```
 
 ## Step 3 — Update the password on every client site
@@ -94,9 +107,9 @@ If the new P12 doesn't work, restore the archived one:
 
 ```bash
 ssh neoservice
-sudo install -m 0600 -o frappe -g frappe \
-  /home/frappe/twint-certs/.archive/<merchant_uuid>-YYYY-MM-DD.p12 \
-  /home/frappe/twint-certs/<merchant_uuid>.p12
+sudo install -m 0600 -o neoffice -g neoffice \
+  /home/neoffice/twint-certs/.archive/<merchant_uuid>-YYYY-MM-DD.p12 \
+  /home/neoffice/twint-certs/<merchant_uuid>.p12
 ```
 
 Then revert the password change on the client sites.
