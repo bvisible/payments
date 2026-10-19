@@ -67,7 +67,10 @@ def _terminal_binding(provider_name: str) -> str:
 # ----------------------------------------------------------------------------
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): Frappe neither checks the CSRF token of a GET nor keeps what
+# //// it wrote, so a step that changes state at Stripe or here is never opened as an address (same rule
+# //// as payments.api.intent). Creates a Location at Stripe; the wizard calls it with frappe.call (POST).
+@frappe.whitelist(methods=["POST"])
 def create_stripe_location(
 	display_name: str,
 	country: str,
@@ -131,7 +134,8 @@ def list_stripe_locations(provider: str | None = None) -> list[dict[str, Any]]:
 # ----------------------------------------------------------------------------
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): creates a webhook endpoint at Stripe and stores its secret; see create_stripe_location.
+@frappe.whitelist(methods=["POST"])
 def ensure_stripe_webhook(provider: str | None = None) -> dict[str, Any]:
 	"""Idempotent: make sure a Stripe webhook endpoint is configured for our site.
 
@@ -203,7 +207,8 @@ def ensure_stripe_webhook(provider: str | None = None) -> dict[str, Any]:
 	}
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): pairs a reader at Stripe and inserts a Payment Device; see create_stripe_location.
+@frappe.whitelist(methods=["POST"])
 def register_stripe_reader(
 	registration_code: str,
 	location: str,
@@ -389,7 +394,8 @@ def sync_stripe_readers_status() -> dict[str, Any]:
 # ----------------------------------------------------------------------------
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): sends a payment to a card reader; see create_stripe_location. POSNext calls it in Python.
+@frappe.whitelist(methods=["POST"])
 def attach_intent_to_reader(intent_name: str, device: str) -> dict[str, Any]:
 	"""Push an already-created Payment Intent to a reader.
 

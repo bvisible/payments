@@ -352,7 +352,9 @@ _FAST_POLL_DELAYS: list[int] = (
 #   (a) the gating flag is opt-in per-site via site_config
 #   (b) the endpoint is whitelisted but requires an authenticated user
 #   (c) calling it on a real PI just shortcuts what the poll would do anyway
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): settles an intent; a state change is never opened as an address
+# //// (Frappe checks no CSRF token on a GET). The dialog calls it with frappe.call (POST).
+@frappe.whitelist(methods=["POST"])
 def simulate_consumer_success(intent_name: str) -> dict[str, Any]:
 	"""DEV-ONLY — transition a TWINT Payment Intent to succeeded.
 

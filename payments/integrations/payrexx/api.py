@@ -37,7 +37,10 @@ from frappe import _
 CHANNEL = "payrexx_web"
 
 
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — POST only (maintenance#1721): creates a gateway at Payrexx. Frappe checks no CSRF token on a
+# //// GET and rolls its writes back, so a gateway opened as an address would live at Payrexx with no
+# //// intent here. The webshop's payment step calls it with frappe.call (POST).
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def create_web_transaction(
 	payment_request_id: str,
 	provider: str | None = None,

@@ -130,7 +130,10 @@ def get_current_setup() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): Frappe checks no CSRF token on a GET, so writing the
+# //// credentials, the channels or the tiles is never opened as an address. The wizard calls them
+# //// with frappe.call (POST); reading the setup and testing the connection stay open.
+@frappe.whitelist(methods=["POST"])
 def save_credentials(
 	instance: str, api_secret: str, pos_api_secret: str | None = None, mode: str = "test"
 ) -> dict[str, Any]:
@@ -205,7 +208,8 @@ def test_connection() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): see save_credentials.
+@frappe.whitelist(methods=["POST"])
 def setup_channels(web: bool = True, terminal: bool = False) -> dict[str, Any]:
 	"""Bind Payrexx to the channels this deployment actually uses.
 
@@ -245,7 +249,8 @@ def setup_channels(web: bool = True, terminal: bool = False) -> dict[str, Any]:
 	return {"ok": True, "channels": fait}
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): see save_credentials.
+@frappe.whitelist(methods=["POST"])
 def setup_tiles(tiles: list[str] | str, currency: str = "CHF") -> dict[str, Any]:
 	"""Create the shop tiles: gateway, account, and the row that makes them visible.
 

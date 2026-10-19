@@ -89,7 +89,9 @@ def list_pos_profiles() -> list[dict[str, Any]]:
 	)
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): writes the POS Profile. Frappe checks no CSRF token on a GET,
+# //// so a change is never opened as an address; the wizard calls it with frappe.call (POST).
+@frappe.whitelist(methods=["POST"])
 def link_device_to_pos_profile(
 	payment_device: str,
 	pos_profile: str,

@@ -138,7 +138,10 @@ def mobile_context() -> dict[str, Any]:
 	}
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): Frappe neither checks the CSRF token of a GET nor keeps what
+# //// it wrote, so a step that changes state or mints a secret is never opened as an address (same rule
+# //// as payments.api.intent). The phone already sends every one of them over POST.
+@frappe.whitelist(methods=["POST"])
 def connection_token() -> dict[str, Any]:
 	"""A Stripe Terminal connection token for the phone's SDK.
 
@@ -329,6 +332,9 @@ def mobile_payments_for(reference_doctype: str, reference_name: str) -> list[dic
 	return _rows({"reference_doctype": reference_doctype, "reference_name": reference_name})
 
 
+# //// Neoffice — stays open to GET (maintenance#1721): the phones in the field poll it with GET (`call.get` in
+# //// the app's useOnSitePayment hook). It only copies Stripe's own verdict onto an open card intent and
+# //// cannot move money. Close it once every installed build polls over POST.
 @frappe.whitelist()
 def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
 	"""The intent's state, asking the provider first when the intent is still open.
@@ -390,7 +396,8 @@ def mobile_abandon_payment(intent_name: str) -> dict[str, Any]:
 	return cancel_intent(intent_name, reason="mobile_abandoned")
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): see connection_token.
+@frappe.whitelist(methods=["POST"])
 def simulate_success(intent_name: str) -> dict[str, Any]:
 	"""DEV-ONLY — finish an on-site intent as the webhook or the poller would.
 
@@ -619,7 +626,8 @@ def _receipt_html(r: dict[str, Any]) -> str:
 	)
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): sends an e-mail; see connection_token.
+@frappe.whitelist(methods=["POST"])
 def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 	"""Mail the customer a receipt for one on-site payment, approved or declined.
 

@@ -128,7 +128,10 @@ def get_existing_locations(provider: str) -> list[dict[str, Any]]:
 	)
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): Frappe checks no CSRF token on a GET, so a step that writes
+# //// here or at Wallee is never opened as an address. The wizard and the webshop call these with
+# //// frappe.call (POST); the reads stay open.
+@frappe.whitelist(methods=["POST"])
 def sync_locations_from_wallee(provider: str) -> dict[str, Any]:
 	"""Pull all Locations from the Wallee account and upsert local records.
 
@@ -203,7 +206,8 @@ def get_existing_configurations(provider: str) -> list[dict[str, Any]]:
 	)
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): see sync_locations_from_wallee.
+@frappe.whitelist(methods=["POST"])
 def sync_configurations_from_wallee(provider: str) -> dict[str, Any]:
 	"""Pull all Terminal Configurations from Wallee and upsert local records."""
 	from wallee.models import EntityQuery
@@ -252,7 +256,8 @@ def sync_configurations_from_wallee(provider: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): creates a terminal at Wallee; see sync_locations_from_wallee.
+@frappe.whitelist(methods=["POST"])
 def create_terminal(
 	provider: str,
 	terminal_name: str,
@@ -321,7 +326,8 @@ def create_terminal(
 	}
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): see sync_locations_from_wallee.
+@frappe.whitelist(methods=["POST"])
 def link_terminal_device(provider: str, payment_device: str, serial_number: str) -> dict[str, Any]:
 	"""Link a physical device (by serial number) to an existing Wallee terminal.
 
@@ -447,7 +453,8 @@ def _build_billing_address_from_quotation(quotation_doc) -> dict[str, Any] | Non
 	return addr
 
 
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — POST only (maintenance#1721): creates a transaction at Wallee; see sync_locations_from_wallee.
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def create_web_transaction(
 	payment_request_id: str,
 	mode: str = "Redirect",

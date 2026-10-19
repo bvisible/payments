@@ -139,7 +139,9 @@ def _receipt_from_intent(intent_name: str) -> dict[str, Any]:
 	return receipt
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): queues a job on a real printer. Frappe does not check the CSRF
+# //// token of a GET, so a print opened as an address would come off the roll; the previews stay open.
+@frappe.whitelist(methods=["POST"])
 def print_receipt(
 	intent_name: str, printer: str | None = None, copies: int = 1
 ) -> dict[str, Any]:
