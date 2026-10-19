@@ -237,12 +237,24 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 			intent_doc.reload()
 			return _serialize_intent_for_client(intent_doc)
 
-	intent_doc.transition_to(
-		"canceled",
-		event_source="api",
-		error_code=reason or None,
-		ignore_invalid=True,
-	)
+	# //// Neoffice — the poller (fast_poll_intent, every few seconds) reads the cancellation at the PSP and may move
+	# //// the intent to `canceled` while this request waited for the PSP's answer: saving the copy loaded above then
+	# //// failed with TimestampMismatchError, and the shop showed "Error cancelling payment" for a payment that was
+	# //// cancelled (maintenance#1721). Read it again; a terminal state set meanwhile is the answer.
+	terminal = {"succeeded", "failed", "canceled", "refunded"}
+	intent_doc.reload()
+	if intent_doc.status not in terminal:
+		try:
+			intent_doc.transition_to(
+				"canceled",
+				event_source="api",
+				error_code=reason or None,
+				ignore_invalid=True,
+			)
+		except frappe.TimestampMismatchError:
+			intent_doc.reload()
+			if intent_doc.status not in terminal:
+				raise
 	intent_doc.reload()
 	return _serialize_intent_for_client(intent_doc)
 

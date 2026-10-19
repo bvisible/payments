@@ -87,6 +87,29 @@ class TestIntentAPIWithMockDriver(FrappeTestCase):
 		result = intent_api.cancel_intent(created["intent_name"])
 		self.assertEqual(result["status"], "canceled")
 
+	def test_a_cancellation_the_poller_recorded_first_is_not_an_error(self):
+		# maintenance#1721: the TWINT poller reads the cancellation at the PSP and records it while cancel_intent
+		# still holds the copy it loaded; saving that copy failed with TimestampMismatchError and the shop said
+		# "Error cancelling payment" for a payment that was cancelled.
+		from unittest.mock import patch
+
+		from payments.drivers.base import DriverResponse
+		from payments.drivers.mock_driver import MockDriver
+
+		created = intent_api.create_intent(
+			provider="mock", channel="terminal", amount=300, currency="CHF"
+		)
+		name = created["intent_name"]
+
+		def the_poller_records_it_first(_driver, provider_intent_id):
+			poller_copy = frappe.get_doc("Payment Intent", name)
+			poller_copy.transition_to("canceled", event_source="poll", ignore_invalid=True)
+			return DriverResponse(status="canceled", provider_intent_id=provider_intent_id)
+
+		with patch.object(MockDriver, "cancel_intent", the_poller_records_it_first):
+			result = intent_api.cancel_intent(name, reason="customer left")
+		self.assertEqual(result["status"], "canceled")
+
 	def test_create_rejects_zero_amount(self):
 		with self.assertRaises(frappe.ValidationError):
 			intent_api.create_intent(provider="mock", channel="terminal", amount=0, currency="CHF")
