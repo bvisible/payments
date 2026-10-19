@@ -95,11 +95,6 @@ _TERMINAL_EXPAND = [
 	"configurationVersion.configuration",
 ]
 
-# //// Neoffice — maintenance#1730: Wallee requires a type on every new terminal. BBPOS WisePOS E, the
-# //// model the wizard is built for (see get_terminal_types) and the type of the terminals in our test space.
-DEFAULT_TERMINAL_TYPE = 1568379599819
-
-
 def _space_terminals(prov: WalleeProvider) -> list:
 	"""Every terminal of the space, decommissioned ones included, versions expanded."""
 	from wallee.service.payment_terminals_service import PaymentTerminalsService
@@ -163,13 +158,54 @@ def _free_name(doctype: str, wallee_id: str, wanted: str) -> str:
 	return f"{wanted} ({wallee_id})" if frappe.db.exists(doctype, wanted) else wanted
 
 
-def _terminal_nonce(provider: str, terminal_name: str, configuration_version: int) -> str:
+def _terminal_nonce(provider: str, terminal_name: str, configuration_id: int) -> str:
 	"""Wallee's idempotency key for a new terminal: a wizard retried after a failed link gets the same
 	terminal back instead of a second one."""
 	import hashlib
 
-	seed = f"{frappe.local.site}:{provider}:{terminal_name}:{configuration_version}"
+	seed = f"{frappe.local.site}:{provider}:{terminal_name}:{configuration_id}"
 	return hashlib.sha256(seed.encode()).hexdigest()[:40]
+
+
+# //// Neoffice — maintenance#1730: the SDK's PaymentTerminalCreate (6.x) does not match what the server
+# //// reads. It sends configurationVersion, locationVersion and type; Wallee's creation request reads
+# //// `configuration` and `location` (the object ids, not their versions) and `environment` (TEST or
+# //// PRODUCTION), which the model cannot carry. Proven against the test space on 19.10: the SDK body is
+# //// refused on `environment`, `location` or `configuration` depending on what it holds; this body passes
+# //// every check. The SDK signs the method and the path, not the body, so its own request is sent with
+# //// this body. Remove when an SDK release sends these fields itself.
+def _post_terminal(prov: WalleeProvider, body: dict[str, Any]):  # noqa: ANN202 — a wallee PaymentTerminal
+	"""``POST /payment/terminals`` with the body Wallee reads; the created PaymentTerminal."""
+	from wallee.models import PaymentTerminalCreate
+	from wallee.service.payment_terminals_service import PaymentTerminalsService
+
+	service = PaymentTerminalsService(prov.build_configuration())
+	method, url, headers, _sdk_body, post_params = service._post_payment_terminals_serialize(
+		space=prov.space_id,
+		payment_terminal_create=PaymentTerminalCreate(
+			name=body["name"], external_id=body["externalId"], type=0
+		),
+		expand=None,
+		_content_type=None,
+		_headers=None,
+		_host_index=0,
+	)
+	response = service.api_client.call_api(method, url, headers, body, post_params)
+	response.read()
+	return service.api_client.response_deserialize(
+		response_data=response,
+		response_types_map={"200": "PaymentTerminal", "201": "PaymentTerminal", "4XX": "RestApiErrorResponse"},
+	).data
+
+
+def _wallee_message(exc: Exception) -> str:
+	"""The sentence Wallee put in an error response, for the operator."""
+	import json
+
+	try:
+		return json.loads(getattr(exc, "body", None) or "{}").get("message") or str(exc)
+	except (TypeError, ValueError):
+		return str(exc)
 
 
 # ---------------------------------------------------------------------------
@@ -349,7 +385,6 @@ def create_terminal(
 	configuration: str,
 	location: str,
 	device_label: str | None = None,
-	terminal_type: int | None = None,
 ) -> dict[str, Any]:
 	"""Create a Wallee Payment Terminal and persist a Payment Device locally.
 
@@ -359,44 +394,38 @@ def create_terminal(
 	  ``configuration``   : local ``Wallee Terminal Configuration`` name
 	  ``location``        : local ``Wallee Location`` name
 	  ``device_label``    : optional friendly label for the Payment Device
-	  ``terminal_type``   : Wallee terminal type id; :data:`DEFAULT_TERMINAL_TYPE` otherwise
 
 	Returns ``{payment_device, wallee_terminal_id, device_type, location, status}``.
 	"""
-	from wallee.models import PaymentTerminalCreate
-	from wallee.service.payment_terminals_service import PaymentTerminalsService
+	from wallee.exceptions import ApiException
 
 	prov = _provider(provider)
-	config = prov.build_configuration()
 
 	cfg_doc = frappe.get_doc("Wallee Terminal Configuration", configuration)
 	loc_doc = frappe.get_doc("Wallee Location", location)
 
-	if not cfg_doc.wallee_configuration_version_id:
-		frappe.throw(_("Configuration {0} has no Wallee version id — sync first").format(configuration))
+	# //// Neoffice — maintenance#1730: Wallee reads the configuration and location ids (see
+	# //// _post_terminal), not their versions; the binding is checked first so that a missing one never
+	# //// leaves a terminal at Wallee with no Payment Device here.
+	if not cfg_doc.wallee_configuration_id:
+		frappe.throw(_("Configuration {0} has no Wallee configuration id — sync first").format(configuration))
 	if not loc_doc.wallee_location_id:
 		frappe.throw(_("Location {0} has no Wallee location id — sync first").format(location))
-
-	service = PaymentTerminalsService(config)
-
-	# //// Neoffice — maintenance#1730: the SDK 6.x model is strict. It requires an external id (Wallee's
-	# //// idempotency nonce) and a terminal type, and takes the versions as integers; the old call passed
-	# //// neither and gave the versions as text, so it could never build the request.
-	configuration_version = int(cfg_doc.wallee_configuration_version_id)
-	terminal_create = PaymentTerminalCreate(
-		name=terminal_name,
-		configuration_version=configuration_version,
-		location_version=(
-			int(loc_doc.wallee_location_version_id) if loc_doc.wallee_location_version_id else None
-		),
-		external_id=_terminal_nonce(provider, terminal_name, configuration_version),
-		type=int(terminal_type or DEFAULT_TERMINAL_TYPE),
-	)
-	response = service.post_payment_terminals(
-		space=prov.space_id, payment_terminal_create=terminal_create
-	)
-
 	binding = _terminal_binding(provider)
+
+	configuration_id = int(cfg_doc.wallee_configuration_id)
+	body = {
+		"name": terminal_name,
+		"externalId": _terminal_nonce(provider, terminal_name, configuration_id),
+		"configuration": configuration_id,
+		"location": int(loc_doc.wallee_location_id),
+		"environment": "PRODUCTION" if prov.provider_doc.mode == "live" else "TEST",
+	}
+	try:
+		response = _post_terminal(prov, body)
+	except ApiException as exc:
+		# Wallee's own sentence, e.g. that test terminals are only made on request in the test environment.
+		frappe.throw(_("Wallee did not create the terminal: {0}").format(_wallee_message(exc)))
 
 	device_doc = frappe.get_doc(
 		{

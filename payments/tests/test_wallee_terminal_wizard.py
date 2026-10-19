@@ -1,11 +1,13 @@
 # //// Neoffice — added file (no upstream equivalent). maintenance#1730: the Wallee steps of the terminal wizard
-# //// imported SDK services that never existed and built a terminal request the SDK refuses; these tests hold them
-# //// to the installed SDK, with its real models.
+# //// imported SDK services that never existed and sent a terminal request Wallee does not read; these tests hold
+# //// them to the installed SDK, with its real models and its real signed request.
 """The Wallee steps of the terminal wizard against the wallee SDK actually installed."""
 
 import ast
+import base64
 import importlib
 import inspect
+import json
 from unittest.mock import patch
 
 import frappe
@@ -16,7 +18,6 @@ from wallee.models import (
 	PaymentTerminalConfiguration,
 	PaymentTerminalConfigurationVersion,
 	PaymentTerminalConfigurationVersionState,
-	PaymentTerminalCreate,
 	PaymentTerminalLocation,
 	PaymentTerminalLocationVersion,
 	PaymentTerminalLocationVersionState,
@@ -32,9 +33,35 @@ CONFIGURATION_ID = 917300002
 
 class _Provider:
 	space_id = 1
+	provider_doc = frappe._dict(mode="test")
 
 	def build_configuration(self):
-		return None
+		from wallee.configuration import Configuration
+
+		return Configuration(
+			user_id=1,
+			authentication_key=base64.b64encode(b"k" * 32).decode(),
+			host="https://wallee.invalid/api/v2.0",
+		)
+
+
+class _Refusal:
+	"""What Wallee answers when it refuses a terminal (status 422, its sentence in `message`)."""
+
+	status = 422
+	reason = "Unprocessable Entity"
+	data = json.dumps(
+		{"code": "parameter_invalid", "message": "Please get in contact with us."}
+	).encode()
+
+	def read(self):
+		return self.data
+
+	def getheader(self, name, default=None):
+		return "application/json" if name.lower() == "content-type" else default
+
+	def getheaders(self):
+		return {"content-type": "application/json"}
 
 
 def _terminal(terminal_id, location_version, configuration_version, location_state="ACTIVE"):
@@ -154,32 +181,58 @@ class TestWalleeTerminalWizard(FrappeTestCase):
 		self.assertIn("message", configurations)
 		self.assertFalse(frappe.db.exists("Wallee Location", {"wallee_location_id": str(LOCATION_ID)}))
 
-	def test_create_terminal_sends_what_the_sdk_requires(self):
+	def _create(self):
 		self._sync([_terminal(2, 42, 52)])
 		location = frappe.db.get_value("Wallee Location", {"wallee_location_id": str(LOCATION_ID)})
 		configuration = frappe.db.get_value(
 			"Wallee Terminal Configuration", {"wallee_configuration_id": str(CONFIGURATION_ID)}
 		)
+		with patch.object(wallee_api, "_terminal_binding", return_value="_T1730 binding"):
+			return wallee_api.create_terminal("wallee_test", f"{PREFIX} Till", configuration, location)
+
+	def test_create_terminal_sends_what_wallee_reads(self):
 		sent = []
 
-		class _Service:
-			def __init__(self, configuration):
-				pass
+		def _post(prov, body):
+			sent.append(body)
+			raise _Stop  # nothing past the request: no Payment Device
 
-			def post_payment_terminals(self, space, payment_terminal_create, **kwargs):
-				sent.append((space, payment_terminal_create))
-				raise _Stop  # nothing past the request: no Payment Device, no binding needed
-
-		with patch("wallee.service.payment_terminals_service.PaymentTerminalsService", _Service):
+		with patch.object(wallee_api, "_post_terminal", _post):
 			for _attempt in range(2):
 				with self.assertRaises(_Stop):
-					wallee_api.create_terminal("wallee_test", f"{PREFIX} Till", configuration, location)
+					self._create()
 
-		space, request = sent[0]
-		self.assertEqual(space, 1)
-		self.assertIsInstance(request, PaymentTerminalCreate)
-		self.assertEqual((request.configuration_version, request.location_version), (52, 42))
-		self.assertEqual(request.type, wallee_api.DEFAULT_TERMINAL_TYPE)
-		self.assertTrue(request.external_id)
+		# The object ids, not their versions, and the environment the SDK model cannot carry.
+		body = sent[0]
+		self.assertEqual(
+			{key: body[key] for key in ("name", "configuration", "location", "environment")},
+			{
+				"name": f"{PREFIX} Till",
+				"configuration": CONFIGURATION_ID,
+				"location": LOCATION_ID,
+				"environment": "TEST",
+			},
+		)
+		self.assertTrue(body["externalId"])
 		# Retried after a failed link, the wizard asks Wallee for the same terminal, not a second one.
-		self.assertEqual(sent[1][1].external_id, request.external_id)
+		self.assertEqual(sent[1]["externalId"], body["externalId"])
+
+	def test_the_request_goes_out_signed_and_a_refusal_reaches_the_operator(self):
+		calls = []
+
+		def _call_api(
+			api_client, method, url, header_params=None, body=None, post_params=None, **kwargs
+		):
+			calls.append((method, url, header_params or {}, body))
+			return _Refusal()
+
+		with patch("wallee.api_client.ApiClient.call_api", _call_api):
+			with self.assertRaises(frappe.ValidationError) as refused:
+				self._create()
+
+		method, url, headers, body = calls[0]
+		self.assertEqual(method, "POST")
+		self.assertIn("/payment/terminals", url)
+		self.assertTrue(headers.get("Authorization"))
+		self.assertEqual(body["configuration"], CONFIGURATION_ID)
+		self.assertIn("Please get in contact with us.", str(refused.exception))
