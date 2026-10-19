@@ -147,6 +147,16 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 		import requests
 
 		ctx = self._resolve_merchant_context(merchant_uuid)
+		# //// Neoffice — the instance's own TWINT engine (payments.twint_engine, maintenance#1721): same commands,
+		# //// same answers as the hub's PHP bridge, with the merchant's .p12 kept on this instance. Merchant by
+		# //// merchant behind the site's `twint_local_engine` switch (off unless set); without a certificate here
+		# //// and none the hub would give, the call goes on to the hub below, as before.
+		from payments.drivers.twint import local_engine
+
+		if local_engine.runs_locally(merchant_uuid):
+			answer = local_engine.execute(self._twint_provider, command, merchant_uuid, params, ctx)
+			if answer is not None:
+				return answer
 		body = {
 			"command": command,
 			"merchant_uuid": merchant_uuid,

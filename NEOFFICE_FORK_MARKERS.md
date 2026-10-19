@@ -170,3 +170,30 @@ those edits are recorded here (the code edits are marked in place with `//// Neo
 
 - `payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json` — `setup_guide_html` is the English text again (restored from `40d14a1^`, where a French literal had replaced it); the French reads exactly as before because the matching entry of `payments/locale/fr.po` now carries that same French.
 - Left as it is on purpose: `public/js/twint_dialog.js` keeps the French `Redirection vers TWINT`: it is website JS, and a website page only receives the curated list of JS strings of `neoffice_theme` (`WEBSHOP_JS_STRINGS`).
+
+### The TWINT engine's test data (2026-10-19, maintenance#1721)
+
+The instance's own TWINT engine (`payments/twint_engine/`, every `.py` carries its header) is held to the hub's PHP
+bridge by tests whose data cannot carry a comment. All ours, none with an upstream counterpart:
+
+- TWINT's own schemas and the answers the official PHP SDK's hermetic tests serve (github.com/Twint-AG/sdk `2.0.0`,
+  MIT per its composer.json), copied by `neoffice-devops/scripts/twint_engine_bench/import_sdk_fixtures.py`; their
+  origin is in `payments/twint_engine/testing/twint_sdk/README.md`:
+  - `payments/twint_engine/testing/twint_sdk/v10/TWINTMerchantService_v10.wsdl`
+  - `payments/twint_engine/testing/twint_sdk/v10/stubs.json`
+  - `payments/twint_engine/testing/twint_sdk/v10/twint_base_types_v10.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v10/twint_common_types_v10.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v10/twint_fault_types_v10.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v10/twint_header_types_v10.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v10/twint_merchant_service_v10.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v8_7/TWINTMerchantService_v8.7.wsdl`
+  - `payments/twint_engine/testing/twint_sdk/v8_7/stubs.json`
+  - `payments/twint_engine/testing/twint_sdk/v8_7/twint_base_types_v8.7.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v8_7/twint_common_types_v8.7.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v8_7/twint_fault_types_v8.7.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v8_7/twint_header_types_v8.7.xsd`
+  - `payments/twint_engine/testing/twint_sdk/v8_7/twint_merchant_service_v8.7.xsd`
+- What the hub's PHP bridge answered and sent for every case of `testing/cases.py`, recorded by
+  `neoffice-devops/scripts/twint_engine_bench/make_vectors.py` and replayed by `tests/test_twint_engine_vectors.py`:
+  - `payments/twint_engine/testing/vectors-v10.json`
+  - `payments/twint_engine/testing/vectors-v8_7.json`

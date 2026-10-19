@@ -1,8 +1,9 @@
 # //// Neoffice — added file (no upstream equivalent). The per-merchant TWINT
 # //// configuration DocType: merchant UUID, the .p12 unlock password, and the
-# //// certificate's notAfter date. The certificate FILE never stays here — on save
-# //// the bytes are pushed to neoservice (`/home/neoffice/twint-certs/<uuid>.p12`)
-# //// and the local copy is deleted; deleting or rotating the record removes the
+# //// certificate's notAfter date. On save the uploaded file is pushed to neoservice
+# //// (`/home/neoffice/twint-certs/<uuid>.p12`), kept encrypted for the instance's
+# //// own TWINT engine (maintenance#1721, see drivers/twint/local_engine.py) and the
+# //// attached file is deleted; deleting or rotating the record removes the
 # //// remote file too. `check_certificate_expiry` mails a reminder over the 45 days
 # //// before expiry, because an expired .p12 takes TWINT payments down.
 # //// Upstream has no TWINT anything: in-store TWINT runs through our central PHP
@@ -33,16 +34,17 @@ CERT_EXPIRY_MILESTONES = {45, 30, 21, 14, 10, 7, 5, 4, 3, 2, 1, 0}
 class TwintBridgeSettings(Document):
 	"""Per-merchant TWINT configuration.
 
-	One record per TWINT merchant on the calling site. The P12 certificate FILE
-	is never stored here — it lives on neoservice in
-	``/home/neoffice/twint-certs/<merchant_uuid>.p12``. Only the unlock password
-	is kept here (encrypted Frappe Password field).
+	One record per TWINT merchant on the calling site. The P12 certificate lives
+	on neoservice in ``/home/neoffice/twint-certs/<merchant_uuid>.p12`` for the
+	hub's PHP bridge, and encrypted in this site's __Auth table for the
+	instance's own TWINT engine (``payments.drivers.twint.local_engine``). The
+	unlock password is kept here (encrypted Frappe Password field).
 
 	The ``p12_certificate`` Attach field is a one-shot upload vehicle: on save the
 	bytes are pushed to neoservice via
-	``neoffice_devops.api.twint.upload_certificate`` and the local copy is
-	deleted, so the certificate never persists on this instance. Deleting (or
-	rotating) the record removes the certificate from neoservice too.
+	``neoffice_devops.api.twint.upload_certificate``, kept encrypted, and the
+	attached file is deleted. Deleting (or rotating) the record removes the
+	certificate from neoservice too.
 
 	The certificate's expiry (``notAfter``) is read at upload and stored in
 	``certificate_expires_on``; :func:`check_certificate_expiry` warns by email in
@@ -148,6 +150,13 @@ class TwintBridgeSettings(Document):
 		# Read the certificate expiry (notAfter) before purging the local copy, so
 		# we can warn before it lapses. Best-effort — never block a good deploy.
 		expiry = self._read_cert_expiry(raw)
+
+		# //// Neoffice — the instance keeps the certificate too, encrypted with the site's key (__Auth), for its own
+		# //// TWINT engine (maintenance#1721): the attached file still goes, the bytes stay where only it reads them.
+		from payments.drivers.twint import local_engine
+
+		if not local_engine.store_certificate(self.merchant_uuid, raw):
+			frappe.log_error("TWINT certificate not kept on the instance", f"{self.name}: {len(raw)} bytes")
 
 		# Purge the local copy (cert lives only on neoservice) + stamp status.
 		try:

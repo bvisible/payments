@@ -1,0 +1,2570 @@
+{
+ "version": "8.7",
+ "vectors": [
+  {
+   "label": "register: CHF 19.95",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>19.95</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: 1 rappen",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>0.01</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: 10 rappen",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>0.1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: 33 rappen",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>0.33</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: 50 rappen",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>0.5</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: 100 rappen",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: 1990 rappen",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>19.9</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: 123456789 rappen",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1234567.89</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: amount as text '12.7'",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>0.12</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: amount missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "amount must be > 0"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: amount 0",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "amount must be > 0"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: negative amount",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "amount must be > 0"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: reference with markup and accents",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "A&B<C>\"'é ü"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>A&amp;B&lt;C&gt;\"'é ü</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: reference of 50 bytes",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: reference of 51 bytes",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Transaction reference \"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\" is too long. Must be 50 characters or less, got 51",
+    "exception": "Psl\\Exception\\InvariantViolationException"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: reference of 50 characters, 51 bytes",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Transaction reference \"éRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\" is too long. Must be 50 characters or less, got 51",
+    "exception": "Psl\\Exception\\InvariantViolationException"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: reference missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "merchant_reference is required"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: store uuid in capitals",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: store uuid not a uuid",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Invalid UUID \"not-a-uuid\". Must be in the format \"8-4-4-4-12\"",
+    "exception": "Psl\\Exception\\InvariantViolationException"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: store uuid missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"non-empty-string\", got \"string\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: test environment",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: TWINT refuses the merchant",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Merchant is not valid",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: TWINT refuses the cash register",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Merchant is not valid",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: HTTP 503 with an HTML page",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Wrong Version",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: HTTP 502 not XML",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "looks like we got no XML document",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: answer that is not XML",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "looks like we got no XML document",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: empty answer",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"Twint\\Sdk\\Generated\\Type\\StartOrderResponseType\", got \"Phpro\\SoapClient\\Type\\MixedResult\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: kept connection dropped, the call goes again",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "81a72398-33e5-45c8-ac13-5d1cad64656a",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "810189211",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: cash register named",
+   "compare": "difference",
+   "php_answer": {
+    "success": false,
+    "error": "Cannot instantiate interface Twint\\Sdk\\Value\\CashRegisterId",
+    "exception": "Error"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "monitor: order received",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: awaiting the customer",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_PENDING"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: paid",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "SUCCESS",
+    "transaction_status": "ORDER_OK"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: failure scenario, received",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: failure scenario, awaiting",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_PENDING"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: customer aborted",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "FAILURE",
+    "transaction_status": "CLIENT_ABORT"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: general error",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "FAILURE",
+    "transaction_status": "GENERAL_ERROR"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: customer timeout",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "FAILURE",
+    "transaction_status": "CLIENT_TIMEOUT"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: no recorded answer (HTTP 404)",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "looks like we got no XML document",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: order unknown to TWINT",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Order not found",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: system error",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "System error",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: order id in capitals",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "SUCCESS",
+    "transaction_status": "ORDER_OK"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: order id not a uuid",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Invalid UUID \"PI-2026-00001\". Must be in the format \"8-4-4-4-12\"",
+    "exception": "Psl\\Exception\\InvariantViolationException"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "monitor: order id missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "order_id is required"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "confirm: capture",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "SUCCESS",
+    "transaction_status": "ORDER_OK"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "ConfirmOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"ConfirmOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:ConfirmOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:RequestedAmount><ns1:Amount>19.95</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:PartialConfirmation>false</ns2:PartialConfirmation></ns2:ConfirmOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "confirm: amount 0",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "order_id and amount required"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "confirm: order id missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "order_id and amount required"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "confirm: refused",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Status transition not allowed",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "ConfirmOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"ConfirmOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:ConfirmOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:RequestedAmount><ns1:Amount>19.95</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:PartialConfirmation>false</ns2:PartialConfirmation></ns2:ConfirmOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "confirm: the SDK classifies that fault for a cancel only",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Status transition not allowed",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "ConfirmOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"ConfirmOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:ConfirmOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:RequestedAmount><ns1:Amount>19.95</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:PartialConfirmation>false</ns2:PartialConfirmation></ns2:ConfirmOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "cancel: canceled",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "FAILURE",
+    "transaction_status": "MERCHANT_ABORT"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "CancelOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"CancelOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:CancelOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid></ns2:CancelOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "cancel: TWINT's StatusTransitionError",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Status transition not allowed",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "CancelOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"CancelOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:CancelOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid></ns2:CancelOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "cancel: a fault the SDK classifies",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Status transition not allowed",
+    "exception": "Twint\\Sdk\\Exception\\CancellationFailed"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "CancelOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"CancelOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:CancelOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid></ns2:CancelOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "cancel: order id missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "order_id is required"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "refund: full, own reference",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "reversal_status": "SUCCESS"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"REVERSAL\" confirmationNeeded=\"false\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>19.95</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>rev_0e5f2a90-1111-4222-8333-444455556666_1995</ns2:MerchantTransactionReference><ns2:Link><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid></ns2:Link></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "refund: partial, given reference",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "reversal_status": "SUCCESS"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"REVERSAL\" confirmationNeeded=\"false\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>5</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>R-1</ns2:MerchantTransactionReference><ns2:Link><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid></ns2:Link></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "refund: amount missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "order_id and amount required"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "refund: given reference of 51 bytes",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Transaction reference \"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\" is too long. Must be 50 characters or less, got 51",
+    "exception": "Psl\\Exception\\InvariantViolationException"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "refund: order id not a uuid",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Invalid UUID \"abc\". Must be in the format \"8-4-4-4-12\"",
+    "exception": "Psl\\Exception\\InvariantViolationException"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "refund: refused",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Reversal not possible",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"REVERSAL\" confirmationNeeded=\"false\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>5</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>rev_0e5f2a90-1111-4222-8333-444455556666_500</ns2:MerchantTransactionReference><ns2:Link><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid></ns2:Link></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "certificate: wrong password",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Reading PKCS12 file failed",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "certificate: old 3DES .p12",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "3b362d54-baa4-46ef-8ba9-fd5ccda2f8ab",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_RECEIVED",
+    "pairing_token": "1733831334",
+    "merchant_reference": "PI-2026-00001"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "certificate: one TWINT does not know",
+   "compare": "failure",
+   "php_answer": {
+    "success": false,
+    "error": "cURL error 56: OpenSSL SSL_read: OpenSSL/4.0.3: error:0A000418:SSL routines::tlsv1 alert unknown ca, errno 0 (see https://curl.se/libcurl/c/libcurl-errors.html) for https://127.0.0.1:55986/merchant/service/TWINTMerchantServiceV8_7",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "health: certificate present",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "bridge_version": "0.1.0",
+    "sdk_loaded": true,
+    "cert_file_exists": true
+   },
+   "php_requests": []
+  },
+  {
+   "label": "health: certificate missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Certificate path missing or unreadable"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "unknown command",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Unknown command: refund_everything"
+   },
+   "php_requests": []
+  },
+  {
+   "label": "register: answer without a token",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"uint\", got \"null\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: token that is not a number",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "SOAP-ERROR: Encoding: Violation of encoding rules",
+    "exception": "Twint\\Sdk\\Exception\\ApiFailure"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: QR code that is not an image",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Invalid QR code format",
+    "exception": "Psl\\Exception\\InvariantViolationException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: answer without a QR code",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"non-empty-string\", got \"null\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: unknown order status",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"\"IN_PROGRESS\"|\"FAILURE\"|\"SUCCESS\"\", got \"string\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: unknown reason",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"\"ORDER_OK\"|\"ORDER_PARTIAL_OK\"|\"ORDER_RECEIVED\"|\"ORDER_PENDING\"|\"ORDER_CONFIRMATION_PENDING\"|\"GENERAL_ERROR\"|\"CLIENT_TIMEOUT\"|\"MERCHANT_ABORT\"|\"CLIENT_ABORT\"\", got \"string\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "register: unknown pairing status",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"\"NO_PAIRING\"|\"PAIRING_IN_PROGRESS\"|\"PAIRING_ACTIVE\"\", got \"string\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "StartOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"StartOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:StartOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:Order type=\"PAYMENT_IMMEDIATE\" confirmationNeeded=\"true\"><ns2:PostingType>GOODS</ns2:PostingType><ns2:RequestedAmount><ns1:Amount>1</ns1:Amount><ns1:Currency>CHF</ns1:Currency></ns2:RequestedAmount><ns2:MerchantTransactionReference>PI-2026-00001</ns2:MerchantTransactionReference></ns2:Order><ns2:UnidentifiedCustomer>true</ns2:UnidentifiedCustomer><ns2:QRCodeRendering>true</ns2:QRCodeRendering></ns2:StartOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: confirmation pending (capture needed)",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "IN_PROGRESS",
+    "transaction_status": "ORDER_CONFIRMATION_PENDING"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: partially confirmed",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "SUCCESS",
+    "transaction_status": "ORDER_PARTIAL_OK"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: merchant aborted",
+   "compare": "exact",
+   "php_answer": {
+    "success": true,
+    "order_id": "0e5f2a90-1111-4222-8333-444455556666",
+    "order_status": "FAILURE",
+    "transaction_status": "MERCHANT_ABORT"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: amount in euros",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"\"CHF\"|\"XXX\"\", got \"string\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: reference missing",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"non-empty-string\", got \"null\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: unknown reason",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"\"ORDER_OK\"|\"ORDER_PARTIAL_OK\"|\"ORDER_RECEIVED\"|\"ORDER_PENDING\"|\"ORDER_CONFIRMATION_PENDING\"|\"GENERAL_ERROR\"|\"CLIENT_TIMEOUT\"|\"MERCHANT_ABORT\"|\"CLIENT_ABORT\"\", got \"string\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  },
+  {
+   "label": "monitor: answer of another operation",
+   "compare": "exact",
+   "php_answer": {
+    "success": false,
+    "error": "Expected \"Twint\\Sdk\\Generated\\Type\\MonitorOrderResponseType\", got \"Phpro\\SoapClient\\Type\\MixedResult\".",
+    "exception": "Psl\\Type\\Exception\\AssertException"
+   },
+   "php_requests": [
+    {
+     "operation": "EnrollCashRegister",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"EnrollCashRegister\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:EnrollCashRegisterRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:CashRegisterType>EPOS</ns2:CashRegisterType></ns2:EnrollCashRegisterRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    },
+    {
+     "operation": "MonitorOrder",
+     "path": "/merchant/service/TWINTMerchantServiceV8_7",
+     "soap_action": "\"MonitorOrder\"",
+     "content_type": "text/xml; charset=\"utf-8\"",
+     "user_agent": "TWINT PHP SDK/v1.8.4",
+     "header_names": [
+      "content-length",
+      "content-type",
+      "host",
+      "soapaction",
+      "user-agent"
+     ],
+     "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"http://service.twint.ch/base/types/v8_7\" xmlns:ns2=\"http://service.twint.ch/merchant/types/v8_7\"><soap:Header xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:default=\"http://service.twint.ch/header/types/v8_7\"><default:RequestHeaderElement xmlns=\"http://service.twint.ch/header/types/v8_7\"><MessageId>*</MessageId><ClientSoftwareName>TWINT PHP SDK</ClientSoftwareName><ClientSoftwareVersion>v1.8.4</ClientSoftwareVersion></default:RequestHeaderElement></soap:Header><SOAP-ENV:Body><ns2:MonitorOrderRequestElement><ns2:MerchantInformation><ns1:MerchantUuid>a1b2c3d4-0000-4000-8000-000000000001</ns1:MerchantUuid><ns1:CashRegisterId>Unknown-a1b2c3d4-0000-4000-8000-000000000001</ns1:CashRegisterId></ns2:MerchantInformation><ns2:OrderUuid>0e5f2a90-1111-4222-8333-444455556666</ns2:OrderUuid><ns2:WaitForResponse>false</ns2:WaitForResponse></ns2:MonitorOrderRequestElement></SOAP-ENV:Body></SOAP-ENV:Envelope>\n"
+    }
+   ]
+  }
+ ]
+}
