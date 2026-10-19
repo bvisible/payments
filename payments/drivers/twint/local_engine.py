@@ -1,6 +1,7 @@
 # //// Neoffice — added file (no upstream equivalent). The till's and the shop's TWINT calls run on the instance's own
-# //// engine (payments.twint_engine, Python) instead of the hub's PHP bridge, merchant by merchant, behind the site's
-# //// `twint_local_engine` switch (maintenance#1721). The engine needs the merchant's .p12, which until now lived on
+# //// engine (payments.twint_engine, Python) instead of the hub's PHP bridge, unless the site sends them back with
+# //// its `twint_local_engine` switch (maintenance#1721; the default since Jérémy's decision of 19.10.2026, after a
+# //// real payment captured and refunded by the engine on osiris). The engine needs the merchant's .p12, which until now lived on
 # //// the hub alone: the instance keeps it encrypted with the site's key (Frappe's __Auth table, so it is in the
 # //// database backups), takes it from the form on upload, and fetches the ones already on the hub once, proving it
 # //// holds the password that opens them. No certificate here and none to fetch: the call goes to the hub as before.
@@ -36,14 +37,15 @@ def _refused_key(merchant_uuid: str) -> str:
 def runs_locally(merchant_uuid: str) -> bool:
 	"""Whether this merchant's calls run on the instance's engine: `twint_local_engine` in site_config.json.
 
-	Absent, false, "off" or "hub": the hub's bridge (the default until the engine has been proven with real money).
-	True, "all" or "on": every merchant. A list (["uuid", ...] or "uuid, uuid"): only those merchants.
+	Absent, true, "all" or "on": every merchant (the default: an updated instance speaks TWINT itself).
+	False, "off" or "hub": the hub's bridge, with nothing to redo (the hub keeps its copy of the certificate).
+	A list (["uuid", ...] or "uuid, uuid"): only those merchants.
 	"""
 	setting = frappe.conf.get("twint_local_engine")
-	if setting is None or setting is False or setting == 0:
-		return False
-	if setting is True or setting == 1:
+	if setting is None or setting is True or setting == 1:
 		return True
+	if setting is False or setting == 0:
+		return False
 	if isinstance(setting, str):
 		text = setting.strip().lower()
 		if text in ("all", "true", "1", "on", "yes"):

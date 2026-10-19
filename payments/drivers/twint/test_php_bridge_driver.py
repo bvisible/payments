@@ -103,6 +103,13 @@ class TestTwintPHPBridgeDriver(FrappeTestCase):
 		super().setUpClass()
 		_ensure_fixtures()
 
+	def setUp(self):
+		# //// Neoffice — these tests are about the hub's bridge: the instance's own engine is the default since
+		# //// maintenance#1721, so they name the bridge's path (`twint_local_engine` false) as a site would.
+		patch_conf = patch.dict(frappe.conf, {"twint_local_engine": False})
+		patch_conf.start()
+		self.addCleanup(patch_conf.stop)
+
 	def test_create_intent_calls_register_payment(self):
 		driver = _build_driver()
 		request = IntentRequest(

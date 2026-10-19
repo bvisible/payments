@@ -35,7 +35,7 @@ def _hub_answer(message, ok=True, status=200):
 class TestTheSwitch(FrappeTestCase):
 	def test_what_the_setting_means(self):
 		for setting, expected in (
-			(None, False),
+			(None, True),
 			(False, False),
 			("off", False),
 			("hub", False),
@@ -52,10 +52,11 @@ class TestTheSwitch(FrappeTestCase):
 			):
 				self.assertIs(local_engine.runs_locally(MERCHANT), expected)
 
-	def test_absent_is_the_hub(self):
+	def test_absent_is_the_engine(self):
+		# The default since 19.10.2026: an updated instance speaks TWINT itself, `false` sends it back to the hub.
 		conf = {key: value for key, value in frappe.conf.items() if key != "twint_local_engine"}
 		with mock.patch.object(frappe.local, "conf", frappe._dict(conf)):
-			self.assertFalse(local_engine.runs_locally(MERCHANT))
+			self.assertTrue(local_engine.runs_locally(MERCHANT))
 
 	def test_the_service_version(self):
 		with mock.patch.dict(frappe.conf, {"twint_soap_version": "10"}):
