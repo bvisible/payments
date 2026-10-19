@@ -1,15 +1,21 @@
-<!-- //// Neoffice — added file (no upstream equivalent). Rotating a TWINT merchant P12. The one
-     //// fact worth reading twice: the certificate lives on neoservice ONLY — client
-     //// instances hold its password (encrypted) and never the file. That split is why
-     //// `Twint Bridge Settings` looks the way it does.
+<!-- //// Neoffice — added file (no upstream equivalent). Rotating a TWINT merchant P12. Since
+     //// 19.10.2026 (maintenance#1721) the certificate lives in two places: encrypted on each client
+     //// instance, for its own TWINT engine (payments.twint_engine), and on neoservice, for the hub's
+     //// PHP bridge (the way back). The instance holds its password (encrypted) too.
      //// Commits: 7cfe7fa 2026-05-13 "Phase 7 runbooks". -->
 # Runbook — Rotate a TWINT Merchant P12 certificate
 
 Applies when TWINT issues a new certificate (annual renewal or compromise).
 
-The P12 lives on **neoservice.neoffice.me** only — never on client instances.
-Client instances store the *password* (encrypted Frappe Password field) but
-never the certificate file.
+The P12 lives on **each client instance**, encrypted with the site's key (for the instance's own TWINT
+engine, `payments.twint_engine`, the default since 19.10.2026), and on **neoservice.neoffice.me** (for the
+hub's PHP bridge, the way back: `twint_local_engine: false`). Client instances also store the *password*
+(encrypted Frappe Password field).
+
+A certificate replaced on neoservice by hand (the steps below) reaches the instances by itself: a copy kept
+on an instance that no longer opens with the record's password is replaced, at the next TWINT call, by the
+one neoservice stores, which neoservice hands over only for the password that opens it. So the order is: the
+file on neoservice, then the new password on each record (Step 4).
 
 ## Pre-requisites
 
@@ -20,7 +26,7 @@ never the certificate file.
 ## Normal way: the form
 
 Open the merchant's `Twint Bridge Settings`, attach the new P12 and type the new password, save. The form
-pushes the file to neoservice and clears its own copy. Replacing a certificate that is already stored needs
+keeps the file encrypted on the instance, pushes it to neoservice and removes the attached file. Replacing a certificate that is already stored needs
 the **password of the stored one**: the form sends it by itself (it is the password the record held before
 this save), and neoservice refuses the replacement otherwise (the service key is the same on every till, so
 it does not say whose certificate a call is about). The same goes for deleting the record.

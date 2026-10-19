@@ -95,7 +95,7 @@
    "fieldname": "p12_certificate",
    "fieldtype": "Attach",
    "label": "P12 Certificate",
-   "description": "Generate / download this .p12 on the TWINT merchant portal, then upload it here. On save it is pushed to neoservice and removed from this instance (the certificate lives only on neoservice). Re-upload to rotate it."
+   "description": "Generate / download this .p12 on the TWINT merchant portal, then upload it here. On save it is kept encrypted on this instance for its TWINT connection and sent to neoservice as a fallback; the attached file itself is removed. Re-upload to rotate it."
   },
   {
    "default": "0",
@@ -140,7 +140,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-05-13 20:30:00.000000",
+ "modified": "2026-10-19 22:40:00.000000",
  "modified_by": "Administrator",
  "module": "Payment Gateways",
  "name": "Twint Bridge Settings",
