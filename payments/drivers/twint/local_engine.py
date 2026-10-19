@@ -59,8 +59,13 @@ def runs_locally(merchant_uuid: str) -> bool:
 
 
 def soap_version() -> str:
-	"""TWINT's service version the engine speaks: `twint_soap_version`, "8.7" (the hub's bridge) unless set to "10"."""
-	return str(frappe.conf.get("twint_soap_version") or "8.7")
+	"""TWINT's service version the engine speaks: `twint_soap_version`, "10" unless set to "8.7".
+
+	10 is the default since Jérémy's decision of 19.10.2026, after a real payment captured and refunded in 10 on
+	osiris (it is the TWINT SDK 2.0's default). "8.7" is what the hub's PHP bridge speaks: an order made in either
+	version reads the same in the other, so a site can be sent back to 8.7 at any time.
+	"""
+	return str(frappe.conf.get("twint_soap_version") or "10")
 
 
 # ----------------------------------------------------------------------------------------------------------------------

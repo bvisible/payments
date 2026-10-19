@@ -29,8 +29,11 @@ REGISTER = {"amount": 1995, "currency": "CHF", "merchant_reference": "PI-LOCAL-1
 def _fault_answer():
 	from payments.twint_engine.testing.fake_twint import Answer, fault
 
+	# In the version the engine speaks (10 by default since 19.10.2026): a fault in another version's namespace is
+	# not the merchant fault TWINT would send.
+	version = local_engine.soap_version().replace(".", "_")
 	return Answer(
-		fault("8_7", "InvalidMerchant", "1100", "INVALID_MERCHANT", "Merchant is not valid"), 500
+		fault(version, "InvalidMerchant", "1100", "INVALID_MERCHANT", "Merchant is not valid"), 500
 	)
 
 
@@ -67,11 +70,15 @@ class TestTheSwitch(FrappeTestCase):
 			self.assertTrue(local_engine.runs_locally(MERCHANT))
 
 	def test_the_service_version(self):
-		with mock.patch.dict(frappe.conf, {"twint_soap_version": "10"}):
-			self.assertEqual(local_engine.soap_version(), "10")
+		# 10 by default since 19.10.2026; "8.7" (the hub bridge's version) sends a site back, as text or parsed.
 		conf = {key: value for key, value in frappe.conf.items() if key != "twint_soap_version"}
 		with mock.patch.object(frappe.local, "conf", frappe._dict(conf)):
-			self.assertEqual(local_engine.soap_version(), "8.7")
+			self.assertEqual(local_engine.soap_version(), "10")
+		for setting, expected in (("8.7", "8.7"), (8.7, "8.7"), ("10", "10"), (10, "10")):
+			with self.subTest(setting=setting), mock.patch.dict(
+				frappe.conf, {"twint_soap_version": setting}
+			):
+				self.assertEqual(local_engine.soap_version(), expected)
 
 
 def _forget_certificate():
