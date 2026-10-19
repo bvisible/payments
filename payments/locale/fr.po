@@ -3422,3 +3422,11 @@ msgstr "Passage à l'application native"
 #: payments/integrations/wallee/api.py:147
 msgid "Wallee lists locations and configurations only through the terminals of the space. Create the first terminal in the Wallee portal, then sync again."
 msgstr "Wallee liste les emplacements et les configurations uniquement par les terminaux de l'espace. Créez le premier terminal dans le portail Wallee, puis synchronisez à nouveau."
+
+#: payments/integrations/wallee/api.py:411
+msgid "Configuration {0} has no Wallee configuration id — sync first"
+msgstr "La configuration {0} n'a pas d'identifiant de configuration Wallee — synchronisez d'abord"
+
+#: payments/integrations/wallee/api.py:428
+msgid "Wallee did not create the terminal: {0}"
+msgstr "Wallee n'a pas créé le terminal : {0}"
