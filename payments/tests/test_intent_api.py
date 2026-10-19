@@ -40,9 +40,7 @@ def _ensure_mock_setup() -> None:
 				"capabilities_json": json.dumps({"supports_refund": True, "supports_tip": False}),
 			}
 		).insert(ignore_permissions=True)
-	if not frappe.db.exists(
-		"Provider Channel Settings", {"provider": "mock", "channel": "terminal"}
-	):
+	if not frappe.db.exists("Provider Channel Settings", {"provider": "mock", "channel": "terminal"}):
 		frappe.get_doc(
 			{
 				"doctype": "Provider Channel Settings",
@@ -75,13 +73,17 @@ class TestIntentAPIWithMockDriver(FrappeTestCase):
 		self.assertTrue(result["provider_intent_id"].startswith("mock_pi_"))
 
 	def test_create_then_get_status(self):
-		created = intent_api.create_intent(provider="mock", channel="terminal", amount=500, currency="CHF")
+		created = intent_api.create_intent(
+			provider="mock", channel="terminal", amount=500, currency="CHF"
+		)
 		fetched = intent_api.get_intent_status(created["intent_name"])
 		self.assertEqual(fetched["intent_name"], created["intent_name"])
 		self.assertEqual(fetched["status"], "requires_action")
 
 	def test_cancel_intent_terminal_state(self):
-		created = intent_api.create_intent(provider="mock", channel="terminal", amount=200, currency="CHF")
+		created = intent_api.create_intent(
+			provider="mock", channel="terminal", amount=200, currency="CHF"
+		)
 		result = intent_api.cancel_intent(created["intent_name"])
 		self.assertEqual(result["status"], "canceled")
 
@@ -100,3 +102,18 @@ class TestIntentAPIWithMockDriver(FrappeTestCase):
 		)
 		intent_doc = frappe.get_doc("Payment Intent", result["intent_name"])
 		self.assertEqual(intent_doc.get_metadata(), {"customer": "alice"})
+
+
+class TestTheIntentApiChangesStateOnPostOnly(FrappeTestCase):
+	"""maintenance#1721: a GET is rolled back by Frappe, so a refund opened as an address returned the money at the
+	PSP and left the intent `succeeded`, refundable again. Creating, cancelling, refunding: POST only."""
+
+	def test_creating_cancelling_and_refunding_refuse_a_get(self):
+		for function in (intent_api.create_intent, intent_api.cancel_intent, intent_api.refund_intent):
+			with self.subTest(function=function.__name__):
+				self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[function]), ("POST",))
+
+	def test_reading_a_status_stays_open_to_a_get(self):
+		self.assertIn(
+			"GET", tuple(frappe.allowed_http_methods_for_whitelisted_func[intent_api.get_intent_status])
+		)

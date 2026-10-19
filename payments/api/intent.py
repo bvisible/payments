@@ -58,7 +58,10 @@ def _serialize_intent_for_client(intent_doc) -> dict[str, Any]:  # noqa: ANN001
 	}
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): over GET, Frappe rolls the request's transaction back, so a refund
+# //// made by opening an address returned the money at the PSP and left the intent `succeeded`, open to a second
+# //// refund (TWINT, osiris, 19.10). Creating, cancelling and refunding change state: never on a GET.
+@frappe.whitelist(methods=["POST"])
 def create_intent(
 	provider: str,
 	channel: str,
@@ -180,7 +183,8 @@ def get_intent_status(intent_name: str) -> dict[str, Any]:
 	return _serialize_intent_for_client(intent_doc)
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): see create_intent.
+@frappe.whitelist(methods=["POST"])
 def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]:
 	"""Cancel a Payment Intent. No-op if already in a terminal state.
 
@@ -278,13 +282,11 @@ def release_stuck_terminal(intent_name: str) -> None:
 		driver = resolve_driver(intent_doc.provider, intent_doc.channel)
 		reader_status = None
 		try:
-			reading = driver.get_status(
-				intent_doc.provider_intent_id, device_id=intent_doc.device
-			)
+			reading = driver.get_status(intent_doc.provider_intent_id, device_id=intent_doc.device)
 			status = reading.status
-			reader_status = str(
-				(reading.next_action_payload or {}).get("terminal_status") or ""
-			).strip().upper()
+			reader_status = (
+				str((reading.next_action_payload or {}).get("terminal_status") or "").strip().upper()
+			)
 		except Exception:  # noqa: BLE001 - a failed read is not a reason to stop
 			status = None
 
@@ -358,12 +360,17 @@ def _set_device_status(device: str | None, status: str) -> None:
 		frappe.db.set_value("Payment Device", device, "status", status)
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): see create_intent.
+@frappe.whitelist(methods=["POST"])
 def refund_intent(intent_name: str, amount: int | None = None) -> dict[str, Any]:
 	"""Refund a settled Payment Intent. ``amount=None`` means full refund."""
 	intent_doc = frappe.get_doc("Payment Intent", intent_name)
 	if intent_doc.status != "succeeded":
-		frappe.throw(_("Can only refund a Payment Intent in status 'succeeded' (current: {0})").format(intent_doc.status))
+		frappe.throw(
+			_("Can only refund a Payment Intent in status 'succeeded' (current: {0})").format(
+				intent_doc.status
+			)
+		)
 	if not intent_doc.provider_intent_id:
 		frappe.throw(_("Payment Intent has no provider_intent_id; cannot refund"))
 
