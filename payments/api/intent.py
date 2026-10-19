@@ -10,8 +10,10 @@
 # License: MIT. See LICENSE
 """Public API for Payment Intent lifecycle.
 
-All endpoints are whitelisted and authenticated. They sit on top of the driver
-registry to provide a uniform interface across PSPs.
+They sit on top of the driver registry to provide a uniform interface across PSPs.
+They are the Python API the checkouts call (as a guest, a shop customer, a
+cashier or a technician), so they check no session user: their HTTP doors, with
+the Payment Intent permissions, are in :mod:`payments.api.intent_http`.
 
 Endpoints:
 - :func:`create_intent` — build a new Payment Intent + call the driver.
@@ -58,10 +60,11 @@ def _serialize_intent_for_client(intent_doc) -> dict[str, Any]:  # noqa: ANN001
 	}
 
 
-# //// Neoffice — POST only (maintenance#1721): over GET, Frappe rolls the request's transaction back, so a refund
-# //// made by opening an address returned the money at the PSP and left the intent `succeeded`, open to a second
-# //// refund (TWINT, osiris, 19.10). Creating, cancelling and refunding change state: never on a GET.
-@frappe.whitelist(methods=["POST"])
+# //// Neoffice — not an HTTP entry any more (maintenance#1732): its path answers through
+# //// payments.api.intent_http.create_intent (hooks.override_whitelisted_methods), which asks for the Payment Intent
+# //// permissions this function cannot ask for, since guests and cashiers reach it through the checkouts. That door
+# //// takes POST only (maintenance#1721): over GET, Frappe rolls the request's transaction back, so a refund made by
+# //// opening an address returned the money at the PSP and left the intent `succeeded` (TWINT, osiris, 19.10).
 def create_intent(
 	provider: str,
 	channel: str,
@@ -176,15 +179,14 @@ def create_intent(
 	return _serialize_intent_for_client(intent_doc)
 
 
-@frappe.whitelist()
+# //// Neoffice — not an HTTP entry any more (maintenance#1732): see create_intent.
 def get_intent_status(intent_name: str) -> dict[str, Any]:
 	"""Return the current state of a Payment Intent."""
 	intent_doc = frappe.get_doc("Payment Intent", intent_name)
 	return _serialize_intent_for_client(intent_doc)
 
 
-# //// Neoffice — POST only (maintenance#1721): see create_intent.
-@frappe.whitelist(methods=["POST"])
+# //// Neoffice — not an HTTP entry any more (maintenance#1732): see create_intent.
 def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]:
 	"""Cancel a Payment Intent. No-op if already in a terminal state.
 
@@ -372,8 +374,7 @@ def _set_device_status(device: str | None, status: str) -> None:
 		frappe.db.set_value("Payment Device", device, "status", status)
 
 
-# //// Neoffice — POST only (maintenance#1721): see create_intent.
-@frappe.whitelist(methods=["POST"])
+# //// Neoffice — not an HTTP entry any more (maintenance#1732): see create_intent.
 def refund_intent(intent_name: str, amount: int | None = None) -> dict[str, Any]:
 	"""Refund a settled Payment Intent. ``amount=None`` means full refund."""
 	intent_doc = frappe.get_doc("Payment Intent", intent_name)

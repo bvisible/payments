@@ -15,6 +15,7 @@ from frappe.tests.utils import FrappeTestCase
 
 MODULES = (
 	"payments.api.intent",
+	"payments.api.intent_http",
 	"payments.api.mobile_payments",
 	"payments.api.payrexx_setup",
 	"payments.api.terminal",
@@ -29,7 +30,9 @@ MODULES = (
 # Reads, plus one poll: the phones already installed call mobile_refresh_status with GET, and it only copies
 # Stripe's verdict onto an open card intent.
 OPEN_TO_GET = {
-	"payments.api.intent": {"get_intent_status"},
+	# payments.api.intent is no HTTP entry since maintenance#1732: its paths answer through intent_http.
+	"payments.api.intent": set(),
+	"payments.api.intent_http": {"get_intent_status"},
 	"payments.api.mobile_payments": {
 		"mobile_context",
 		"mobile_recent_payments",
@@ -62,7 +65,13 @@ OPEN_TO_GET = {
 
 # Named so that a sweep that silently found nothing (a module renamed, a decorator changed) cannot pass.
 POST_ONLY = {
-	"payments.api.intent": {"create_intent", "cancel_intent", "refund_intent"},
+	"payments.api.intent": set(),
+	"payments.api.intent_http": {
+		"create_intent",
+		"cancel_intent",
+		"refund_intent",
+		"attach_intent_to_reader",
+	},
 	"payments.api.mobile_payments": {
 		"connection_token",
 		"mobile_start_payment",
@@ -75,7 +84,6 @@ POST_ONLY = {
 		"create_stripe_location",
 		"ensure_stripe_webhook",
 		"register_stripe_reader",
-		"attach_intent_to_reader",
 	},
 	"payments.api.terminal_receipt": {"print_receipt"},
 	"payments.api.twint": {"simulate_consumer_success"},

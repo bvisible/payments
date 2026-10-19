@@ -535,7 +535,10 @@ frappe.provide('frappe.twint');
                                     simBtn.textContent = __('Simulating…');
                                     frappe.call({
                                         method: 'payments.api.twint.simulate_consumer_success',
-                                        args: { intent_name: paymentDialog.orderUuid },
+                                        args: {
+                                            intent_name: paymentDialog.orderUuid,
+                                            access_token: paymentDialog.accessToken  //// Neoffice — maintenance#1732
+                                        },
                                         callback: function (sr) {
                                             if (!(sr && sr.message && sr.message.ok)) {
                                                 simBtn.disabled = false;

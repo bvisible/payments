@@ -30,6 +30,8 @@ from typing import Any
 import frappe
 from frappe import _
 
+from payments.api.terminal import SETUP_ROLES  # //// Neoffice — maintenance#1732
+
 
 # ---------------------------------------------------------------------------
 # Step 1 — Provider chooser
@@ -48,6 +50,8 @@ def list_terminal_providers() -> list[dict[str, Any]]:
 	derived from the driver_class so the Vue/jQuery wizard can pick the
 	right Step 2/3 components.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account; only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	providers = frappe.get_all(
 		"Payment Provider",
 		filters={"enabled": 1},
@@ -81,6 +85,8 @@ def list_terminal_providers() -> list[dict[str, Any]]:
 @frappe.whitelist()
 def list_pos_profiles() -> list[dict[str, Any]]:
 	"""Return active POS Profiles for the wizard's Step 4."""
+	# //// Neoffice — maintenance#1732: answered any signed-in account; only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	return frappe.get_all(
 		"POS Profile",
 		filters={"disabled": 0},
@@ -103,6 +109,8 @@ def link_device_to_pos_profile(
 	Idempotent: if the same (mode_of_payment, payment_device) row already
 	exists on the profile, returns the existing row name without re-inserting.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account; only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	if not (payment_device and pos_profile and mode_of_payment):
 		frappe.throw(_("payment_device, pos_profile and mode_of_payment are required"))
 
@@ -146,6 +154,8 @@ def list_modes_of_payment_for_profile(pos_profile: str) -> list[dict[str, Any]]:
 	actually pick at checkout. Falls back to the global list if the profile
 	has no payments table.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account; only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	if not pos_profile:
 		return []
 	profile = frappe.get_doc("POS Profile", pos_profile)

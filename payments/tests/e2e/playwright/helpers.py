@@ -438,11 +438,20 @@ def read_twint_intent_from_overlay(page: Page) -> str | None:
 	)
 
 
-def trigger_twint_simulate(page: Page, base_url: str, intent_name: str) -> dict:
-	"""Trigger ``simulate_consumer_success`` via the page session (authenticated)."""
+def trigger_twint_simulate(
+	page: Page, base_url: str, intent_name: str, access_token: str | None = None
+) -> dict:
+	"""Trigger ``simulate_consumer_success`` via the page session (authenticated).
+
+	A shop customer needs the dialog's access token (``paymentDialog.accessToken``, maintenance#1732); a desk
+	account allowed to write Payment Intents does not.
+	"""
+	form = {"intent_name": intent_name}
+	if access_token:
+		form["access_token"] = access_token
 	resp = page.context.request.post(
 		f"{base_url}/api/method/payments.api.twint.simulate_consumer_success",
-		form={"intent_name": intent_name},
+		form=form,
 	)
 	assert resp.ok, f"simulate failed: {resp.status} {resp.text()[:200]}"
 	return resp.json().get("message", {})

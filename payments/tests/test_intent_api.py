@@ -132,7 +132,14 @@ class TestTheIntentApiChangesStateOnPostOnly(FrappeTestCase):
 	PSP and left the intent `succeeded`, refundable again. Creating, cancelling, refunding: POST only."""
 
 	def test_creating_cancelling_and_refunding_refuse_a_get(self):
-		for function in (intent_api.create_intent, intent_api.cancel_intent, intent_api.refund_intent):
+		# The HTTP paths answer through payments.api.intent_http since maintenance#1732.
+		from payments.api import intent_http
+
+		for function in (
+			intent_http.create_intent,
+			intent_http.cancel_intent,
+			intent_http.refund_intent,
+		):
 			with self.subTest(function=function.__name__):
 				self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[function]), ("POST",))
 
@@ -152,6 +159,9 @@ class TestTheIntentApiChangesStateOnPostOnly(FrappeTestCase):
 				self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[function]), ("POST",))
 
 	def test_reading_a_status_stays_open_to_a_get(self):
+		from payments.api import intent_http
+
 		self.assertIn(
-			"GET", tuple(frappe.allowed_http_methods_for_whitelisted_func[intent_api.get_intent_status])
+			"GET",
+			tuple(frappe.allowed_http_methods_for_whitelisted_func[intent_http.get_intent_status]),
 		)

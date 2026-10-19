@@ -31,6 +31,9 @@ from frappe.utils import now_datetime
 
 STRIPE_PROVIDER_DEFAULT = "stripe"
 TERMINAL_CHANNEL = "terminal"
+# //// Neoffice — maintenance#1732: the Stripe Terminal setup (Locations, webhook, readers) answered any signed-in
+# //// account, a shop customer included. It is the payment terminal wizard's back end: the wizard's own roles.
+SETUP_ROLES = ("System Manager", "Accounts Manager")
 
 
 def _resolve_stripe_provider(provider_name: str | None = None):  # noqa: ANN001
@@ -85,6 +88,7 @@ def create_stripe_location(
 
 	The country is immutable on Stripe's side once created.
 	"""
+	frappe.only_for(SETUP_ROLES)  # //// Neoffice — maintenance#1732: see SETUP_ROLES.
 	import stripe
 
 	stripe_provider, _provider_doc = _resolve_stripe_provider(provider)
@@ -115,6 +119,7 @@ def create_stripe_location(
 @frappe.whitelist()
 def list_stripe_locations(provider: str | None = None) -> list[dict[str, Any]]:
 	"""Paginated list of Stripe Terminal Locations, normalized to dict."""
+	frappe.only_for(SETUP_ROLES)  # //// Neoffice — maintenance#1732: see SETUP_ROLES.
 	import stripe
 
 	stripe_provider, _provider_doc = _resolve_stripe_provider(provider)
@@ -148,6 +153,7 @@ def ensure_stripe_webhook(provider: str | None = None) -> dict[str, Any]:
 
 	Returns ``{created, endpoint_id, url}`` or ``{skipped, endpoint_id, url}``.
 	"""
+	frappe.only_for(SETUP_ROLES)  # //// Neoffice — maintenance#1732: see SETUP_ROLES.
 	import json as _json
 
 	import stripe
@@ -230,6 +236,7 @@ def register_stripe_reader(
 	reach our FSM. The wizard never has to ask the operator to configure it
 	manually in the Stripe dashboard.
 	"""
+	frappe.only_for(SETUP_ROLES)  # //// Neoffice — maintenance#1732: see SETUP_ROLES.
 	import stripe
 
 	stripe_provider, provider_doc = _resolve_stripe_provider(provider)
@@ -283,6 +290,7 @@ def list_stripe_readers(
 	location: str | None = None, status: str | None = None, provider: str | None = None
 ) -> list[dict[str, Any]]:
 	"""Paginated list of Readers attached to the account, normalized to dict."""
+	frappe.only_for(SETUP_ROLES)  # //// Neoffice — maintenance#1732: see SETUP_ROLES.
 	import stripe
 
 	stripe_provider, _provider_doc = _resolve_stripe_provider(provider)
@@ -394,8 +402,9 @@ def sync_stripe_readers_status() -> dict[str, Any]:
 # ----------------------------------------------------------------------------
 
 
-# //// Neoffice — POST only (maintenance#1721): sends a payment to a card reader; see create_stripe_location. POSNext calls it in Python.
-@frappe.whitelist(methods=["POST"])
+# //// Neoffice — not an HTTP entry any more (maintenance#1732): POSNext calls it in Python as a cashier, so it checks
+# //// no permission; its path answers through payments.api.intent_http.attach_intent_to_reader (POST only, Payment
+# //// Intent `write`), wired in hooks.override_whitelisted_methods.
 def attach_intent_to_reader(intent_name: str, device: str) -> dict[str, Any]:
 	"""Push an already-created Payment Intent to a reader.
 

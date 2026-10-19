@@ -392,7 +392,7 @@ _FAST_POLL_DELAYS: list[int] = (
 # //// Neoffice — POST only (maintenance#1721): settles an intent; a state change is never opened as an address
 # //// (Frappe checks no CSRF token on a GET). The dialog calls it with frappe.call (POST).
 @frappe.whitelist(methods=["POST"])
-def simulate_consumer_success(intent_name: str) -> dict[str, Any]:
+def simulate_consumer_success(intent_name: str, access_token: str | None = None) -> dict[str, Any]:
 	"""DEV-ONLY — transition a TWINT Payment Intent to succeeded.
 
 	Idempotent: re-running re-finalises + re-pushes the SocketIO event so
@@ -404,6 +404,13 @@ def simulate_consumer_success(intent_name: str) -> dict[str, Any]:
 	if not frappe.conf.get("enable_e2e_simulators"):
 		frappe.throw(_("E2E simulators not enabled on this site"), frappe.PermissionError)
 
+	# //// Neoffice — maintenance#1732: on a site with the simulators on, any signed-in account marked any intent paid
+	# //// by its name, and a "paid" TWINT intent finalises its order — not "what the poll would do anyway" (c, above):
+	# //// the poll asks TWINT first. Only the browser whose dialog started it (its access token) or a desk account
+	# //// allowed to write Payment Intents may simulate, and only a webshop TWINT payment.
+	from payments.api.intent_access import require_web_access
+
+	require_web_access(intent_name, access_token, "twint_web", "write")
 	doc = frappe.get_doc("Payment Intent", intent_name)
 
 	if doc.status != "succeeded":

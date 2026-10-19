@@ -25,12 +25,13 @@ app_license = "MIT"
 # and on public web pages (for the webshop checkout). Ships the `frappe.twint`
 # namespace consumed by `webshop/templates/payments/twint.html`.
 # //// Neoffice — `?v=` busts the browser's copy when the dialog changes: /assets is cached an hour, and a dialog
-# //// older than its server breaks the checkout (maintenance#1731: the poll and the cancel now send a token).
+# //// older than its server breaks the checkout (maintenance#1731: the poll and the cancel now send a token;
+# //// maintenance#1732: the test-mode simulator too).
 web_include_css = "/assets/payments/css/twint_dialog.css"
-web_include_js = "/assets/payments/js/twint_dialog.js?v=2"
+web_include_js = "/assets/payments/js/twint_dialog.js?v=3"
 app_include_css = "/assets/payments/css/twint_dialog.css"
 # //// Neoffice — the same `?v=` on the desk's copy of the dialog (maintenance#1731).
-app_include_js = "/assets/payments/js/twint_dialog.js?v=2"
+app_include_js = "/assets/payments/js/twint_dialog.js?v=3"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "pay/public/scss/website"
@@ -237,7 +238,14 @@ before_tests = "erpnext.setup.utils.before_tests"  # To setup company and accoun
 # ------------------------------
 #
 override_whitelisted_methods = {
-	"frappe.website.doctype.web_form.web_form.accept": "payments.overrides.payment_webform.accept"
+	"frappe.website.doctype.web_form.web_form.accept": "payments.overrides.payment_webform.accept",
+	# //// Neoffice — maintenance#1732: the HTTP paths of the Payment Intent API answer through doors that ask for the
+	# //// Payment Intent permissions; the functions themselves stay the unchecked Python API of the checkouts.
+	"payments.api.intent.create_intent": "payments.api.intent_http.create_intent",
+	"payments.api.intent.get_intent_status": "payments.api.intent_http.get_intent_status",
+	"payments.api.intent.cancel_intent": "payments.api.intent_http.cancel_intent",
+	"payments.api.intent.refund_intent": "payments.api.intent_http.refund_intent",
+	"payments.api.terminal.attach_intent_to_reader": "payments.api.intent_http.attach_intent_to_reader",
 }
 #
 # each overriding function accepts a `data` argument;

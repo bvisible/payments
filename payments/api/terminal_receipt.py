@@ -38,6 +38,8 @@ from typing import Any
 import frappe
 from frappe import _
 
+from payments.api.intent_http import require_intent_permission  # //// Neoffice — maintenance#1732
+
 # 42 characters is the printable width of a 80 mm Star roll in font A.
 _WIDTH = 42
 
@@ -152,6 +154,9 @@ def print_receipt(
 		printer: CloudPRNT printer label or MAC; the configured default otherwise.
 		copies: 1 for the customer slip, 2 to add the merchant's.
 	"""
+	# //// Neoffice — maintenance#1732: printed or showed the receipt of any intent named, to any signed-in
+	# //// account; it now answers only those the Payment Intent permits to read it.
+	require_intent_permission("read", intent_name)
 	receipt = _receipt_from_intent(intent_name)
 
 	if not printer:
@@ -204,6 +209,9 @@ def preview_text(intent_name: str) -> str:
 	renders what the paper will actually show, so the layout can be judged before a
 	customer is the one judging it.
 	"""
+	# //// Neoffice — maintenance#1732: printed or showed the receipt of any intent named, to any signed-in
+	# //// account; it now answers only those the Payment Intent permits to read it.
+	require_intent_permission("read", intent_name)
 	import re
 
 	markup = build_markup(_receipt_from_intent(intent_name))
@@ -230,4 +238,7 @@ def preview_receipt(intent_name: str) -> str:
 	because a receipt is read by a customer — a layout mistake is visible to them
 	before it is visible to us.
 	"""
+	# //// Neoffice — maintenance#1732: printed or showed the receipt of any intent named, to any signed-in
+	# //// account; it now answers only those the Payment Intent permits to read it.
+	require_intent_permission("read", intent_name)
 	return build_markup(_receipt_from_intent(intent_name))

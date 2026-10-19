@@ -149,6 +149,9 @@ def connection_token() -> dict[str, Any]:
 	secret key so the app never holds it. The SDK asks for a fresh one whenever it
 	needs to; this is the ``fetchConnectionToken`` the provider is initialised with.
 	"""
+	# //// Neoffice — maintenance#1732: minted a Stripe Terminal token for any signed-in account; Tap to Pay is
+	# //// collecting money, which portal accounts never do (mobile_start_payment's standalone rule).
+	_require_staff()
 	settings = _settings()
 	card = _card_context(settings)
 	if not card["enabled"]:
@@ -251,6 +254,34 @@ def _require_staff() -> None:
 		frappe.throw(_("Not permitted to collect a payment"), frappe.PermissionError)
 
 
+# //// Neoffice — maintenance#1732: the phone's calls that name an intent (poll, abandon, receipt, simulator) answered
+# //// any signed-in account for any intent, a till's or a shop's included: a portal account could read one or
+# //// abandon it by its name. They now act only on what a phone started, under the rule that let it start.
+def _require_phone_intent(intent_name: str, ptype: str) -> None:
+	"""Refuse (403) unless the intent is a phone's payment this account may follow.
+
+	One started against a document answers whoever may read that document (the rule of mobile_start_payment); one
+	started on its own, from the Collect tool, answers people who work on the site. Any other intent, or a name that
+	does not exist, answers only an account the Payment Intent DocType permits (``ptype``), so a portal account
+	cannot learn which names exist.
+	"""
+	row = frappe.db.get_value(
+		"Payment Intent", intent_name, ["channel", "reference_doctype", "reference_name"], as_dict=True
+	)
+	if row and row.channel in MOBILE_CHANNELS:
+		if row.reference_doctype and row.reference_name:
+			if frappe.db.exists(row.reference_doctype, row.reference_name) and frappe.has_permission(
+				row.reference_doctype, "read", doc=row.reference_name
+			):
+				return
+		elif _is_staff():
+			return
+
+	from payments.api.intent_http import require_intent_permission
+
+	require_intent_permission(ptype, intent_name)
+
+
 _ROW_FIELDS = (
 	"name",
 	"status",
@@ -345,6 +376,8 @@ def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
 	and moved on when Stripe says it settled. TWINT intents already have their own
 	pollers; they are returned as they are.
 	"""
+	# //// Neoffice — maintenance#1732: see _require_phone_intent.
+	_require_phone_intent(intent_name, "read")
 	doc = frappe.get_doc("Payment Intent", intent_name)
 	if doc.channel != CARD_CHANNEL or doc.status not in OPEN_STATES or not doc.provider_intent_id:
 		return get_intent_status(intent_name)
@@ -393,6 +426,8 @@ def mobile_abandon_payment(intent_name: str) -> dict[str, Any]:
 	endpoint leaves a paid intent alone even when asked to cancel it — see its
 	docstring — so this is safe to call on a race with the webhook.
 	"""
+	# //// Neoffice — maintenance#1732: see _require_phone_intent.
+	_require_phone_intent(intent_name, "write")
 	return cancel_intent(intent_name, reason="mobile_abandoned")
 
 
@@ -407,6 +442,8 @@ def simulate_success(intent_name: str) -> dict[str, Any]:
 	"""
 	if not frappe.conf.get("enable_e2e_simulators"):
 		frappe.throw(_("E2E simulators not enabled on this site"), frappe.PermissionError)
+	# //// Neoffice — maintenance#1732: see _require_phone_intent.
+	_require_phone_intent(intent_name, "write")
 
 	doc = frappe.get_doc("Payment Intent", intent_name)
 	if doc.channel not in MOBILE_CHANNELS:
@@ -635,6 +672,8 @@ def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 	the intent (``metadata.receipt_sent_to``): it is theirs, not a contact.
 	"""
 	_require_staff()
+	# //// Neoffice — maintenance#1732: see _require_phone_intent.
+	_require_phone_intent(intent_name, "read")
 	email = (email or "").strip()
 	if not email or not frappe.utils.validate_email_address(email):
 		frappe.throw(_("Please enter a valid email address"))
@@ -686,6 +725,8 @@ def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 def mobile_receipt(intent_name: str) -> dict[str, Any]:
 	"""The receipt as data, for the screen — card mentions included once settled."""
 	_require_staff()
+	# //// Neoffice — maintenance#1732: see _require_phone_intent.
+	_require_phone_intent(intent_name, "read")
 	doc = frappe.get_doc("Payment Intent", intent_name)
 	if doc.channel not in MOBILE_CHANNELS:
 		frappe.throw(_("Not an on-site payment"))
