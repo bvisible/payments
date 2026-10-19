@@ -221,3 +221,74 @@ class TestSignedInPaymentApiAsksForAPermission(FrappeTestCase):
 				frappe.local.conf.pop("enable_e2e_simulators", None)
 			else:
 				frappe.local.conf["enable_e2e_simulators"] = had
+
+
+class TestTheWalleeReturnPagesServeOnlyTheBrowserSentBack(FrappeTestCase):
+	"""/wallee/success and /wallee/failed showed, refreshed and finalised any intent named in their URL."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_ensure_mock_setup()
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.web = _intent("wallee_web")
+		self.till = _intent("terminal")
+		frappe.set_user("Guest")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.form_dict.clear()
+		frappe.db.rollback()
+
+	def _render(self, page, intent_name, token):
+		from unittest.mock import patch
+
+		from payments.www.wallee import success
+
+		frappe.form_dict.clear()
+		frappe.form_dict.update({"payment_intent": intent_name, "access_token": token})
+		context = frappe._dict()
+		with patch.object(success, "_refresh_status") as refresh:
+			page.get_context(context)
+		return context, refresh
+
+	def test_the_return_urls_carry_the_intents_token(self):
+		from urllib.parse import parse_qs, urlsplit
+
+		from payments.drivers.wallee.web_driver import _with_access_token
+
+		shop = _with_access_token(
+			"https://shop.example/wallee/success?payment_request=ACC-PRQ-1", "PI-1"
+		)
+		query = parse_qs(urlsplit(shop).query)
+		self.assertEqual(query["payment_request"], ["ACC-PRQ-1"])
+		self.assertEqual(query["payment_intent"], ["PI-1"])
+		self.assertEqual(query["access_token"], [web_access_token("PI-1")])
+		own_page = "https://shop.example/guest/order/ok?token=abc"
+		self.assertEqual(_with_access_token(own_page, "PI-1"), own_page)
+
+	def test_a_guest_naming_an_intent_learns_nothing_and_moves_nothing(self):
+		from payments.www.wallee import failed, success
+
+		for page in (success, failed):
+			for name, token in (
+				(self.web, None),
+				(self.web, "0" * 40),
+				(self.till, web_access_token(self.till)),
+				(MISSING, web_access_token(MISSING)),
+			):
+				with self.subTest(page=page.__name__, name=name, token=token):
+					context, refresh = self._render(page, name, token)
+					self.assertIsNone(context.intent)
+					refresh.assert_not_called()
+
+	def test_the_buyer_sent_back_with_its_token_sees_its_payment(self):
+		from payments.www.wallee import failed, success
+
+		for page in (success, failed):
+			with self.subTest(page=page.__name__):
+				context, refresh = self._render(page, self.web, web_access_token(self.web))
+				self.assertEqual(context.intent.name, self.web)
+				refresh.assert_called_once()

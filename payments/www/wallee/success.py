@@ -121,12 +121,21 @@ def get_context(context):  # noqa: ANN001
 		context.error = _("Missing payment reference")
 		return context
 
-	if not frappe.db.exists("Payment Intent", intent_name):
+	# //// Neoffice — guarded (maintenance#1732): the page showed, refreshed from Wallee and finalised whatever intent the
+	# //// URL named, whatever its channel. Now a `wallee_web` intent only, with the token its return URL carries (see
+	# //// drivers.wallee.web_driver._with_access_token), or a desk user allowed to read it. A refusal reads as "not found".
+	from payments.api.intent_access import require_web_access
+
+	try:
+		intent_doc = require_web_access(
+			intent_name, frappe.form_dict.get("access_token"), "wallee_web", "read"
+		)
+	except frappe.PermissionError:
+		frappe.clear_messages()
 		context.error = _("Payment reference not found")
-		_debug(f"PI not found: {intent_name}")
+		_debug(f"PI not found or not this browser's: {intent_name}")
 		return context
 
-	intent_doc = frappe.get_doc("Payment Intent", intent_name)
 	context.intent = intent_doc
 
 	# If the Payment Intent links a Payment Request and that request is already

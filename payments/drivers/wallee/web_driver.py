@@ -56,6 +56,28 @@ from payments.drivers.wallee.terminal_driver import (
 )
 
 
+
+# //// Neoffice — maintenance#1732: /wallee/success and /wallee/failed are open to guests and showed, refreshed from
+# //// Wallee and finalised whatever intent the URL named (a terminal intent made the page fail). Like the Payrexx return
+# //// page (maintenance#1731), they now serve only the browser sent back with the intent's access token, so the token
+# //// rides on every return URL that points at them, the webshop's `?payment_request=` ones included; the intent's
+# //// own name is added so the page checks the token against the intent it was minted for. A caller's own return
+# //// page (POSNext's guest ordering) is left as it is.
+def _with_access_token(url: str, intent_name: str) -> str:
+	"""``url`` with ``payment_intent`` and ``access_token`` added, for a Wallee return page."""
+	from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+	from payments.api.intent_access import web_access_token
+
+	parts = urlsplit(url)
+	if parts.path.rstrip("/") not in ("/wallee/success", "/wallee/failed"):
+		return url
+	query = dict(parse_qsl(parts.query, keep_blank_values=True))
+	query.setdefault("payment_intent", intent_name)
+	query["access_token"] = web_access_token(intent_name)
+	return urlunsplit(parts._replace(query=urlencode(query)))
+
+
 class WalleeWebChannel(PaymentChannelBase):
 	code = "wallee_web"
 	capabilities = {
@@ -211,6 +233,9 @@ class WalleeWebDriver(PaymentDriverBase):
 		failed_url = metadata.get("failed_url") or (
 			f"{base_url}/wallee/failed?payment_intent={request.intent_name}"
 		)
+		# //// Neoffice — maintenance#1732: see _with_access_token.
+		success_url = _with_access_token(success_url, request.intent_name)
+		failed_url = _with_access_token(failed_url, request.intent_name)
 
 		tx_kwargs: dict[str, Any] = dict(
 			line_items=self._build_line_items(request),
