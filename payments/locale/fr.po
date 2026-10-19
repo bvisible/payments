@@ -2744,12 +2744,12 @@ msgstr "le montant doit être > 0"
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
 #: payments/payments/doctype/payment_event/payment_event.json
 msgid "api"
-msgstr ""
+msgstr "API"
 
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
 #: payments/payments/doctype/payment_channel/payment_channel.json
 msgid "background"
-msgstr ""
+msgstr "Arrière-plan"
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
@@ -2759,19 +2759,19 @@ msgstr ""
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
 #: payments/payments/doctype/payment_channel/payment_channel.json
 msgid "card_present_modal"
-msgstr ""
+msgstr "Fenêtre carte présente"
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment
 #. Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "display_card_present_modal"
-msgstr ""
+msgstr "Afficher la fenêtre carte présente"
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment
 #. Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "display_qr_payload"
-msgstr ""
+msgstr "Afficher les données du QR code"
 
 #. Description of the 'Device Type' (Data) field in DocType 'Payment Device'
 #: payments/payments/doctype/payment_device/payment_device.json
@@ -2783,7 +2783,7 @@ msgstr ""
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
 #: payments/payments/doctype/payment_channel/payment_channel.json
 msgid "embedded_form"
-msgstr ""
+msgstr "Formulaire intégré"
 
 #: payments/utils/utils.py:210
 msgid "erpnext app is not installed. Please install it from {} or {}"
@@ -2837,7 +2837,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Payment Device'
 #: payments/payments/doctype/payment_device/payment_device.json
 msgid "online"
-msgstr ""
+msgstr "En ligne"
 
 #: payments/public/js/twint_dialog.js:792
 msgid "or"
@@ -2850,18 +2850,18 @@ msgstr "payment_device, pos_profile et mode_of_payment sont obligatoires"
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
 #: payments/payments/doctype/payment_event/payment_event.json
 msgid "poll"
-msgstr ""
+msgstr "Interrogation"
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "processing"
-msgstr ""
+msgstr "Traitement en cours"
 
 #. Option for the 'Environment' (Select) field in DocType 'Twint Bridge
 #. Settings'
 #: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
 msgid "production"
-msgstr ""
+msgstr "Production"
 
 #: payments/integrations/wallee/api.py:34
 msgid "provider is required"
@@ -2870,34 +2870,34 @@ msgstr "le fournisseur est obligatoire"
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
 #: payments/payments/doctype/payment_channel/payment_channel.json
 msgid "qr_display"
-msgstr ""
+msgstr "Affichage du QR code"
 
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
 #: payments/payments/doctype/payment_channel/payment_channel.json
 msgid "redirect"
-msgstr ""
+msgstr "Redirection"
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment
 #. Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "redirect_to_url"
-msgstr ""
+msgstr "Redirection vers l'URL"
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "refunded"
-msgstr ""
+msgstr "Remboursé"
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "requires_action"
-msgstr ""
+msgstr "Action requise"
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment
 #. Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "requires_confirmation"
-msgstr ""
+msgstr "Confirmation requise"
 
 #. Option for the 'Environment' (Select) field in DocType 'Twint Bridge
 #. Settings'
@@ -2912,7 +2912,7 @@ msgstr "secondes"
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
 #: payments/payments/doctype/payment_intent/payment_intent.json
 msgid "succeeded"
-msgstr ""
+msgstr "Réussi"
 
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
 #: payments/payments/doctype/payment_event/payment_event.json
@@ -2922,7 +2922,7 @@ msgstr ""
 #. Option for the 'Mode' (Select) field in DocType 'Payment Provider'
 #: payments/payments/doctype/payment_provider/payment_provider.json
 msgid "test"
-msgstr ""
+msgstr "Test"
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Device'
 #: payments/payments/doctype/payment_device/payment_device.json
@@ -3413,3 +3413,12 @@ msgstr "Générez ou téléchargez ce .p12 sur le portail marchand TWINT, puis c
 #: payments/tests/e2e/guard.py:29
 msgid "The end-to-end helpers are off on this site."
 msgstr "Les outils de test de bout en bout sont désactivés sur ce site."
+
+#. Option for the 'Next Action Type' (Select) field in DocType 'Payment Intent'
+#: payments/payments/doctype/payment_intent/payment_intent.json
+msgid "native_app_handoff"
+msgstr "Passage à l'application native"
+
+#: payments/integrations/wallee/api.py:147
+msgid "Wallee lists locations and configurations only through the terminals of the space. Create the first terminal in the Wallee portal, then sync again."
+msgstr "Wallee liste les emplacements et les configurations uniquement par les terminaux de l'espace. Créez le premier terminal dans le portail Wallee, puis synchronisez à nouveau."

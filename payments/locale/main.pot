@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Payments VERSION\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
-"POT-Creation-Date: 2026-10-19 20:36+0000\n"
-"PO-Revision-Date: 2026-10-19 20:36+0000\n"
+"POT-Creation-Date: 2026-10-19 21:03+0000\n"
+"PO-Revision-Date: 2026-10-19 21:03+0000\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: hello@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -261,19 +261,19 @@ msgstr ""
 msgid "Balance Details"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "Bind to a POS Profile"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "Bind to profile"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:664
+#: payments/integrations/wallee/api.py:759
 msgid "Bluetooth + Wi-Fi, cylindrical black touchscreen. The most common model."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:515
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:519
 msgid "Bound to {0}"
 msgstr ""
 
@@ -287,7 +287,7 @@ msgstr ""
 msgid "Business Shortcode"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:370
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:374
 msgid "Calling Stripe…"
 msgstr ""
 
@@ -412,7 +412,7 @@ msgstr ""
 msgid "Choose a payment provider"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:802
+#: payments/public/js/twint_dialog.js:808
 msgid "Choose your TWINT application"
 msgstr ""
 
@@ -477,7 +477,7 @@ msgstr ""
 msgid "Configuration Version ID"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:289
+#: payments/integrations/wallee/api.py:376
 msgid "Configuration {0} has no Wallee version id — sync first"
 msgstr ""
 
@@ -531,7 +531,7 @@ msgstr ""
 msgid "Could not reach the certificate service on neoservice: {0}"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:95
+#: payments/integrations/payrexx/api.py:96
 msgid "Could not start the Payrexx payment. Please try again."
 msgstr ""
 
@@ -548,7 +548,7 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:396
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
 msgid "Create + link"
 msgstr ""
 
@@ -556,7 +556,7 @@ msgstr ""
 msgid "Create Stripe Location"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:396
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
 msgid "Create the terminal in Wallee with the chosen configuration and location, then pair the physical device by its serial number."
 msgstr ""
 
@@ -569,15 +569,15 @@ msgstr ""
 msgid "Created At"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:417
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:421
 msgid "Creating terminal in Wallee…"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:429
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:433
 msgid "Creation failed (no response)"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:450
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:454
 msgid "Creation or linking failed — see error popup"
 msgstr ""
 
@@ -726,7 +726,7 @@ msgstr ""
 msgid "Device Type"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:396
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
 msgid "Device serial number"
 msgstr ""
 
@@ -745,8 +745,8 @@ msgid "Display Label"
 msgstr ""
 
 #: payments/public/js/twint_dialog.js:366
-#: payments/public/js/twint_dialog.js:1076
-#: payments/public/js/twint_dialog.js:1105
+#: payments/public/js/twint_dialog.js:1083
+#: payments/public/js/twint_dialog.js:1113
 msgid "Do you really want to cancel this payment?"
 msgstr ""
 
@@ -755,7 +755,7 @@ msgstr ""
 msgid "Documentation URL"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:516
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:520
 msgid "Done"
 msgstr ""
 
@@ -827,9 +827,9 @@ msgstr ""
 #: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:295
 #: payments/payments/doctype/payment_intent/payment_intent.json
 #: payments/payments/doctype/webhook_event_log/webhook_event_log.json
-#: payments/public/js/twint_dialog.js:382
-#: payments/public/js/twint_dialog.js:1041
-#: payments/public/js/twint_dialog.js:1092 payments/www/payrexx/success.html:26
+#: payments/public/js/twint_dialog.js:383
+#: payments/public/js/twint_dialog.js:1048
+#: payments/public/js/twint_dialog.js:1100 payments/www/payrexx/success.html:26
 msgid "Error"
 msgstr ""
 
@@ -843,21 +843,21 @@ msgstr ""
 msgid "Error Message"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:383
-#: payments/public/js/twint_dialog.js:1093
-#: payments/public/js/twint_dialog.js:1118
+#: payments/public/js/twint_dialog.js:384
+#: payments/public/js/twint_dialog.js:1101
+#: payments/public/js/twint_dialog.js:1127
 msgid "Error cancelling payment"
 msgstr ""
 
-#: payments/www/payrexx/success.py:184 payments/www/wallee/success.py:184
+#: payments/www/payrexx/success.py:188 payments/www/wallee/success.py:184
 msgid "Error creating order. Please contact support."
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:420
+#: payments/public/js/twint_dialog.js:421
 msgid "Error creating payment request"
 msgstr ""
 
-#: payments/www/payrexx/success.py:176 payments/www/wallee/success.py:174
+#: payments/www/payrexx/success.py:180 payments/www/wallee/success.py:174
 msgid "Error finalising order"
 msgstr ""
 
@@ -929,11 +929,11 @@ msgstr ""
 msgid "Free-form, e.g. Stripe Terminal Location ID 'tml_xxx' or branch code"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:350
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
 msgid "Friendly label"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:396
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
 msgid "Friendly label (Payment Device)"
 msgstr ""
 
@@ -1071,7 +1071,7 @@ msgstr ""
 msgid "Invalid Token"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:496
+#: payments/integrations/wallee/api.py:591
 msgid "Invalid Wallee mode: {0}"
 msgstr ""
 
@@ -1204,7 +1204,7 @@ msgstr ""
 msgid "Location created"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:291
+#: payments/integrations/wallee/api.py:378
 msgid "Location {0} has no Wallee location id — sync first"
 msgstr ""
 
@@ -1243,7 +1243,7 @@ msgstr ""
 msgid "Mandate"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "Mark as default"
 msgstr ""
 
@@ -1349,7 +1349,7 @@ msgstr ""
 
 #. Label of a Link field in DocType 'Wallee Settings'
 #: payments/payments/doctype/wallee_settings/wallee_settings.json
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "Mode of Payment"
 msgstr ""
 
@@ -1420,7 +1420,7 @@ msgstr ""
 msgid "No Payment Gateway Account to copy from. Create one for Payrexx in {0} first, then run this again."
 msgstr ""
 
-#: payments/drivers/payrexx/web_driver.py:229
+#: payments/drivers/payrexx/web_driver.py:233
 msgid "No Payrexx transaction found for reference {0}"
 msgstr ""
 
@@ -1448,7 +1448,7 @@ msgstr ""
 msgid "No Stripe Locations found — create one below."
 msgstr ""
 
-#: payments/integrations/twint/api.py:100
+#: payments/integrations/twint/api.py:101
 msgid "No Twint Bridge Settings configured for provider {0}"
 msgstr ""
 
@@ -1472,7 +1472,7 @@ msgstr ""
 msgid "No enabled Payment Provider found. Create one in /app/payment-provider first."
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:71
+#: payments/integrations/payrexx/api.py:72
 msgid "No enabled Payrexx Payment Provider is configured"
 msgstr ""
 
@@ -1512,7 +1512,8 @@ msgstr ""
 msgid "Not an on-site payment"
 msgstr ""
 
-#: payments/api/mobile_payments.py:330 payments/api/mobile_payments.py:483
+#: payments/api/intent_access.py:49 payments/api/mobile_payments.py:330
+#: payments/api/mobile_payments.py:483
 msgid "Not permitted"
 msgstr ""
 
@@ -1528,11 +1529,11 @@ msgstr ""
 msgid "Not received"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:312
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:316
 msgid "Nothing yet — sync first."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:350
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
 msgid "On the BBPOS WisePOS E: swipe from the LEFT edge → Settings → admin code 07139 → 'Generate pairing code'. You'll get three dash-separated words (valid ~10 minutes)."
 msgstr ""
 
@@ -1554,7 +1555,7 @@ msgstr ""
 msgid "Open Terminal Wizard"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:662
+#: payments/public/js/twint_dialog.js:668
 msgid "Open now"
 msgstr ""
 
@@ -1594,7 +1595,7 @@ msgstr ""
 msgid "Optional secret for SDK client (used by Stripe Web)"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:762
+#: payments/public/js/twint_dialog.js:768
 msgid "Other applications"
 msgstr ""
 
@@ -1617,7 +1618,7 @@ msgstr ""
 msgid "POS Authentication Key"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "POS Profile"
 msgstr ""
 
@@ -1639,7 +1640,7 @@ msgstr ""
 msgid "Pairing"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:350
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
 msgid "Pairing code"
 msgstr ""
 
@@ -1710,7 +1711,7 @@ msgstr ""
 msgid "Payment Device"
 msgstr ""
 
-#: payments/api/terminal.py:421 payments/integrations/wallee/api.py:342
+#: payments/api/terminal.py:421 payments/integrations/wallee/api.py:437
 msgid "Payment Device {0} has no provider_device_id"
 msgstr ""
 
@@ -1718,8 +1719,8 @@ msgstr ""
 msgid "Payment Device {0} is a simulator but Payment Provider {1} is in '{2}' mode. Simulated terminals are only allowed in test mode."
 msgstr ""
 
-#: payments/www/payrexx/success.html:31 payments/www/payrexx/success.py:205
-#: payments/www/payrexx/success.py:209 payments/www/wallee/success.html:24
+#: payments/www/payrexx/success.html:31 payments/www/payrexx/success.py:212
+#: payments/www/payrexx/success.py:216 payments/www/wallee/success.html:24
 msgid "Payment Error"
 msgstr ""
 
@@ -1780,7 +1781,7 @@ msgstr ""
 msgid "Payment Mode"
 msgstr ""
 
-#: payments/www/payrexx/success.html:53 payments/www/payrexx/success.py:207
+#: payments/www/payrexx/success.html:53 payments/www/payrexx/success.py:214
 #: payments/www/wallee/success.html:48
 msgid "Payment Processing"
 msgstr ""
@@ -1820,9 +1821,9 @@ msgstr ""
 msgid "Payment Provider {0} is not enabled"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:65
-#: payments/integrations/twint/api.py:93
-#: payments/integrations/wallee/api.py:500
+#: payments/integrations/payrexx/api.py:66
+#: payments/integrations/twint/api.py:94
+#: payments/integrations/wallee/api.py:595
 msgid "Payment Request {0} is not Inward"
 msgstr ""
 
@@ -1830,7 +1831,7 @@ msgstr ""
 msgid "Payment Success"
 msgstr ""
 
-#: payments/www/payrexx/success.html:127 payments/www/payrexx/success.py:204
+#: payments/www/payrexx/success.html:127 payments/www/payrexx/success.py:211
 #: payments/www/wallee/success.html:72
 msgid "Payment Successful"
 msgstr ""
@@ -1839,9 +1840,9 @@ msgstr ""
 msgid "Payment Terminal Wizard"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:376
-#: payments/public/js/twint_dialog.js:1086
-#: payments/public/js/twint_dialog.js:1113
+#: payments/public/js/twint_dialog.js:377
+#: payments/public/js/twint_dialog.js:1094
+#: payments/public/js/twint_dialog.js:1122
 msgid "Payment cancelled successfully"
 msgstr ""
 
@@ -1853,7 +1854,7 @@ msgstr ""
 msgid "Payment declined — {0}"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:1020
+#: payments/public/js/twint_dialog.js:1026
 msgid "Payment failed or was cancelled"
 msgstr ""
 
@@ -1865,21 +1866,21 @@ msgstr ""
 msgid "Payment method"
 msgstr ""
 
-#: payments/www/payrexx/success.html:98 payments/www/payrexx/success.py:206
+#: payments/www/payrexx/success.html:98 payments/www/payrexx/success.py:213
 msgid "Payment not received"
 msgstr ""
 
-#: payments/www/payrexx/success.py:120 payments/www/wallee/failed.py:40
+#: payments/www/payrexx/success.py:129 payments/www/wallee/failed.py:40
 #: payments/www/wallee/success.py:125
 msgid "Payment reference not found"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:999
-#: payments/public/js/twint_dialog.js:1009
+#: payments/public/js/twint_dialog.js:1005
+#: payments/public/js/twint_dialog.js:1015
 msgid "Payment successful"
 msgstr ""
 
-#: payments/www/payrexx/success.py:187 payments/www/wallee/success.py:187
+#: payments/www/payrexx/success.py:191 payments/www/wallee/success.py:187
 msgid "Payment was declined"
 msgstr ""
 
@@ -1887,11 +1888,11 @@ msgstr ""
 msgid "Payment was declined or cancelled"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:993
+#: payments/public/js/twint_dialog.js:999
 msgid "Payment was successful"
 msgstr ""
 
-#: payments/drivers/payrexx/web_driver.py:126
+#: payments/drivers/payrexx/web_driver.py:132
 msgid "Payment {0}"
 msgstr ""
 
@@ -1931,7 +1932,7 @@ msgstr ""
 msgid "Payrexx connection failed, nothing was created: {0}"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:111
+#: payments/integrations/payrexx/api.py:112
 msgid "Payrexx did not return a payment page URL"
 msgstr ""
 
@@ -1943,7 +1944,7 @@ msgstr ""
 msgid "Payrexx terminal payments require a Payment Device (terminal serial number)"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:102
+#: payments/integrations/payrexx/api.py:103
 msgid "Payrexx transaction creation failed"
 msgstr ""
 
@@ -2133,7 +2134,7 @@ msgstr ""
 msgid "Provider kind not supported yet."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:346
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:350
 msgid "Provider kind not supported."
 msgstr ""
 
@@ -2188,12 +2189,12 @@ msgstr ""
 msgid "Read automatically from the certificate. A reminder email is sent and a POS warning shows in the 45 days before this date."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:350
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:396
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
 msgid "Reader counter 1"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:387
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:391
 msgid "Reader registered: {0}"
 msgstr ""
 
@@ -2247,7 +2248,7 @@ msgstr ""
 msgid "Redirect: Customer goes to Wallee payment page. Lightbox: Payment form in overlay modal. iFrame: Embedded payment form on checkout page."
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:662
+#: payments/public/js/twint_dialog.js:668
 msgid "Redirection vers TWINT"
 msgstr ""
 
@@ -2274,15 +2275,15 @@ msgstr ""
 msgid "Reference Name"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:350
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
 msgid "Register reader"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:382
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:386
 msgid "Registration failed (no response)"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:390
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:394
 msgid "Registration failed — see error popup"
 msgstr ""
 
@@ -2399,11 +2400,11 @@ msgstr ""
 msgid "Signature Valid"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:529
+#: payments/public/js/twint_dialog.js:535
 msgid "Simulating…"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "Skip — finish wizard"
 msgstr ""
 
@@ -2480,7 +2481,7 @@ msgstr ""
 msgid "Stripe Payment Provider {0} is missing credentials: {1}"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:350
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
 msgid "Stripe Reader pairing"
 msgstr ""
 
@@ -2509,7 +2510,7 @@ msgstr ""
 msgid "Success URL"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:672
+#: payments/integrations/wallee/api.py:767
 msgid "Successor to the WisePOS, with a wider screen."
 msgstr ""
 
@@ -2524,11 +2525,11 @@ msgstr ""
 msgid "Sync from Wallee"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:301
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:305
 msgid "Synced {0} configurations"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:294
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:297
 msgid "Synced {0} locations"
 msgstr ""
 
@@ -2610,11 +2611,11 @@ msgstr ""
 msgid "TWINT on the phone needs a TWINT Payment Provider"
 msgstr ""
 
-#: payments/integrations/twint/api.py:123
+#: payments/integrations/twint/api.py:124
 msgid "TWINT transaction creation failed"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:447
+#: payments/public/js/twint_dialog.js:451
 msgid "TWINT transaction failed"
 msgstr ""
 
@@ -2649,15 +2650,15 @@ msgstr ""
 msgid "Terminal Defaults"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:435
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:439
 msgid "Terminal created. Linking serial {0}…"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:396
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
 msgid "Terminal name (Wallee dashboard)"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:446
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:450
 msgid "Terminal {0} linked to device serial {1}"
 msgstr ""
 
@@ -2690,7 +2691,7 @@ msgstr ""
 msgid "The Payment Provider this Wallee configuration belongs to (one record per Wallee account, e.g. wallee_test or wallee_live)."
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:949
+#: payments/public/js/twint_dialog.js:955
 msgid "The QR code has expired. Please refresh the page to generate a new code."
 msgstr ""
 
@@ -2782,7 +2783,7 @@ msgstr ""
 msgid "This account is live. Payments taken from now on are real."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "This adds your new Payment Device to the profile's Active Payment Methods & Terminals table. Optional — you can skip this step and configure it later from POS Profile directly."
 msgstr ""
 
@@ -2857,6 +2858,10 @@ msgstr ""
 msgid "Uncleared Balance"
 msgstr ""
 
+#: payments/integrations/wallee/api.py:266
+msgid "Unknown"
+msgstr ""
+
 #: payments/api/mobile_payments.py:191
 msgid "Unknown payment method {0}"
 msgstr ""
@@ -2897,7 +2902,7 @@ msgstr ""
 msgid "Visa and Mastercard, entered inside the checkout"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:960
+#: payments/public/js/twint_dialog.js:966
 msgid "Waiting for payment..."
 msgstr ""
 
@@ -2948,7 +2953,7 @@ msgstr ""
 msgid "Wallee Terminal Configuration"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:396
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
 msgid "Wallee Terminal — create + link"
 msgstr ""
 
@@ -2956,7 +2961,11 @@ msgstr ""
 msgid "Wallee Web (hosted checkout)"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:547
+#: payments/integrations/wallee/api.py:147
+msgid "Wallee lists locations and configurations only through the terminals of the space. Create the first terminal in the Wallee portal, then sync again."
+msgstr ""
+
+#: payments/integrations/wallee/api.py:642
 msgid "Wallee transaction creation failed"
 msgstr ""
 
@@ -3034,7 +3043,7 @@ msgstr ""
 msgid "You must login to submit this form"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:662
+#: payments/public/js/twint_dialog.js:668
 msgid "You will be redirected to the TWINT app in"
 msgstr ""
 
@@ -3063,7 +3072,7 @@ msgstr ""
 msgid "Your payment was successfully accepted"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:515
+#: payments/public/js/twint_dialog.js:521
 msgid "[DEV] Simulate TWINT success"
 msgstr ""
 
@@ -3180,7 +3189,7 @@ msgid "online"
 msgstr ""
 
 #: payments/public/js/twint_dialog.js:222
-#: payments/public/js/twint_dialog.js:802
+#: payments/public/js/twint_dialog.js:808
 msgid "or"
 msgstr ""
 
@@ -3244,7 +3253,7 @@ msgstr ""
 msgid "sandbox"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:662
+#: payments/public/js/twint_dialog.js:668
 msgid "seconds"
 msgstr ""
 
@@ -3305,15 +3314,15 @@ msgstr ""
 msgid "{0}: the card was not accepted. {1}"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:487
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:491
 msgid "— Choose a Mode of Payment —"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "— Choose a profile —"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:460
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
 msgid "— Pick a profile first —"
 msgstr ""
 
