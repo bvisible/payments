@@ -97,13 +97,17 @@
 	transition: all 0.15s;
 	background: var(--card-bg, #fff);
 }
+/* //// Neoffice — maintenance#1730: in the dark theme a hovered or selected card was a light box under light
+   //// text, unreadable (`--gray-100` stays light, `--primary-bg` is defined nowhere and fell back to a light
+   //// blue). The theme's own hover and highlight colours follow light and dark; the hover border is no
+   //// longer blue, which is not a brand colour. */
 .ptw-card:hover {
-	border-color: var(--primary-light, #80bdff);
-	background: var(--gray-100, #f8f9fa);
+	border-color: var(--gray-400, #a0a0a0);
+	background: var(--fg-hover-color, #f8f9fa);
 }
 .ptw-card.selected {
 	border-color: var(--primary, #007bff);
-	background: var(--primary-bg, #e7f1ff);
+	background: var(--highlight-color, #f8f9fa);
 }
 .ptw-card-title {
 	font-weight: 600;
