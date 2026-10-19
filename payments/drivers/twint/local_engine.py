@@ -213,7 +213,8 @@ def _log(operation: str, merchant_uuid: str, answer: dict, started: float) -> No
 		if answer.get("success") is False:
 			error = " error=" + " ".join(str(answer.get("error") or "")[:120].split())
 		log.info(
-			"call engine=python op=%s merchant=%s ok=%s status=%s ms=%d%s",
+			"call engine=python soap=%s op=%s merchant=%s ok=%s status=%s ms=%d%s",
+			soap_version(),  # the TWINT service version the call spoke, for the day the default moves to 10
 			operation,
 			(merchant_uuid or "")[:8],
 			answer.get("success") is not False,
