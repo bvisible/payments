@@ -288,17 +288,21 @@ class PaymentTerminalWizard {
 				this.maybeEnableNext();
 			}));
 		};
+		//// Neoffice — maintenance#1730: a space without any terminal has nothing to sync (Wallee lists
+		//// locations and configurations only through terminals); the server says where to start instead.
 		this.$content.find(".ptw-sync-locs").on("click", () => {
 			frappe.call({ method: "payments.integrations.wallee.api.sync_locations_from_wallee", args: { provider: this.state.provider.name } })
 				.then((r) => {
-					frappe.show_alert({ message: __("Synced {0} locations", [r.message.total]), indicator: "green" });
+					if (r.message.message) frappe.msgprint(r.message.message);
+					else frappe.show_alert({ message: __("Synced {0} locations", [r.message.total]), indicator: "green" });
 					loadLocs();
 				});
 		});
 		this.$content.find(".ptw-sync-cfgs").on("click", () => {
 			frappe.call({ method: "payments.integrations.wallee.api.sync_configurations_from_wallee", args: { provider: this.state.provider.name } })
 				.then((r) => {
-					frappe.show_alert({ message: __("Synced {0} configurations", [r.message.total]), indicator: "green" });
+					if (r.message.message) frappe.msgprint(r.message.message);
+					else frappe.show_alert({ message: __("Synced {0} configurations", [r.message.total]), indicator: "green" });
 					loadCfgs();
 				});
 		});

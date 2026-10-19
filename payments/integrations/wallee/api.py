@@ -84,6 +84,94 @@ def _terminal_binding(provider_name: str) -> str:
 	return binding
 
 
+# //// Neoffice — maintenance#1730: Wallee's API has no service that lists terminal locations or
+# //// configurations (none in SDK 5.x, none in 6.0 to 6.4). It gives them only through the terminals:
+# //// each one carries its location version (location, address) and its configuration version,
+# //// expanded below. A space without any terminal has nothing to read: its first terminal is made in
+# //// the Wallee portal.
+_TERMINAL_EXPAND = [
+	"locationVersion.location",
+	"locationVersion.address",
+	"configurationVersion.configuration",
+]
+
+# //// Neoffice — maintenance#1730: Wallee requires a type on every new terminal. BBPOS WisePOS E, the
+# //// model the wizard is built for (see get_terminal_types) and the type of the terminals in our test space.
+DEFAULT_TERMINAL_TYPE = 1568379599819
+
+
+def _space_terminals(prov: WalleeProvider) -> list:
+	"""Every terminal of the space, decommissioned ones included, versions expanded."""
+	from wallee.service.payment_terminals_service import PaymentTerminalsService
+
+	service = PaymentTerminalsService(prov.build_configuration())
+	terminals: list = []
+	after = None
+	while True:
+		page = service.get_payment_terminals(
+			prov.space_id, after=after, limit=100, expand=_TERMINAL_EXPAND
+		)
+		batch = page.data or []
+		terminals.extend(batch)
+		if not page.has_more or not batch:
+			return terminals
+		after = batch[-1].id
+
+
+def _is_active(version) -> bool:  # noqa: ANN001 — a wallee version model
+	state = getattr(version, "state", None)
+	return str(getattr(state, "value", state) or "").upper() == "ACTIVE"
+
+
+def _newest_versions(terminals: list, attribute: str, parent: str) -> dict[int, Any]:
+	"""``{location or configuration id: its newest version on a terminal}``, an active version first.
+
+	A new terminal is created against a version, and an old terminal may still carry an
+	outdated one: the newest active version seen is the one to offer.
+	"""
+	newest: dict[int, Any] = {}
+	for terminal in terminals:
+		version = getattr(terminal, attribute, None)
+		owner = getattr(version, parent, None) if version else None
+		if owner is None or owner.id is None or version.id is None:
+			continue
+		kept = newest.get(owner.id)
+		if kept is None or (_is_active(version), version.id) > (_is_active(kept), kept.id):
+			newest[owner.id] = version
+	return newest
+
+
+def _sync_stats(terminals: list, versions: dict) -> dict[str, Any]:
+	stats: dict[str, Any] = {"created": 0, "updated": 0, "total": len(versions)}
+	if not terminals:
+		stats["message"] = _(
+			"Wallee lists locations and configurations only through the terminals of the space. "
+			"Create the first terminal in the Wallee portal, then sync again."
+		)
+	return stats
+
+
+def _country_name(code: str | None) -> str | None:
+	"""The Country record for a two-letter ISO code, as Wallee gives it."""
+	if not code:
+		return None
+	return frappe.db.get_value("Country", {"code": code.lower()}, "name")
+
+
+def _free_name(doctype: str, wallee_id: str, wanted: str) -> str:
+	"""A record name for a new Wallee object (named by field): its own name, unless a record holds it."""
+	return f"{wanted} ({wallee_id})" if frappe.db.exists(doctype, wanted) else wanted
+
+
+def _terminal_nonce(provider: str, terminal_name: str, configuration_version: int) -> str:
+	"""Wallee's idempotency key for a new terminal: a wizard retried after a failed link gets the same
+	terminal back instead of a second one."""
+	import hashlib
+
+	seed = f"{frappe.local.site}:{provider}:{terminal_name}:{configuration_version}"
+	return hashlib.sha256(seed.encode()).hexdigest()[:40]
+
+
 # ---------------------------------------------------------------------------
 # Connection test
 # ---------------------------------------------------------------------------
@@ -133,50 +221,50 @@ def get_existing_locations(provider: str) -> list[dict[str, Any]]:
 # //// frappe.call (POST); the reads stay open.
 @frappe.whitelist(methods=["POST"])
 def sync_locations_from_wallee(provider: str) -> dict[str, Any]:
-	"""Pull all Locations from the Wallee account and upsert local records.
+	"""Upsert a local Wallee Location for every location the space's terminals use.
 
-	Returns ``{created, updated, total}``.
+	Returns ``{created, updated, total}``, plus ``message`` when the space has no terminal yet.
 	"""
-	from wallee.models import EntityQuery
-	from wallee.service.payment_terminals_service import PaymentTerminalsService  # noqa: F401 — keeps wallee SDK imports resident
-
+	# //// Neoffice — maintenance#1730: read through the space's terminals, see _TERMINAL_EXPAND. The old body
+	# //// imported `payment_terminal_locations_service`, which no wallee SDK ever had: HTTP 500 on every sync.
 	prov = _provider(provider)
-	config = prov.build_configuration()
+	terminals = _space_terminals(prov)
+	versions = _newest_versions(terminals, "location_version", "location")
 
-	# Wallee Location is a separate service in the SDK.
-	from wallee.service.payment_terminal_locations_service import (
-		PaymentTerminalLocationsService,
-	)
-
-	service = PaymentTerminalLocationsService(config)
-	# Empty query = first page of all locations in the space.
-	query = EntityQuery()
-	response = service.search(prov.space_id, query)
-
-	stats = {"created": 0, "updated": 0, "total": len(response or [])}
-	for loc in response or []:
-		loc_id_str = str(loc.id)
-		name = loc.name or f"Location {loc_id_str}"
-
+	stats = _sync_stats(terminals, versions)
+	for location_id, version in versions.items():
+		loc_id_str = str(location_id)
+		address = version.address
+		values = {
+			"wallee_location_version_id": str(version.id),
+			"street": address.street if address else None,
+			"postal_code": address.postcode if address else None,
+			"city": address.city if address else None,
+			"state": address.postal_state if address else None,
+			"country": _country_name(address.country if address else None),
+			"is_active": 1,
+			"last_sync": now_datetime(),
+		}
 		existing = frappe.db.get_value("Wallee Location", {"wallee_location_id": loc_id_str})
 		if existing:
 			doc = frappe.get_doc("Wallee Location", existing)
-			doc.location_name = name
-			doc.wallee_location_version_id = str(getattr(loc, "version", "") or "")
-			doc.last_sync = now_datetime()
+			# What Wallee does not say keeps what the operator typed.
+			doc.update({key: value for key, value in values.items() if value})
 			doc.save(ignore_permissions=True)
 			stats["updated"] += 1
 		else:
 			frappe.get_doc(
 				{
 					"doctype": "Wallee Location",
-					"location_name": name,
+					"location_name": _free_name(
+						"Wallee Location",
+						loc_id_str,
+						version.location.name or f"Location {loc_id_str}",
+					),
 					"wallee_location_id": loc_id_str,
-					"wallee_location_version_id": str(getattr(loc, "version", "") or ""),
-					"city": getattr(loc, "city", None) or "Unknown",
-					"country": getattr(loc, "country", None) or "Switzerland",
-					"is_active": 1,
-					"last_sync": now_datetime(),
+					**values,
+					"city": values["city"] or _("Unknown"),
+					"country": values["country"] or "Switzerland",
 				}
 			).insert(ignore_permissions=True)
 			stats["created"] += 1
@@ -209,29 +297,22 @@ def get_existing_configurations(provider: str) -> list[dict[str, Any]]:
 # //// Neoffice — POST only (maintenance#1721): see sync_locations_from_wallee.
 @frappe.whitelist(methods=["POST"])
 def sync_configurations_from_wallee(provider: str) -> dict[str, Any]:
-	"""Pull all Terminal Configurations from Wallee and upsert local records."""
-	from wallee.models import EntityQuery
-	from wallee.service.payment_terminal_configurations_service import (
-		PaymentTerminalConfigurationsService,
-	)
-
+	"""Upsert a local Wallee Terminal Configuration for every configuration the space's terminals use."""
+	# //// Neoffice — maintenance#1730: read through the space's terminals, see _TERMINAL_EXPAND. The old body
+	# //// imported `payment_terminal_configurations_service`, which no wallee SDK ever had: HTTP 500 on every sync.
 	prov = _provider(provider)
-	config = prov.build_configuration()
-	service = PaymentTerminalConfigurationsService(config)
-	response = service.search(prov.space_id, EntityQuery())
+	terminals = _space_terminals(prov)
+	versions = _newest_versions(terminals, "configuration_version", "configuration")
 
-	stats = {"created": 0, "updated": 0, "total": len(response or [])}
-	for cfg in response or []:
-		cfg_id_str = str(cfg.id)
-		name = cfg.name or f"Config {cfg_id_str}"
-
+	stats = _sync_stats(terminals, versions)
+	for configuration_id, version in versions.items():
+		cfg_id_str = str(configuration_id)
 		existing = frappe.db.get_value(
 			"Wallee Terminal Configuration", {"wallee_configuration_id": cfg_id_str}
 		)
 		if existing:
 			doc = frappe.get_doc("Wallee Terminal Configuration", existing)
-			doc.configuration_name = name
-			doc.wallee_configuration_version_id = str(getattr(cfg, "version", "") or "")
+			doc.wallee_configuration_version_id = str(version.id)
 			doc.last_sync = now_datetime()
 			doc.save(ignore_permissions=True)
 			stats["updated"] += 1
@@ -239,9 +320,13 @@ def sync_configurations_from_wallee(provider: str) -> dict[str, Any]:
 			frappe.get_doc(
 				{
 					"doctype": "Wallee Terminal Configuration",
-					"configuration_name": name,
+					"configuration_name": _free_name(
+						"Wallee Terminal Configuration",
+						cfg_id_str,
+						version.configuration.name or f"Config {cfg_id_str}",
+					),
 					"wallee_configuration_id": cfg_id_str,
-					"wallee_configuration_version_id": str(getattr(cfg, "version", "") or ""),
+					"wallee_configuration_version_id": str(version.id),
 					"description": "",
 					"last_sync": now_datetime(),
 				}
@@ -264,6 +349,7 @@ def create_terminal(
 	configuration: str,
 	location: str,
 	device_label: str | None = None,
+	terminal_type: int | None = None,
 ) -> dict[str, Any]:
 	"""Create a Wallee Payment Terminal and persist a Payment Device locally.
 
@@ -273,6 +359,7 @@ def create_terminal(
 	  ``configuration``   : local ``Wallee Terminal Configuration`` name
 	  ``location``        : local ``Wallee Location`` name
 	  ``device_label``    : optional friendly label for the Payment Device
+	  ``terminal_type``   : Wallee terminal type id; :data:`DEFAULT_TERMINAL_TYPE` otherwise
 
 	Returns ``{payment_device, wallee_terminal_id, device_type, location, status}``.
 	"""
@@ -292,10 +379,18 @@ def create_terminal(
 
 	service = PaymentTerminalsService(config)
 
+	# //// Neoffice — maintenance#1730: the SDK 6.x model is strict. It requires an external id (Wallee's
+	# //// idempotency nonce) and a terminal type, and takes the versions as integers; the old call passed
+	# //// neither and gave the versions as text, so it could never build the request.
+	configuration_version = int(cfg_doc.wallee_configuration_version_id)
 	terminal_create = PaymentTerminalCreate(
 		name=terminal_name,
-		configuration_version=cfg_doc.wallee_configuration_version_id,
-		location_version=loc_doc.wallee_location_version_id or None,
+		configuration_version=configuration_version,
+		location_version=(
+			int(loc_doc.wallee_location_version_id) if loc_doc.wallee_location_version_id else None
+		),
+		external_id=_terminal_nonce(provider, terminal_name, configuration_version),
+		type=int(terminal_type or DEFAULT_TERMINAL_TYPE),
 	)
 	response = service.post_payment_terminals(
 		space=prov.space_id, payment_terminal_create=terminal_create
