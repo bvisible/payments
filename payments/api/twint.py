@@ -51,6 +51,38 @@ from frappe.utils import now_datetime
 _TWINT_CHANNELS = ("qr_bridge", "twint_web", "twint_mobile")
 
 
+# //// Neoffice — how long a timed-out intent waits for TWINT to accept the abort of its order before it is
+# //// canceled here anyway, so an order TWINT keeps refusing to abort never leaves the intent pending (maintenance#1734).
+_ABORT_GIVE_UP = timedelta(minutes=60)
+
+
+def _abort_timed_out_order(
+	driver, merchant_uuid: str, intent: dict[str, Any], created_at, stats: dict[str, int]
+) -> bool:
+	"""Abort at TWINT the order of an intent with no final status after 10 minutes.
+
+	True when the intent may be canceled here: TWINT accepted the abort, or it kept refusing for an hour. False
+	leaves the intent pending for the next run, which reads the order again: a refusal usually means the customer
+	has just confirmed, and the order is then captured instead.
+	"""
+	try:
+		answer = driver._call_bridge(  # noqa: SLF001 — internal scheduler reuse
+			"cancel_payment",
+			merchant_uuid,
+			{"order_id": intent["provider_intent_id"]},
+		)
+	except Exception as exc:  # noqa: BLE001
+		answer = {"success": False, "error": repr(exc)}
+	if (answer or {}).get("success"):
+		return True
+	stats["errors"] += 1
+	frappe.log_error(
+		"poll_pending_twint cancel_payment !success",
+		f"intent={intent['name']} order_id={intent['provider_intent_id']} result={answer}",
+	)
+	return created_at < now_datetime() - _ABORT_GIVE_UP
+
+
 def _publish_intent_update(doc, channel: str, target: str, extra: dict[str, Any] | None = None) -> None:
 	"""Push the new status to subscribers (JS overlay, POS dialog, etc.)."""
 	message: dict[str, Any] = {
@@ -184,6 +216,11 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 		ts = intent.get("created_at")
 		cutoff = now_datetime() - timedelta(minutes=10)
 		if ts and ts < cutoff:
+			# //// Neoffice — the order is aborted at TWINT before the intent is canceled here. Until 19.10.2026
+			# //// only the intent was canceled: the TWINT order stayed open (IN_PROGRESS), so a customer who
+			# //// scanned late confirmed an order nothing read any more, and nobody captured it (maintenance#1734).
+			if not _abort_timed_out_order(driver, merchant_uuid, intent, ts, stats):
+				return
 			doc = frappe.get_doc("Payment Intent", intent["name"])
 			if doc.transition_to(
 				"canceled",
