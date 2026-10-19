@@ -84,15 +84,11 @@ class TestTheCertificateOnTheInstance(FrappeTestCase):
 		raw = os.urandom(3398)
 		self.assertTrue(local_engine.store_certificate(MERCHANT, raw))
 		self.assertEqual(local_engine.stored_certificate(MERCHANT), raw)
-		stored = frappe.db.get_value(
-			"__Auth",
-			{
-				"doctype": local_engine.DOCTYPE,
-				"name": MERCHANT,
-				"fieldname": local_engine.CERTIFICATE_FIELD,
-			},
-			"password",
-		)
+		# __Auth has no `modified`: read it in SQL, get_value would order by it
+		stored = frappe.db.sql(
+			"select `password` from `__Auth` where doctype=%s and name=%s and fieldname=%s",
+			(local_engine.DOCTYPE, MERCHANT, local_engine.CERTIFICATE_FIELD),
+		)[0][0]
 		self.assertNotIn(
 			base64.b64encode(raw).decode()[:40], stored
 		)  # encrypted, not the base64 of the file
