@@ -112,13 +112,10 @@ SETUP_CALLS = [
 
 
 class TestSignedInPaymentApiAsksForAPermission(FrappeTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		_ensure_mock_setup()
-
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# Per test, not per class: tearDown rolls back, and on a fresh site (the CI) that takes the mock provider too.
+		_ensure_mock_setup()
 		_user(PORTAL, ["Customer"], "Website User")
 		_user(DESK, ["Blogger"], "System User")
 		self.till_intent = intent_api.create_intent(
@@ -226,13 +223,9 @@ class TestSignedInPaymentApiAsksForAPermission(FrappeTestCase):
 class TestTheWalleeReturnPagesServeOnlyTheBrowserSentBack(FrappeTestCase):
 	"""/wallee/success and /wallee/failed showed, refreshed and finalised any intent named in their URL."""
 
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		_ensure_mock_setup()
-
 	def setUp(self):
 		frappe.set_user("Administrator")
+		_ensure_mock_setup()  # per test: see TestSignedInPaymentApiAsksForAPermission.setUp
 		self.web = _intent("wallee_web")
 		self.till = _intent("terminal")
 		frappe.set_user("Guest")
