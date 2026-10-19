@@ -116,12 +116,20 @@ def get_context(context):  # noqa: ANN001
 		context.error = _("Missing payment reference")
 		return context
 
-	if not frappe.db.exists("Payment Intent", intent_name):
+	# //// Neoffice — guarded (maintenance#1731): the page showed, refreshed from its PSP and finalised whatever
+	# //// intent the URL named, whatever its channel. Now a `payrexx_web` intent only, with the token its return
+	# //// URL carries, or a desk user allowed to read it. A refusal reads as "not found", like a missing name.
+	from payments.api.intent_access import require_web_access
+
+	access_token = frappe.form_dict.get("access_token")
+	try:
+		intent_doc = require_web_access(intent_name, access_token, "payrexx_web", "read")
+	except frappe.PermissionError:
+		frappe.clear_messages()
 		context.error = _("Payment reference not found")
-		_debug(f"PI not found: {intent_name}")
+		_debug(f"PI not found or not this browser's: {intent_name}")
 		return context
 
-	intent_doc = frappe.get_doc("Payment Intent", intent_name)
 	context.intent = intent_doc
 
 	# Short-circuit a double-clicked return URL: if the linked Payment Request is
@@ -147,9 +155,7 @@ def get_context(context):  # noqa: ANN001
 		attempt = 0
 	context.attempt = attempt
 
-	_refresh_status(
-		intent_doc, _POLL_FIRST_LOAD if attempt == 0 else _POLL_LATER_LOADS
-	)
+	_refresh_status(intent_doc, _POLL_FIRST_LOAD if attempt == 0 else _POLL_LATER_LOADS)
 	_debug(f"after refresh status={intent_doc.status} attempt={attempt}")
 
 	if intent_doc.status == "succeeded":
@@ -168,9 +174,7 @@ def get_context(context):  # noqa: ANN001
 						raise frappe.Redirect
 					pr_doc = frappe.get_doc("Payment Request", intent_doc.reference_name)
 					if pr_doc.reference_doctype == "Sales Order":
-						frappe.local.flags.redirect_location = (
-							f"/thank_you?sales_order={pr_doc.reference_name}"
-						)
+						frappe.local.flags.redirect_location = f"/thank_you?sales_order={pr_doc.reference_name}"
 						raise frappe.Redirect
 				else:
 					context.error = (result or {}).get("message") or _("Error finalising order")
@@ -192,8 +196,11 @@ def get_context(context):  # noqa: ANN001
 		context.status = "unconfirmed"
 	else:
 		context.status = "pending"
-		context.retry_url = (
-			f"/payrexx/success?payment_intent={intent_name}&try={attempt + 1}"
+		# //// Neoffice — the reload keeps the token, or the guard above would refuse it (maintenance#1731).
+		from urllib.parse import urlencode
+
+		context.retry_url = "/payrexx/success?" + urlencode(
+			{"payment_intent": intent_name, "access_token": access_token or "", "try": attempt + 1}
 		)
 
 	# The page is reached by all three return URLs, so its title has to follow the

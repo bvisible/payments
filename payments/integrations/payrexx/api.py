@@ -59,6 +59,7 @@ def create_web_transaction(
 	    a traceback there tells the buyer nothing.
 	"""
 	from payments.api.intent import create_intent
+	from payments.api.intent_access import web_access_token
 
 	pr = frappe.get_doc("Payment Request", payment_request_id)
 	if pr.payment_request_type != "Inward":
@@ -116,6 +117,9 @@ def create_web_transaction(
 		"status": "success",
 		"payment_request_id": payment_request_id,
 		"payment_intent": intent.get("intent_name"),
+		# //// Neoffice — what get_intent_state asks for (maintenance#1731): only the browser that created the
+		# //// intent may read it. The return page gets the same token through the URL the driver gave Payrexx.
+		"access_token": web_access_token(intent.get("intent_name")),
 		"transaction_id": intent.get("provider_intent_id"),
 		"redirect_url": redirect_url,
 		# Payrexx also returns a mobile deep link; a native caller may prefer it.
@@ -124,10 +128,14 @@ def create_web_transaction(
 	}
 
 
+# //// Neoffice — guarded (maintenance#1731): it answered for whatever intent a guest named. Now a `payrexx_web`
+# //// intent only, with the token create_web_transaction returned, or a desk user allowed to read it.
 @frappe.whitelist(allow_guest=True)
-def get_intent_state(intent_name: str) -> dict[str, Any]:
+def get_intent_state(intent_name: str, access_token: str | None = None) -> dict[str, Any]:
 	"""Lightweight status read, for a checkout page polling after the redirect."""
-	pi = frappe.get_doc("Payment Intent", intent_name)
+	from payments.api.intent_access import require_web_access
+
+	pi = require_web_access(intent_name, access_token, CHANNEL, "read")
 	return {
 		"intent_name": pi.name,
 		"status": pi.status,

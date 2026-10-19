@@ -205,13 +205,29 @@ class TestPayrexxWebDriver(FrappeTestCase):
 		client.gateway.create.return_value = _fake_gateway()
 
 		with patch.object(PayrexxWebDriver, "_client", return_value=client):
-			self.driver.create_intent(
-				IntentRequest(intent_name="PI-TEST-0002", amount=100, currency="CHF")
-			)
+			self.driver.create_intent(IntentRequest(intent_name="PI-TEST-0002", amount=100, currency="CHF"))
 
 		kwargs = client.gateway.create.call_args.kwargs
 		for key in ("success_redirect_url", "failed_redirect_url", "cancel_redirect_url"):
 			self.assertIn("/payrexx/success?payment_intent=PI-TEST-0002", kwargs[key])
+
+	# //// Neoffice — maintenance#1731: the return page serves only the browser holding the intent's token,
+	# //// and the URL Payrexx sends the shopper back to is how that browser gets it.
+	def test_the_return_urls_carry_the_intents_token(self):
+		from urllib.parse import parse_qs, urlparse
+
+		from payments.api.intent_access import web_access_token
+
+		client = _client_stub()
+		client.gateway.create.return_value = _fake_gateway()
+
+		with patch.object(PayrexxWebDriver, "_client", return_value=client):
+			self.driver.create_intent(IntentRequest(intent_name="PI-TEST-0003", amount=100, currency="CHF"))
+
+		kwargs = client.gateway.create.call_args.kwargs
+		for key in ("success_redirect_url", "failed_redirect_url", "cancel_redirect_url"):
+			query = parse_qs(urlparse(kwargs[key]).query)
+			self.assertEqual(query["access_token"], [web_access_token("PI-TEST-0003")])
 
 	def test_dropped_payment_method_filter_is_logged(self):
 		"""A silently-dropped filter lets a shopper pay by an unrecorded method."""

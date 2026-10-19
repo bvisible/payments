@@ -98,7 +98,7 @@ frappe.provide('frappe.twint');
             on: function(eventName, handler) {
                 // Determine the native event name for 'hidden.bs.modal'
                 const nativeEventName = eventName === 'hidden.bs.modal' ? 'hidden' : eventName;
-                
+
                 this.elements.forEach(el => {
                     if (el && typeof el.addEventListener === 'function') {
                         el.addEventListener(nativeEventName, handler);
@@ -120,7 +120,7 @@ frappe.provide('frappe.twint');
 
         // Determine if we are in the frontend or backend
         const isFrontend = !frappe.ui.form.make_control;
-        
+
         // Function to create a jQuery-like wrapper
         const createJQueryLike = (elements) => {
             return {
@@ -208,7 +208,7 @@ frappe.provide('frappe.twint');
                 on: function(eventName, handler) {
                     // Determine the native event name for 'hidden.bs.modal'
                     const nativeEventName = eventName === 'hidden.bs.modal' ? 'hidden' : eventName;
-                    
+
                     this.elements.forEach(el => {
                         if (el && typeof el.addEventListener === 'function') {
                             el.addEventListener(nativeEventName, handler);
@@ -245,7 +245,7 @@ frappe.provide('frappe.twint');
                         </div>
                     </div>
                     <div class="payment-info">
-                        <div class="amount-section">    
+                        <div class="amount-section">
                             <div class="amount-display">CHF ${amount.toFixed(2)}</div>
                         </div>
                         <div class="company-logo-section">
@@ -273,7 +273,7 @@ frappe.provide('frappe.twint');
         `;
 
         let paymentDialog;
-        
+
         if (isFrontend) {
             // Frontend version (similar to auth_dialog.js)
             const dialogHTML = `
@@ -293,12 +293,12 @@ frappe.provide('frappe.twint');
             const dialogContainer = document.createElement('div');
             dialogContainer.innerHTML = dialogHTML;
             document.body.appendChild(dialogContainer);
-            
+
             // Fix for iOS mobile scroll issue
             document.querySelector('.twint-dialog-overlay').addEventListener('touchmove', function(e) {
                 e.stopPropagation();
             }, { passive: false });
-            
+
             document.querySelector('.twint-dialog').addEventListener('touchmove', function(e) {
                 e.stopPropagation();
             }, { passive: false });
@@ -341,7 +341,7 @@ frappe.provide('frappe.twint');
                     }
                 }
             };
-            
+
         } else {
             // Backend
             paymentDialog = new frappe.ui.Dialog({
@@ -368,7 +368,8 @@ frappe.provide('frappe.twint');
                             frappe.call({
                                 method: 'payments.integrations.twint.api.cancel_web_transaction',
                                 args: {
-                                    intent_name: paymentDialog.orderUuid
+                                    intent_name: paymentDialog.orderUuid,
+                                    access_token: paymentDialog.accessToken  //// Neoffice — maintenance#1731
                                 },
                                 callback: function(r) {
                                     if (r.message && r.message.success) {
@@ -435,6 +436,9 @@ frappe.provide('frappe.twint');
                                     qr_code: r.message.qr_svg || '',           // inline SVG (not base64 PNG anymore)
                                     pairing_token: r.message.pairing_token,
                                     order_uuid: r.message.payment_intent,       // use intent name as dialog's order_uuid
+                                    //// Neoffice — the intent's token (maintenance#1731): the poll and the cancel send it back,
+                                    //// the server refuses an intent named without it.
+                                    access_token: r.message.access_token,
                                     company_logo: null,
                                     company: null,
                                     twint_order_id: r.message.transaction_id,
@@ -471,6 +475,8 @@ frappe.provide('frappe.twint');
 
                     // Save order_uuid
                     paymentDialog.orderUuid = order_uuid;
+                    //// Neoffice — kept beside the intent name, for the poll and the cancel (maintenance#1731).
+                    paymentDialog.accessToken = r.message.data.access_token;
 
                     // Update company logo if available
                     if (company_logo) {
@@ -480,26 +486,26 @@ frappe.provide('frappe.twint');
                     // Detect platform
                     function detectPlatform() {
                         const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-                        
+
                         // Detection d'Android
                         if (/android/i.test(userAgent)) {
                             return 'android';
                         }
-                        
+
                         // Detection d'iOS
                         if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
                             return 'ios';
                         }
-                        
+
                         // Default, consider as desktop
                         return 'desktop';
                     }
-                    
+
                     // Check if on mobile device
                     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                     const platform = detectPlatform();
                     console.log('Plateforme détectée:', platform);
-                    
+
                     // Always display QR code first and start the status check
                     displayQRCode();
 
@@ -560,26 +566,26 @@ frappe.provide('frappe.twint');
                                         } else {
                                             console.error('Top container not found');
                                         }
-                                        
+
                                         // Configure click event for the button with debug
                                         setTimeout(() => {
-                                            const selectorBtn = document.getElementById('open-twint-selector-btn');                                            
+                                            const selectorBtn = document.getElementById('open-twint-selector-btn');
                                             if (selectorBtn) {
                                                 selectorBtn.addEventListener('click', function(e) {
                                                     console.log('Bouton TWINT cliqué', e);
-                                                    console.log('Paramètres:', { 
-                                                        schemes: r.message.schemes, 
+                                                    console.log('Paramètres:', {
+                                                        schemes: r.message.schemes,
                                                         pairing_token: pairing_token,
                                                         statusContainer: $statusContainer
                                                     });
-                                                    
+
                                                     try {
                                                         showTwintAppSelector(r.message.schemes, pairing_token);
                                                     } catch (error) {
                                                         console.error('Error displaying TWINT selector:', error);
                                                     }
                                                 });
-                                                
+
                                                 // Click the button automatically after a delay
                                                 setTimeout(() => {
                                                     selectorBtn.click();
@@ -593,15 +599,15 @@ frappe.provide('frappe.twint');
                             // For Android, use the TWINT application selector instead of displaying in the status container
                             // We will call the showTwintAppSelector function to display the dialog with the timer
                             showTwintAppSelector(null, pairing_token);
-                            
+
                             // Display the button at the top of the dialog for Android also
                             const $topButtonContainer = paymentDialog.$wrapper.find('#twint-app-button-top');
                             if ($topButtonContainer.length) {
                                 $topButtonContainer.show();
-                                
+
                                 // Configure click event for the Android button
                                 setTimeout(() => {
-                                    const selectorBtn = document.getElementById('open-twint-selector-btn');                                    
+                                    const selectorBtn = document.getElementById('open-twint-selector-btn');
                                     if (selectorBtn) {
                                         selectorBtn.addEventListener('click', function(e) {
                                             try {
@@ -617,28 +623,28 @@ frappe.provide('frappe.twint');
                             }
                         }
                     }
-                    
+
                     // Function to show TWINT app selector
                     function showTwintAppSelector(schemes, pairing_token) {
                         // Detect current platform
                         const currentPlatform = detectPlatform();
-                        
+
                         // Verify that the pairing_token is valid (necessary for both platforms)
                         if (!pairing_token) {
                             console.error('Error: pairing_token is invalid', pairing_token);
                             return;
                         }
-                        
+
                         // For iOS, verify that the schemes are valid
                         if (currentPlatform === 'ios' && (!schemes || !Array.isArray(schemes) || schemes.length === 0)) {
                             console.error('Error: schemes are invalid for iOS', schemes);
                             return;
                         }
-                        
+
                         if (currentPlatform === 'ios') {
                             console.log('showTwintAppSelector called with:', schemes.length, 'iOS apps');
                         }
-                        
+
                         // Create a simple app selector directly in the page
                         const selectorDiv = document.createElement('div');
                         selectorDiv.className = 'twint-app-selector-container';
@@ -652,12 +658,12 @@ frappe.provide('frappe.twint');
                         selectorDiv.style.display = 'flex';
                         selectorDiv.style.alignItems = 'center';
                         selectorDiv.style.justifyContent = 'center';
-                        
+
                         // For Android, we do not use the app selector like for iOS
                         if (currentPlatform === 'android') {
                             // Format of the Android deep link
                             const androidDeepLink = `intent://payment#Intent;action=ch.twint.action.TWINT_PAYMENT;scheme=twint;S.code=${pairing_token};S.startingOrigin=EXTERNAL_WEB_BROWSER;S.browser_fallback_url=;end`;
-                            
+
                             // Create the content for Android with timer
                             selectorDiv.innerHTML = `
                                 <div style="background: white; padding: 20px; border-radius: 8px; max-width: 90%; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
@@ -665,28 +671,28 @@ frappe.provide('frappe.twint');
                                         <h3 style="margin: 0; font-size: 18px;">${__('Redirection vers TWINT')}</h3>
                                         <button id="twint-selector-close" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
                                     </div>
-                                    
+
                                     <div style="text-align: center; margin: 20px 0;">
                                         <p>${__('You will be redirected to the TWINT app in')} <span id="twint-countdown">3</span> ${__('seconds')}...</p>
                                     </div>
-                                    
+
                                     <button id="twint-open-now" class="btn btn-primary btn-lg" style="width: 100%; padding: 10px; background-color: #FF0039; color: white; border: none; border-radius: 4px; cursor: pointer;">
                                         ${__('Open now')}
                                     </button>
                                 </div>
                             `;
-                            
+
                             // Add the selector to the page
                             document.body.appendChild(selectorDiv);
-                            
+
                             // Handle events
                             const closeBtn = document.getElementById('twint-selector-close');
                             const openNowBtn = document.getElementById('twint-open-now');
                             const countdownEl = document.getElementById('twint-countdown');
-                            
+
                             // Timer for countdown
                             let countdown = 3;
-                            
+
                             if (closeBtn) {
                                 closeBtn.addEventListener('click', function() {
                                     console.log('Fermeture du sélecteur');
@@ -697,7 +703,7 @@ frappe.provide('frappe.twint');
                                     }
                                 });
                             }
-                            
+
                             if (openNowBtn) {
                                 openNowBtn.addEventListener('click', function() {
                                     console.log('Ouverture immédiate de TWINT');
@@ -712,26 +718,26 @@ frappe.provide('frappe.twint');
                                         cancelable: true
                                     });
                                     document.dispatchEvent(redirectEvent);
-                                    
+
                                     // Close the selector after a short delay
                                     setTimeout(() => {
                                         // Close the selector
-                                        selectorDiv.remove();                                        
+                                        selectorDiv.remove();
                                         // Open the application
                                         window.location.href = androidDeepLink;
                                     }, 50);
                                 });
                             }
-                            
+
                             // Start the countdown
                             window.androidTimer = setInterval(function() {
                                 countdown--;
                                 if (countdownEl) {
                                     countdownEl.textContent = countdown;
                                 }
-                                
+
                                 if (countdown <= 0) {
-                                    clearInterval(window.androidTimer);                                    
+                                    clearInterval(window.androidTimer);
                                     // Trigger a custom event before automatic redirection
                                     const redirectEvent = new CustomEvent('twintRedirect', {
                                         detail: {
@@ -747,16 +753,16 @@ frappe.provide('frappe.twint');
                                     // Close the selector after a short delay
                                     setTimeout(() => {
                                         // Close the selector
-                                        selectorDiv.remove();                                        
+                                        selectorDiv.remove();
                                         // Open the application
                                         window.location.href = androidDeepLink;
                                     }, 50);
                                 }
                             }, 1000);
-                            
+
                             return; // Exit the function for Android
                         }
-                        
+
                         // For iOS, continue with the app selector
                         // Create the content of the selector
                         let optionsHtml = `<option value="" disabled selected>${__('Other applications')}</option>`;
@@ -765,7 +771,7 @@ frappe.provide('frappe.twint');
                             let displayName = scheme.display_name.replace(/\s*TWINT\s*/gi, '');
                             optionsHtml += `<option value="${scheme.scheme}">${displayName}</option>`;
                         });
-                        
+
                         // Prepare the icons of the most used banks
                         const bankIcons = [
                             { name: 'UBS', icon: '/assets/payments/images/twint/ubs.svg', scheme: '' },
@@ -775,7 +781,7 @@ frappe.provide('frappe.twint');
                             { name: 'Credit Suisse', icon: '/assets/payments/images/twint/cs.svg', scheme: '' },
                             { name: 'BCV', icon: '/assets/payments/images/twint/bcv.svg', scheme: '' }
                         ];
-                        
+
                         // Associate the schemas with the corresponding banks
                         schemes.forEach(scheme => {
                             const bankName = scheme.display_name.toLowerCase();
@@ -785,7 +791,7 @@ frappe.provide('frappe.twint');
                                 }
                             });
                         });
-                        
+
                         // Create the HTML for the bank icons
                         let bankIconsHtml = '';
                         bankIcons.forEach(bank => {
@@ -798,24 +804,24 @@ frappe.provide('frappe.twint');
                                 `;
                             }
                         });
-                        
+
                         selectorDiv.innerHTML = `
                             <div style="background: white; padding: 20px; border-radius: 8px; max-width: 90%; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                                     <h3 style="margin: 0; font-size: 18px;">${__('Choose your TWINT application')}</h3>
                                     <button id="twint-selector-close" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
                                 </div>
-                                
+
                                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
                                     ${bankIconsHtml}
                                 </div>
-                                
+
                                 <div style="display: flex; align-items: center; margin: 15px 0;">
                                     <div style="flex-grow: 1; height: 2px; background-color: #ddd;"></div>
                                     <div style="margin: 0 10px; color: #666; font-size: 14px;">${__('or')}</div>
                                     <div style="flex-grow: 1; height: 2px; background-color: #ddd;"></div>
                                 </div>
-                                
+
                                 <div style="margin-bottom: 20px;">
                                     <select id="twint-app-select" style="width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; background-color: white; font-size: 14px; appearance: menulist; height: 40px;">
                                         ${optionsHtml}
@@ -823,15 +829,15 @@ frappe.provide('frappe.twint');
                                 </div>
                             </div>
                         `;
-                        
+
                         // Add the selector to the page
                         document.body.appendChild(selectorDiv);
-                        
+
                         // Handle events
                         const closeBtn = document.getElementById('twint-selector-close');
                         const appSelect = document.getElementById('twint-app-select');
                         const bankIconElements = document.querySelectorAll('.twint-bank-icon');
-                        
+
                         // Check that the elements exist
                         if (!closeBtn || !appSelect) {
                             console.error('Error: selector elements not found', {
@@ -840,18 +846,18 @@ frappe.provide('frappe.twint');
                             });
                             return;
                         }
-                        
+
                         // Close event
                         closeBtn.addEventListener('click', function() {
                             selectorDiv.remove();
                         });
-                        
+
                         // Function to open the TWINT application with the selected schema (iOS only)
                         function openTwintApp(selectedScheme) {
-                            
+
                             // Format of the iOS deep link with JSON parameters for PF Finance
                             // twint-issuer7://applinks/?al_applink_data={"app_action_type":"TWINT_PAYMENT","extras":{"code":"16586"},"referer_app_link":{"target_url":"","url":"","app_name":"EXTERNAL_WEB_BROWSER"},"version":"6.0"}
-                            
+
                             // Replace the code with the pairing_token
                             const appLinkData = {
                                 "app_action_type": "TWINT_PAYMENT",
@@ -865,11 +871,11 @@ frappe.provide('frappe.twint');
                                 },
                                 "version": "6.0"
                             };
-                            
+
                             // Format for iOS (format provided by the user)
                             const deepLinkUrl = `${selectedScheme}//applinks/?al_applink_data=${JSON.stringify(appLinkData)}`;
                             console.log('Deep link URL:', deepLinkUrl);
-                            
+
                             // Trigger a custom event before redirection
                             const redirectEvent = new CustomEvent('twintRedirect', {
                                 detail: {
@@ -882,17 +888,17 @@ frappe.provide('frappe.twint');
                                 cancelable: true
                             });
                             document.dispatchEvent(redirectEvent);
-                            
+
                             // Close the selector after a short delay
                             setTimeout(() => {
                                 // Close the selector
                                 selectorDiv.remove();
-                                
+
                                 // Open the application
                                 window.location.href = deepLinkUrl;
                             }, 50);
                         }
-                        
+
                         // Add click events to bank icons
                         bankIconElements.forEach(icon => {
                             icon.addEventListener('click', function() {
@@ -902,7 +908,7 @@ frappe.provide('frappe.twint');
                                 }
                             });
                         });
-                        
+
                         // Event to open the application when the selection changes
                         appSelect.addEventListener('change', function() {
                             const selectedScheme = this.value;
@@ -911,12 +917,12 @@ frappe.provide('frappe.twint');
                             }
                         });
                     }
-                    
+
                     // Function to display QR code for non-mobile devices
                     function displayQRCode() {
                         // Clear the status container first since it's now placed at the top
                         $statusContainer.html(''); // Use html('') instead of empty()
-                        
+
                         if (qr_code && pairing_token) {
                             // Phase 11 — qr_code is now an inline SVG string (not a base64 PNG),
                             // generated server-side by Python `qrcode` lib from the pairing token.
@@ -932,7 +938,7 @@ frappe.provide('frappe.twint');
                             setTimeout(() => $companyLogoSection.addClass('visible'), 500);
 
                             // Manage countdown
-                            let timeLeft = 300; 
+                            let timeLeft = 300;
                             const $timerValue = $qrSection.find('.timer-value');
                             const $timerProgress = $qrSection.find('.timer-progress');
 
@@ -1028,7 +1034,8 @@ frappe.provide('frappe.twint');
                     statusCheckInterval = setInterval(function() {
                         frappe.call({
                             method: 'payments.integrations.twint.api.get_intent_state',
-                            args: { intent_name: order_uuid },
+                            //// Neoffice — the token, or the server refuses the read (maintenance#1731).
+                            args: { intent_name: order_uuid, access_token: paymentDialog.accessToken },
                             callback: function(r) {
                                 if (!r.message) return;
                                 _applyStatus(r.message.status, null, r.message.error_message);
@@ -1053,23 +1060,23 @@ frappe.provide('frappe.twint');
             const wrapperElement = paymentDialog.$wrapper instanceof HTMLElement ? paymentDialog.$wrapper : document.querySelector('.twint-dialog');
             paymentDialog.$wrapper = createJQueryLike([wrapperElement]);
         }
-        
+
         if (paymentDialog.$wrapper) {
             paymentDialog.$wrapper.addClass('twint-modal-dialog');
         }
 
         // Get the dialog wrapper
         const dialogWrapper = paymentDialog.$wrapper.elements ? paymentDialog.$wrapper.elements[0] : paymentDialog.$wrapper;
-        const closeButton = dialogWrapper && typeof dialogWrapper.querySelector === 'function' ? 
-            dialogWrapper.querySelector('.twint-dialog .close-btn') : 
+        const closeButton = dialogWrapper && typeof dialogWrapper.querySelector === 'function' ?
+            dialogWrapper.querySelector('.twint-dialog .close-btn') :
             document.querySelector('.twint-dialog .close-btn');
-            
+
 
         if (closeButton) {
             closeButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 if (frappe.ui && frappe.ui.form && frappe.ui.form.make_control) {
                     // Frontend environment
                     frappe.confirm(
@@ -1078,7 +1085,8 @@ frappe.provide('frappe.twint');
                             frappe.call({
                                 method: 'payments.integrations.twint.api.cancel_web_transaction',
                                 args: {
-                                    intent_name: paymentDialog.orderUuid
+                                    intent_name: paymentDialog.orderUuid,
+                                    access_token: paymentDialog.accessToken  //// Neoffice — maintenance#1731
                                 },
                                 callback: function(r) {
                                     if (r.message && r.message.success) {
@@ -1106,7 +1114,8 @@ frappe.provide('frappe.twint');
                         frappe.call({
                             method: 'payments.integrations.twint.api.cancel_web_transaction',
                             args: {
-                                intent_name: paymentDialog.orderUuid
+                                intent_name: paymentDialog.orderUuid,
+                                access_token: paymentDialog.accessToken  //// Neoffice — maintenance#1731
                             },
                             callback: function(r) {
                                 if (r.message && r.message.success) {

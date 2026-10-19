@@ -96,8 +96,15 @@ class PayrexxWebDriver(PaymentDriverBase):
 			return {}
 
 	def _return_urls(self, intent_name: str) -> dict[str, str]:
+		from urllib.parse import urlencode
+
+		from payments.api.intent_access import web_access_token
+
 		base = get_url()
-		success = f"{base}/payrexx/success?payment_intent={intent_name}"
+		# //// Neoffice — the token rides along (maintenance#1731): the return page is open to guests and
+		# //// shows, refreshes and finalises the intent it is given, so it serves only the browser sent back here.
+		query = urlencode({"payment_intent": intent_name, "access_token": web_access_token(intent_name)})
+		success = f"{base}/payrexx/success?{query}"
 		return {
 			"success_redirect_url": success,
 			# Failure and cancellation land on the same page: it reads the real
@@ -122,8 +129,7 @@ class PayrexxWebDriver(PaymentDriverBase):
 					amount=request.amount,
 					currency=request.currency,
 					reference_id=request.intent_name,
-					purpose=request.metadata.get("purpose")
-					or _("Payment {0}").format(request.intent_name),
+					purpose=request.metadata.get("purpose") or _("Payment {0}").format(request.intent_name),
 					payment_methods=list(methods) if methods else None,
 					psp=config.get("psp") or None,
 					# Prefilled contact details. The hosted page asks for an email and
@@ -218,17 +224,15 @@ class PayrexxWebDriver(PaymentDriverBase):
 				reference = frappe.db.get_value(
 					"Payment Intent", {"provider_intent_id": provider_intent_id}, "name"
 				)
-				transactions = (
-					client.transaction.find_by_reference(reference) if reference else []
-				)
+				transactions = client.transaction.find_by_reference(reference) if reference else []
 				if not transactions:
 					return DriverResponse(
 						status="failed",
 						provider_intent_id=provider_intent_id,
 						error_code="transaction_not_found",
-						error_message=_(
-							"No Payrexx transaction found for reference {0}"
-						).format(reference or provider_intent_id),
+						error_message=_("No Payrexx transaction found for reference {0}").format(
+							reference or provider_intent_id
+						),
 					)
 
 				# Newest first: a reference can legitimately carry several
@@ -254,6 +258,4 @@ class PayrexxWebDriver(PaymentDriverBase):
 		"""
 		from payments.api.webhook_payrexx import parse_delivery
 
-		return parse_delivery(
-			payload, headers, signing_key=self._payrexx_provider.webhook_signing_key
-		)
+		return parse_delivery(payload, headers, signing_key=self._payrexx_provider.webhook_signing_key)

@@ -87,6 +87,7 @@ def create_web_transaction(
 	  qr_svg, pairing_token}``.
 	"""
 	from payments.api.intent import create_intent
+	from payments.api.intent_access import web_access_token
 
 	pr = frappe.get_doc("Payment Request", payment_request_id)
 	if pr.payment_request_type != "Inward":
@@ -129,6 +130,9 @@ def create_web_transaction(
 		"status": "success",
 		"payment_request_id": payment_request_id,
 		"payment_intent": intent.get("intent_name"),
+		# //// Neoffice — the dialog sends it back to poll and to cancel (maintenance#1731): only the browser
+		# //// that created the intent may touch it, a guest naming another one is refused.
+		"access_token": web_access_token(intent.get("intent_name")),
 		"transaction_id": intent.get("provider_intent_id"),
 		"pairing_token": payload.get("pairing_token"),
 		"qr_svg": payload.get("qr_svg"),
@@ -143,10 +147,14 @@ def create_web_transaction(
 	}
 
 
+# //// Neoffice — guarded (maintenance#1731): it answered for whatever intent a guest named. Now a `twint_web`
+# //// intent only, with the token create_web_transaction gave the dialog, or a desk user allowed to read it.
 @frappe.whitelist(allow_guest=True)
-def get_intent_state(intent_name: str) -> dict[str, Any]:
+def get_intent_state(intent_name: str, access_token: str | None = None) -> dict[str, Any]:
 	"""Lightweight status read for the JS dialog (SocketIO drop fallback)."""
-	pi = frappe.get_doc("Payment Intent", intent_name)
+	from payments.api.intent_access import require_web_access
+
+	pi = require_web_access(intent_name, access_token, "twint_web", "read")
 	return {
 		"intent_name": pi.name,
 		"status": pi.status,
@@ -183,15 +191,20 @@ def get_ios_schemes() -> dict[str, Any]:
 
 # //// Neoffice — POST only (maintenance#1721): it creates (or cancels) a TWINT order through create_intent /
 # //// cancel_intent, and Frappe rolls a GET's transaction back: the PSP would act and the intent would not change.
+# //// Neoffice — guarded (maintenance#1731): it acted on whatever intent a guest named, and cancel_intent resolves
+# //// that intent's own driver, whatever its channel. Now a `twint_web` intent only, with the token
+# //// create_web_transaction gave the dialog, or a desk user allowed to write it.
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-def cancel_web_transaction(intent_name: str) -> dict[str, Any]:
+def cancel_web_transaction(intent_name: str, access_token: str | None = None) -> dict[str, Any]:
 	"""Compat alias for the legacy ``cancel_payment(order_uuid)`` JS call.
 
 	Delegates to :func:`payments.api.intent.cancel_intent` which calls the
 	driver's ``cancel_intent`` (which routes through the bridge).
 	"""
 	from payments.api.intent import cancel_intent
+	from payments.api.intent_access import require_web_access
 
+	require_web_access(intent_name, access_token, "twint_web", "write")
 	res = cancel_intent(intent_name)
 	# Adapt to the {success, message} shape the legacy JS expects.
 	if res.get("status") == "canceled":

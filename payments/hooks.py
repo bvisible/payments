@@ -24,10 +24,13 @@ app_license = "MIT"
 # TWINT overlay (consumer-flow QR checkout) is loaded both on desk (for tests)
 # and on public web pages (for the webshop checkout). Ships the `frappe.twint`
 # namespace consumed by `webshop/templates/payments/twint.html`.
+# //// Neoffice — `?v=` busts the browser's copy when the dialog changes: /assets is cached an hour, and a dialog
+# //// older than its server breaks the checkout (maintenance#1731: the poll and the cancel now send a token).
 web_include_css = "/assets/payments/css/twint_dialog.css"
-web_include_js = "/assets/payments/js/twint_dialog.js"
+web_include_js = "/assets/payments/js/twint_dialog.js?v=2"
 app_include_css = "/assets/payments/css/twint_dialog.css"
-app_include_js = "/assets/payments/js/twint_dialog.js"
+# //// Neoffice — the same `?v=` on the desk's copy of the dialog (maintenance#1731).
+app_include_js = "/assets/payments/js/twint_dialog.js?v=2"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "pay/public/scss/website"
