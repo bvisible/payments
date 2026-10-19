@@ -64,7 +64,9 @@ def _resolve_merchant_uuid_for_provider(provider_name: str) -> str | None:
 	return frappe.db.get_value("Twint Bridge Settings", {}, "name", order_by="modified desc")
 
 
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — POST only (maintenance#1721): it creates (or cancels) a TWINT order through create_intent /
+# //// cancel_intent, and Frappe rolls a GET's transaction back: the PSP would act and the intent would not change.
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def create_web_transaction(
 	payment_request_id: str,
 	provider: str | None = None,
@@ -179,7 +181,9 @@ def get_ios_schemes() -> dict[str, Any]:
 	return {"success": True, "schemes": list(_IOS_SCHEMES)}
 
 
-@frappe.whitelist(allow_guest=True)
+# //// Neoffice — POST only (maintenance#1721): it creates (or cancels) a TWINT order through create_intent /
+# //// cancel_intent, and Frappe rolls a GET's transaction back: the PSP would act and the intent would not change.
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def cancel_web_transaction(intent_name: str) -> dict[str, Any]:
 	"""Compat alias for the legacy ``cancel_payment(order_uuid)`` JS call.
 

@@ -26,6 +26,14 @@ MERCHANT = "bench-merchant-local-engine"
 REGISTER = {"amount": 1995, "currency": "CHF", "merchant_reference": "PI-LOCAL-1"}
 
 
+def _fault_answer():
+	from payments.twint_engine.testing.fake_twint import Answer, fault
+
+	return Answer(
+		fault("8_7", "InvalidMerchant", "1100", "INVALID_MERCHANT", "Merchant is not valid"), 500
+	)
+
+
 def _hub_answer(message, ok=True, status=200):
 	response = mock.Mock(ok=ok, status_code=status)
 	response.json.return_value = {"message": message}
@@ -93,6 +101,15 @@ class TestTheCertificateOnTheInstance(FrappeTestCase):
 		self.assertNotIn(
 			base64.b64encode(raw).decode()[:40], stored
 		)  # encrypted, not the base64 of the file
+
+	def test_a_too_large_certificate_also_forgets_the_older_copy(self):
+		self.assertTrue(local_engine.store_certificate(MERCHANT, b"\x30" * 64))
+		self.assertFalse(
+			local_engine.store_certificate(MERCHANT, b"\x30" * (local_engine.MAX_LOCAL_CERTIFICATE + 1))
+		)
+		self.assertIsNone(
+			local_engine.stored_certificate(MERCHANT), "an older copy would stand for the wrong certificate"
+		)
 
 	def test_too_large_is_not_kept(self):
 		self.assertFalse(
@@ -224,6 +241,30 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 			len(post.call_args_list), 1, "no second fetch for ten minutes: straight to the hub"
 		)
 
+	def test_a_copy_here_that_no_longer_opens_is_replaced_by_the_hubs(self):
+		# Renewed by hand on the hub, or on another site of the same merchant: the copy kept here is stale.
+		local_engine.store_certificate(MERCHANT, b"\x30\x03\x02\x01\x00")
+		fetched = _hub_answer(
+			{"success": True, "content_base64": base64.b64encode(self.pki.merchant_p12).decode()}
+		)
+		answer, post = self.call(True, hub=[fetched])
+		self.assertTrue(answer["success"], answer)
+		self.assertTrue(post.call_args.args[0].endswith(local_engine.FETCH_METHOD))
+		self.assertEqual(local_engine.stored_certificate(MERCHANT), self.pki.merchant_p12)
+		self.assertEqual(
+			[request["operation"] for request in self.fake.requests], ["EnrollCashRegister", "StartOrder"]
+		)
+
+	def test_a_stale_copy_and_no_hub_copy_go_to_the_hubs_bridge(self):
+		local_engine.store_certificate(MERCHANT, b"\x30\x03\x02\x01\x00")
+		refused = _hub_answer(
+			{"success": False, "error": "Send the password that opens the certificate…"}
+		)
+		bridged = _hub_answer({"success": True, "order_id": "from-the-hub"})
+		answer, post = self.call(True, hub=[refused, bridged])
+		self.assertEqual(answer["order_id"], "from-the-hub")
+		self.assertEqual(self.fake.requests, [], "nothing reached TWINT from here")
+
 	def test_a_hub_that_does_not_know_the_fetch_yet_goes_to_the_hub(self):
 		missing = mock.Mock(ok=False, status_code=404)
 		missing.json.return_value = {"exc_type": "DoesNotExistError"}
@@ -231,16 +272,30 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 		answer, _post = self.call(True, hub=[missing, bridged])
 		self.assertEqual(answer["order_id"], "from-the-hub")
 
-	def test_a_refusal_of_twint_is_the_engines_answer_not_a_reason_to_go_to_the_hub(self):
+	def test_a_wrong_password_asks_the_hub_then_its_bridge_says_no(self):
+		# The copy here does not open: the hub's copy is asked for (it refuses the same wrong password), then the
+		# hub's bridge answers as it always did. Nothing reached TWINT from here.
 		local_engine.store_certificate(MERCHANT, self.pki.merchant_p12)
 		_set_password("wrong")
-		answer, post = self.call(True)
-		self.assertEqual(
-			answer,
-			{
-				"success": False,
-				"error": "Reading PKCS12 file failed",
-				"exception": "Twint\\Sdk\\Exception\\ApiFailure",
-			},
+		refused = _hub_answer(
+			{"success": False, "error": "Send the password that opens the certificate…"}
 		)
+		bridged = _hub_answer({"success": False, "error": "Reading PKCS12 file failed"})
+		answer, post = self.call(True, hub=[refused, bridged])
+		self.assertEqual(answer["error"], "Reading PKCS12 file failed")
+		self.assertEqual(
+			[call.args[0].rsplit("/", 1)[-1] for call in post.call_args_list],
+			[local_engine.FETCH_METHOD, "neoffice_devops.api.twint.execute"],
+		)
+		self.assertEqual(self.fake.requests, [])
+		self.assertEqual(
+			local_engine.stored_certificate(MERCHANT), self.pki.merchant_p12, "a refusal replaces nothing"
+		)
+
+	def test_a_refusal_of_twint_is_the_engines_answer_not_a_reason_to_go_to_the_hub(self):
+		local_engine.store_certificate(MERCHANT, self.pki.merchant_p12)
+		self.fake.force("StartOrder", _fault_answer())
+		answer, post = self.call(True)
+		self.assertEqual(answer["exception"], "Twint\\Sdk\\Exception\\ApiFailure")
+		self.assertEqual(answer["error"], "Merchant is not valid")
 		post.assert_not_called()

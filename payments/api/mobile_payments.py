@@ -95,7 +95,9 @@ def _merchant_display_name() -> str:
 
 
 def _card_context(settings) -> dict[str, Any]:  # noqa: ANN001
-	binding = _binding(CARD_CHANNEL, settings.tap_to_pay_provider) if settings.enable_tap_to_pay else None
+	binding = (
+		_binding(CARD_CHANNEL, settings.tap_to_pay_provider) if settings.enable_tap_to_pay else None
+	)
 	location = (settings.stripe_location or "").strip() or None
 	return {
 		"enabled": bool(binding and location),
@@ -154,11 +156,15 @@ def connection_token() -> dict[str, Any]:
 	provider = StripeProvider(frappe.get_doc("Payment Provider", card["provider"]))
 	import stripe
 
-	token = stripe.terminal.ConnectionToken.create(api_key=provider.secret_key, location=card["location_id"])
+	token = stripe.terminal.ConnectionToken.create(
+		api_key=provider.secret_key, location=card["location_id"]
+	)
 	return {"secret": token.secret, "location_id": card["location_id"]}
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): it starts (or abandons) a payment at the PSP through create_intent /
+# //// cancel_intent, and Frappe rolls a GET's transaction back. The app posts it (useOnSitePayment.ts).
+@frappe.whitelist(methods=["POST"])
 def mobile_start_payment(
 	amount: int,
 	reference_doctype: str | None = None,
@@ -208,7 +214,9 @@ def mobile_start_payment(
 		if not frappe.has_permission(reference_doctype, "read", doc=reference_name):
 			# //// Neoffice — same as above: the DocType name is translated too.
 			frappe.throw(
-				_("Not permitted to collect a payment for {0} {1}").format(_(reference_doctype), reference_name),
+				_("Not permitted to collect a payment for {0} {1}").format(
+					_(reference_doctype), reference_name
+				),
 				frappe.PermissionError,
 			)
 	else:
@@ -368,7 +376,9 @@ def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
 	return get_intent_status(intent_name)
 
 
-@frappe.whitelist()
+# //// Neoffice — POST only (maintenance#1721): it starts (or abandons) a payment at the PSP through create_intent /
+# //// cancel_intent, and Frappe rolls a GET's transaction back. The app posts it (useOnSitePayment.ts).
+@frappe.whitelist(methods=["POST"])
 def mobile_abandon_payment(intent_name: str) -> dict[str, Any]:
 	"""The operator gave up before the customer paid.
 
@@ -525,7 +535,11 @@ def _card_details_from_stripe(doc) -> dict[str, Any] | None:  # noqa: ANN001
 		frappe.log_error("mobile receipt: Stripe read failed", f"{doc.name}: {exc!r}")
 		return None
 	charge = getattr(pi, "latest_charge", None)
-	details = getattr(getattr(charge, "payment_method_details", None), "card_present", None) if charge else None
+	details = (
+		getattr(getattr(charge, "payment_method_details", None), "card_present", None)
+		if charge
+		else None
+	)
 	if not details:
 		return None
 	emv = getattr(details, "receipt", None) or {}
@@ -575,7 +589,9 @@ def _receipt_html(r: dict[str, Any]) -> str:
 		rows.append((_("Reference"), r["reference"]))
 	card = r.get("card") or {}
 	if card.get("brand") or card.get("last4"):
-		rows.append((_("Card"), f"{(card.get('brand') or '').upper()} •••• {card.get('last4') or ''}".strip()))
+		rows.append(
+			(_("Card"), f"{(card.get('brand') or '').upper()} •••• {card.get('last4') or ''}".strip())
+		)
 	for key, label in (
 		("application_preferred_name", _("Application")),
 		("dedicated_file_name", "AID"),
@@ -647,7 +663,9 @@ def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 			"sent": False,
 			"to": email,
 			"receipt": receipt,
-			"error": _("This site cannot send email at the moment. Ask an administrator to check the outgoing email account."),
+			"error": _(
+				"This site cannot send email at the moment. Ask an administrator to check the outgoing email account."
+			),
 		}
 	meta = _metadata_of(doc)
 	meta["receipt_sent_to"] = email
@@ -684,9 +702,9 @@ def on_intent_update(doc, method: str | None = None) -> None:  # noqa: ANN001, A
 	_push_to_owner(
 		doc,
 		title=_("Payment declined"),
-		body=_("{0}: the card was not accepted. {1}").format(
-			f"{doc.currency} {doc.amount / 100:.2f}", doc.error_message or ""
-		).strip(),
+		body=_("{0}: the card was not accepted. {1}")
+		.format(f"{doc.currency} {doc.amount / 100:.2f}", doc.error_message or "")
+		.strip(),
 	)
 
 

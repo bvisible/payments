@@ -85,9 +85,17 @@ def store_certificate(merchant_uuid: str, raw: bytes) -> bool:
 	from frappe.utils.password import set_encrypted_password
 
 	if not raw or len(raw) > MAX_LOCAL_CERTIFICATE:
+		# An older copy must not outlive the certificate it stood for: without one, the engine takes the hub's.
+		forget_certificate(merchant_uuid)
 		return False
 	set_encrypted_password(DOCTYPE, merchant_uuid, base64.b64encode(raw).decode(), CERTIFICATE_FIELD)
 	return True
+
+
+def forget_certificate(merchant_uuid: str) -> None:
+	frappe.db.delete(
+		"__Auth", {"doctype": DOCTYPE, "name": merchant_uuid, "fieldname": CERTIFICATE_FIELD}
+	)
 
 
 def fetch_from_hub(provider, merchant_uuid: str, password: str) -> bytes | None:
@@ -141,29 +149,54 @@ def execute(
 	from payments import twint_engine
 
 	started = time.monotonic()
+	password = context.get("certificate_password") or ""
 	certificate = stored_certificate(merchant_uuid)
+	fetched = certificate is None
 	if certificate is None:
-		if frappe.cache.get_value(_refused_key(merchant_uuid)):
-			return None
-		certificate = fetch_from_hub(provider, merchant_uuid, context.get("certificate_password") or "")
+		certificate = _fetch_unless_refused(provider, merchant_uuid, password)
 		if certificate is None:
-			frappe.cache.set_value(_refused_key(merchant_uuid), 1, expires_in_sec=FETCH_PAUSE)
 			return None
-	answer = twint_engine.execute(
-		command,
-		{
-			"certificate": certificate,
-			"certificate_password": context.get("certificate_password") or "",
-			"store_uuid": context.get("store_uuid") or "",
-			"cash_register_id": context.get("cash_register_id"),
-			"environment": context.get("environment") or "production",
-			"soap_version": soap_version(),
-		},
-		params,
-		**_client_options(),
-	)
+
+	def run(p12: bytes) -> dict:
+		return twint_engine.execute(
+			command,
+			{
+				"certificate": p12,
+				"certificate_password": password,
+				"store_uuid": context.get("store_uuid") or "",
+				"cash_register_id": context.get("cash_register_id"),
+				"environment": context.get("environment") or "production",
+				"soap_version": soap_version(),
+			},
+			params,
+			**_client_options(),
+		)
+
+	answer = run(certificate)
+	if not fetched and answer.get("error") == CERTIFICATE_UNREADABLE:
+		# The copy kept here does not open with the merchant's password: the certificate was renewed elsewhere (on
+		# the hub by hand, on another site of the same merchant) or the password changed without a new upload. Nothing
+		# reached TWINT yet (the .p12 is read before the first call). Take the hub's copy, which the hub only gives
+		# for the password that opens it; none: the hub's bridge, as before.
+		_log(command, merchant_uuid, answer, started)
+		certificate = _fetch_unless_refused(provider, merchant_uuid, password)
+		if certificate is None:
+			return None
+		answer = run(certificate)
 	_log(command, merchant_uuid, answer, started)
 	return answer
+
+
+CERTIFICATE_UNREADABLE = "Reading PKCS12 file failed"  # the engine's answer, as the SDK words it
+
+
+def _fetch_unless_refused(provider, merchant_uuid: str, password: str) -> bytes | None:
+	if frappe.cache.get_value(_refused_key(merchant_uuid)):
+		return None
+	certificate = fetch_from_hub(provider, merchant_uuid, password)
+	if certificate is None:
+		frappe.cache.set_value(_refused_key(merchant_uuid), 1, expires_in_sec=FETCH_PAUSE)
+	return certificate
 
 
 def _client_options() -> dict:

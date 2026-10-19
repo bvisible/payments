@@ -113,6 +113,21 @@ class TestTheIntentApiChangesStateOnPostOnly(FrappeTestCase):
 			with self.subTest(function=function.__name__):
 				self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[function]), ("POST",))
 
+	def test_the_wrappers_that_create_or_cancel_refuse_a_get_too(self):
+		# The shop's TWINT dialog and the mobile app reach create_intent / cancel_intent through these: a guard on
+		# the inner function would not hold if the wrapper still took a GET.
+		from payments.api import mobile_payments
+		from payments.integrations.twint import api as twint_web
+
+		for function in (
+			twint_web.create_web_transaction,
+			twint_web.cancel_web_transaction,
+			mobile_payments.mobile_start_payment,
+			mobile_payments.mobile_abandon_payment,
+		):
+			with self.subTest(function=function.__name__):
+				self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[function]), ("POST",))
+
 	def test_reading_a_status_stays_open_to_a_get(self):
 		self.assertIn(
 			"GET", tuple(frappe.allowed_http_methods_for_whitelisted_func[intent_api.get_intent_status])
