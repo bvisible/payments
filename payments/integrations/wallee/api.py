@@ -32,6 +32,8 @@ from frappe.utils import now_datetime
 
 from payments.drivers.wallee.provider import WalleeProvider
 
+from payments.api.terminal import SETUP_ROLES  # //// Neoffice — maintenance#1732
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -219,6 +221,9 @@ def test_connection(provider: str) -> dict[str, Any]:
 
 	Returns ``{ok: bool, space_id?, mode?, error?}``.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	return _provider(provider).health_check()
 
 
@@ -234,6 +239,9 @@ def get_existing_locations(provider: str) -> list[dict[str, Any]]:
 	The local records are populated by :func:`sync_locations_from_wallee` or
 	manually by the operator. This endpoint just lists them — no API call.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	_provider(provider)  # validate access
 	return frappe.get_all(
 		"Wallee Location",
@@ -261,6 +269,9 @@ def sync_locations_from_wallee(provider: str) -> dict[str, Any]:
 
 	Returns ``{created, updated, total}``, plus ``message`` when the space has no terminal yet.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	# //// Neoffice — maintenance#1730: read through the space's terminals, see _TERMINAL_EXPAND. The old body
 	# //// imported `payment_terminal_locations_service`, which no wallee SDK ever had: HTTP 500 on every sync.
 	prov = _provider(provider)
@@ -315,6 +326,9 @@ def sync_locations_from_wallee(provider: str) -> dict[str, Any]:
 
 @frappe.whitelist()
 def get_existing_configurations(provider: str) -> list[dict[str, Any]]:
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	_provider(provider)
 	return frappe.get_all(
 		"Wallee Terminal Configuration",
@@ -334,6 +348,9 @@ def get_existing_configurations(provider: str) -> list[dict[str, Any]]:
 @frappe.whitelist(methods=["POST"])
 def sync_configurations_from_wallee(provider: str) -> dict[str, Any]:
 	"""Upsert a local Wallee Terminal Configuration for every configuration the space's terminals use."""
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	# //// Neoffice — maintenance#1730: read through the space's terminals, see _TERMINAL_EXPAND. The old body
 	# //// imported `payment_terminal_configurations_service`, which no wallee SDK ever had: HTTP 500 on every sync.
 	prov = _provider(provider)
@@ -397,6 +414,9 @@ def create_terminal(
 
 	Returns ``{payment_device, wallee_terminal_id, device_type, location, status}``.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	from wallee.exceptions import ApiException
 
 	prov = _provider(provider)
@@ -458,6 +478,9 @@ def link_terminal_device(provider: str, payment_device: str, serial_number: str)
 	The Payment Device record's ``serial_number`` is updated; the Wallee API
 	call associates the SIM/hardware with the terminal in the Wallee dashboard.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	from wallee.service.payment_terminals_service import PaymentTerminalsService
 
 	prov = _provider(provider)
@@ -776,6 +799,9 @@ def get_terminal_types() -> list[dict[str, Any]]:
 	This is currently hard-coded from the Wallee documentation. A future
 	extension could fetch it from the Wallee API when their SDK exposes it.
 	"""
+	# //// Neoffice — maintenance#1732: answered any signed-in account, a shop customer included; it is the
+	# //// terminal wizard's Wallee back end, so only the wizard's roles may use it.
+	frappe.only_for(SETUP_ROLES)
 	# //// Neoffice — the two descriptions are read by the operator picking a
 	# //// terminal model, so they go through `_()`. They were French literals
 	# //// outside any translation call until 2026-09-04: untranslatable for a

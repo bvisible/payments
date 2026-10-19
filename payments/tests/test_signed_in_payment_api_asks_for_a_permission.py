@@ -14,6 +14,7 @@ from payments.api import intent as intent_api
 from payments.api import intent_http, mobile_payments, terminal, terminal_receipt
 from payments.api import twint as twint_api
 from payments.api.intent_access import web_access_token
+from payments.integrations.wallee import api as wallee_api
 from payments.payments.page.payment_terminal_wizard import payment_terminal_wizard as wizard
 from payments.tests.test_intent_api import _ensure_mock_setup
 
@@ -108,6 +109,29 @@ SETUP_CALLS = [
 		"list_modes_of_payment_for_profile",
 		lambda: wizard.list_modes_of_payment_for_profile("Any POS Profile"),
 	),
+	("wallee test_connection", lambda: wallee_api.test_connection("wallee_test")),
+	("wallee get_existing_locations", lambda: wallee_api.get_existing_locations("wallee_test")),
+	(
+		"wallee sync_locations_from_wallee",
+		lambda: wallee_api.sync_locations_from_wallee("wallee_test"),
+	),
+	(
+		"wallee get_existing_configurations",
+		lambda: wallee_api.get_existing_configurations("wallee_test"),
+	),
+	(
+		"wallee sync_configurations_from_wallee",
+		lambda: wallee_api.sync_configurations_from_wallee("wallee_test"),
+	),
+	(
+		"wallee create_terminal",
+		lambda: wallee_api.create_terminal("wallee_test", "Till", "cfg", "loc"),
+	),
+	(
+		"wallee link_terminal_device",
+		lambda: wallee_api.link_terminal_device("wallee_test", "any", "SN1"),
+	),
+	("wallee get_terminal_types", lambda: wallee_api.get_terminal_types()),
 ]
 
 
