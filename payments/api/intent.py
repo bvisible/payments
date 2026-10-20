@@ -243,21 +243,28 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 	# //// the intent to `canceled` while this request waited for the PSP's answer: saving the copy loaded above then
 	# //// failed with TimestampMismatchError, and the shop showed "Error cancelling payment" for a payment that was
 	# //// cancelled (maintenance#1721). Read it again; a terminal state set meanwhile is the answer.
+	# //// The second read is a LOCKING one (20.10.2026): MariaDB runs in REPEATABLE READ, so a plain reload()
+	# //// returns this request's snapshot, taken at the first read above, and never sees the poller's commit; the
+	# //// save, which checks the row with SELECT … FOR UPDATE, did — the error came back from osiris's till. The
+	# //// lock also makes the poller wait for this cancellation instead of racing it (it retries on a mismatch).
+	# //// A state read that way is returned as read: a plain reload() after it would bring the snapshot back.
 	terminal = {"succeeded", "failed", "canceled", "refunded"}
-	intent_doc.reload()
-	if intent_doc.status not in terminal:
-		try:
-			intent_doc.transition_to(
-				"canceled",
-				event_source="api",
-				error_code=reason or None,
-				ignore_invalid=True,
-			)
-		except frappe.TimestampMismatchError:
-			intent_doc.reload()
-			if intent_doc.status not in terminal:
-				raise
-	intent_doc.reload()
+	intent_doc = frappe.get_doc("Payment Intent", intent_name, for_update=True)
+	if intent_doc.status in terminal:
+		return _serialize_intent_for_client(intent_doc)
+	try:
+		intent_doc.transition_to(
+			"canceled",
+			event_source="api",
+			error_code=reason or None,
+			ignore_invalid=True,
+		)
+	except frappe.TimestampMismatchError:
+		intent_doc = frappe.get_doc("Payment Intent", intent_name, for_update=True)
+		if intent_doc.status not in terminal:
+			raise
+		return _serialize_intent_for_client(intent_doc)
+	intent_doc.reload()  # this request's own write: visible to a plain read
 	return _serialize_intent_for_client(intent_doc)
 
 

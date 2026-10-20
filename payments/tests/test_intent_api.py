@@ -110,6 +110,48 @@ class TestIntentAPIWithMockDriver(FrappeTestCase):
 			result = intent_api.cancel_intent(name, reason="customer left")
 		self.assertEqual(result["status"], "canceled")
 
+	def test_a_cancellation_the_poller_committed_from_another_worker_is_not_an_error(self):
+		# The same race as it really runs (osiris's till, 20.10.2026): the poller works in another worker, on its own
+		# connection, and commits there. MariaDB's REPEATABLE READ keeps this request's snapshot, so a plain reload()
+		# never saw that commit while the save's locking check did: TimestampMismatchError reached the till.
+		from unittest.mock import patch
+
+		from frappe.database import get_db
+		from frappe.utils import now
+
+		from payments.drivers.base import DriverResponse
+		from payments.drivers.mock_driver import MockDriver
+
+		created = intent_api.create_intent(
+			provider="mock", channel="terminal", amount=310, currency="CHF"
+		)
+		name = created["intent_name"]
+		frappe.db.commit()  # the other worker sees the intent
+
+		def another_worker_records_it_first(_driver, provider_intent_id):
+			conf = frappe.conf
+			other = get_db(
+				socket=conf.db_socket,
+				host=conf.db_host,
+				port=conf.db_port,
+				user=conf.db_name,
+				password=conf.db_password,
+				cur_db_name=conf.db_name,
+			)
+			try:
+				other.sql(
+					"update `tabPayment Intent` set status = 'canceled', modified = %s where name = %s",
+					(now(), name),
+				)
+				other.commit()
+			finally:
+				other.close()
+			return DriverResponse(status="canceled", provider_intent_id=provider_intent_id)
+
+		with patch.object(MockDriver, "cancel_intent", another_worker_records_it_first):
+			result = intent_api.cancel_intent(name, reason="customer left")
+		self.assertEqual(result["status"], "canceled")
+
 	def test_create_rejects_zero_amount(self):
 		with self.assertRaises(frappe.ValidationError):
 			intent_api.create_intent(provider="mock", channel="terminal", amount=0, currency="CHF")
