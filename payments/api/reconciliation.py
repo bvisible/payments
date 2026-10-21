@@ -16,6 +16,8 @@ received. This module centralizes that logic:
 
 - **POS Invoice / Sales Invoice**: append a ``Sales Invoice Payment`` line in
   the ``payments`` child table with the right ``mode_of_payment`` and amount.
+- **A submitted Sales Invoice** takes no such row: its payment is a submitted
+  ``Payment Entry`` against it, booked once per provider intent.
 - Otherwise: log + skip (custom integrations can plug their own logic via
   ``doc_events`` on Payment Intent).
 
@@ -34,7 +36,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils import flt, now_datetime
+from frappe.utils import flt, now_datetime, nowdate
 
 
 def reconcile_payment_intent(intent_name: str) -> dict[str, Any]:
@@ -154,6 +156,13 @@ def _reconcile_sales_invoice(intent, name: str, mode_of_payment: str | None) -> 
 		}
 
 	si = frappe.get_doc("Sales Invoice", name)
+	# A submitted invoice refuses a new `payments` row (« Cannot edit a submitted document »): the save failed and
+	# was logged again at every later save of the intent. A card taken for an invoice already sent — a garage's at
+	# the car's handover — is a Payment Entry against it, as the office would book it (21.10).
+	if si.docstatus == 1:
+		return _payment_entry(intent, si, mode_of_payment)
+	if si.docstatus == 2:
+		return {"action": "skipped_cancelled_target", "reference_doctype": "Sales Invoice", "reference_name": name}
 	# Skip if already paid via this provider_intent_id.
 	for row in si.get("payments") or []:
 		if (row.get("reference_no") or "") == (intent.provider_intent_id or ""):
@@ -177,6 +186,53 @@ def _reconcile_sales_invoice(intent, name: str, mode_of_payment: str | None) -> 
 		"action": "invoice_payment_recorded",
 		"target_doctype": "Sales Invoice",
 		"target_name": name,
+		"mode_of_payment": mop,
+		"amount": major_amount,
+	}
+
+
+def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
+	"""The payment of a submitted Sales Invoice: a Payment Entry against it, at the intent's amount, through the
+	mode of payment's account, with the provider's id as its reference — and never twice for one intent."""
+	reference = intent.provider_intent_id or intent.name
+	existing = frappe.db.get_value("Payment Entry", {"reference_no": reference, "docstatus": ["<", 2]}, "name")
+	if existing:
+		return {"action": "skipped_already_paid", "reference_no": reference, "payment_entry": existing}
+	mop = mode_of_payment or _default_mode_of_payment(si)
+	if not mop:
+		return {"action": "skipped_no_mode_of_payment"}
+	if flt(si.outstanding_amount) <= 0:
+		# paid meanwhile, by another way: the money is there, the office reconciles it
+		frappe.log_error(
+			"Card payment for an invoice already paid",
+			f"intent={intent.name} invoice={si.name} reference={reference}",
+		)
+		return {"action": "skipped_invoice_already_paid", "target_name": si.name}
+
+	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+	from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
+
+	major_amount = flt(intent.amount) / 100.0
+	# The mode of payment's account for the invoice's company (it says so when it has none), the provider's id as
+	# the reference: Neoffice's ERPNext takes both (get_payment_entry, its `//// Neoffice` arguments).
+	pe = get_payment_entry(
+		"Sales Invoice",
+		si.name,
+		party_amount=major_amount,
+		reference_date=nowdate(),
+		ignore_permissions=True,
+		reference_no=reference,
+		mode_of_payment=mop,
+		paid_to=get_bank_cash_account(mop, si.company)["account"],
+	)
+	pe.flags.ignore_permissions = True
+	pe.insert()
+	pe.submit()
+	return {
+		"action": "payment_entry_submitted",
+		"target_doctype": "Sales Invoice",
+		"target_name": si.name,
+		"payment_entry": pe.name,
 		"mode_of_payment": mop,
 		"amount": major_amount,
 	}
