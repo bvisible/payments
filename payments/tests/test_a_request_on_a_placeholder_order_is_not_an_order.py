@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 
 import frappe
@@ -57,7 +58,8 @@ class TestTheWalleeTransactionReadsTheOrderTheRequestIsOn(unittest.TestCase):
 			grand_total=30,
 			currency="CHF",
 		)
-		document = frappe._dict(
+		# not frappe._dict: `.items` would be the dict's own method
+		document = SimpleNamespace(
 			items=[frappe._dict(item_name="Thing", item_code="T-1", qty=2, amount=30)],
 			taxes=[],
 			contact_email="buyer@yopmail.com",
