@@ -34,6 +34,9 @@ import time
 import frappe
 from frappe import _
 
+# //// Neoffice — see order_state.py.
+from payments.utils.order_state import submitted_sales_order
+
 no_cache = 1
 
 
@@ -147,9 +150,12 @@ def get_context(context):  # noqa: ANN001
 		)
 		if pr_status:
 			status, pr_ref_dt, pr_ref_name = pr_status
-			if status in ("Paid", "Completed") and pr_ref_dt == "Sales Order":
-				_debug(f"PR already paid, redirecting to {pr_ref_name}")
-				frappe.local.flags.redirect_location = f"/thank_you?sales_order={pr_ref_name}"
+			# //// Neoffice — « on a Sales Order » is not « ordered »: until the money is in, the request points at
+			# //// the cart's placeholder order (payments/utils/order_state.py).
+			order = submitted_sales_order(pr_ref_dt, pr_ref_name)
+			if status in ("Paid", "Completed") and order:
+				_debug(f"PR already paid, redirecting to {order}")
+				frappe.local.flags.redirect_location = f"/thank_you?sales_order={order}"
 				raise frappe.Redirect
 
 	# Refresh status from Wallee with retry (Wallee may lag by a few seconds).
@@ -174,9 +180,11 @@ def get_context(context):  # noqa: ANN001
 						raise frappe.Redirect
 					# Fallback: lookup the Sales Order from the Payment Request.
 					pr = frappe.get_doc("Payment Request", intent_doc.reference_name)
-					if pr.reference_doctype == "Sales Order":
+					# //// Neoffice — only a real order (see above).
+					order = submitted_sales_order(pr.reference_doctype, pr.reference_name)
+					if order:
 						frappe.local.flags.redirect_location = (
-							f"/thank_you?sales_order={pr.reference_name}"
+							f"/thank_you?sales_order={order}"
 						)
 						raise frappe.Redirect
 				else:

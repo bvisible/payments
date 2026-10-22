@@ -138,7 +138,10 @@ def _check_closed_tab(check, pi, pr_id, quotation):
 
     pr = frappe.db.get_value("Payment Request", pr_id,
                              ["status", "reference_doctype", "reference_name"], as_dict=True)
-    so_created = pr.reference_doctype == "Sales Order" and bool(pr.reference_name)
+    # //// Neoffice — the request is raised on the cart's placeholder order (a draft) until the money is in:
+    # //// « on a Sales Order » is not « ordered », the order must be submitted (payments/utils/order_state.py).
+    from payments.utils.order_state import submitted_sales_order
+    so_created = bool(submitted_sales_order(pr.reference_doctype, pr.reference_name))
     check("9. the webhook alone created the Sales Order (closed-tab case)",
           so_created and pr.status in ("Paid", "Completed"),
           f"pr={pr.status} -> {pr.reference_doctype} {pr.reference_name}")

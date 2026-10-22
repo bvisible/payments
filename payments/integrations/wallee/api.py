@@ -647,9 +647,12 @@ def create_web_transaction(
 		frappe.throw(_("Payment Request {0} is not Inward").format(payment_request_id))
 
 	# Auto-build line_items / billing_address from the Quotation when not provided.
-	if not line_items and pr.reference_doctype == "Quotation":
+	# //// Neoffice — the webshop raises its request on the cart's PLACEHOLDER Sales Order, not on the quotation, since
+	# //// upstream ERPNext refuses a Payment Request against a Quotation (webshop pending_order.py). The order carries
+	# //// the cart's lines, taxes, contact and address (it is built from it): both read the same way.
+	if not line_items and pr.reference_doctype in ("Quotation", "Sales Order"):
 		try:
-			quotation = frappe.get_doc("Quotation", pr.reference_name)
+			quotation = frappe.get_doc(pr.reference_doctype, pr.reference_name)
 			line_items = _build_line_items_from_quotation(quotation)
 			if not billing_address:
 				billing_address = _build_billing_address_from_quotation(quotation)

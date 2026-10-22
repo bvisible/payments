@@ -43,6 +43,9 @@ import frappe
 from frappe import _
 from frappe.utils import now_datetime
 
+# //// Neoffice — see order_state.py.
+from payments.utils.order_state import submitted_sales_order
+
 
 # Channels driven by the TWINT bridge — both flows share the SDK calls
 # (Client.startOrder + monitorOrder), the difference is who shows the QR.
@@ -436,8 +439,11 @@ def simulate_consumer_success(intent_name: str, access_token: str | None = None)
 			["reference_doctype", "reference_name"],
 			as_dict=True,
 		)
-		if pr_ref and pr_ref.reference_doctype == "Sales Order":
-			extra["redirect_to"] = f"/thank_you?sales_order={pr_ref.reference_name}"
+		# //// Neoffice — only a real order: until the money is in, the request points at the cart's placeholder
+		# //// order (payments/utils/order_state.py).
+		order = pr_ref and submitted_sales_order(pr_ref.reference_doctype, pr_ref.reference_name)
+		if order:
+			extra["redirect_to"] = f"/thank_you?sales_order={order}"
 
 	_publish_intent_update(doc, doc.channel, "succeeded", extra)
 	frappe.db.commit()
