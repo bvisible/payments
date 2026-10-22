@@ -3,8 +3,10 @@
 
 # //// ═══════════════════════════════════════════════════════════════════════════
 # //// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
-# //// 2025-02-28 "update error log and stripe version"). Nothing else in the file
-# //// diverges from upstream.
+# //// 2025-02-28 "update error log and stripe version"). Besides that, the file diverges
+# //// from upstream in two places, each marked in place: the receipt of a captured
+# //// charge (`stripe_receipt`, maintenance#1807) and the check that a charge covers the
+# //// Payment Request it names before that request is booked as paid.
 # ////
 # //// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
 # //// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
@@ -26,6 +28,9 @@ from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, flt, get_url
 
 from payments.utils import create_payment_gateway
+
+# //// Neoffice — see create_charge_on_stripe: the receipt of a captured charge (maintenance#1807).
+from payments.utils import stripe_receipt
 
 
 class StripeSettings(Document):
@@ -246,6 +251,10 @@ class StripeSettings(Document):
 			if charge.captured == True:
 				self.integration_request.db_set("status", "Completed", update_modified=False)
 				self.flags.status_changed_to = "Completed"
+				# //// Neoffice — the receipt: what STRIPE answered, kept on the charge's Integration Request and bound
+				# //// to the Payment Request the tile named. Upstream keeps nothing a payment could be proven by
+				# //// (maintenance#1807). The shop concludes a card payment on this receipt, not on who asks.
+				stripe_receipt.write(self.integration_request, charge, self.data.get("payment_request_id"))
 
 			else:
 				# //// Neoffice — upstream: `frappe.log_error(charge.failure_message, "Stripe
@@ -290,9 +299,22 @@ class StripeSettings(Document):
 			if self.data.reference_doctype and self.data.reference_docname:
 				custom_redirect_to = None
 				try:
-					custom_redirect_to = frappe.get_doc(
-						self.data.reference_doctype, self.data.reference_docname
-					).run_method("on_payment_authorized", self.flags.status_changed_to)
+					# //// Neoffice — the document named in `data` is the BROWSER's word, and `on_payment_authorized` of a
+					# //// Payment Request books the request as paid in full. A charge is no payment of a request unless it
+					# //// covers what the request asks (maintenance#1807). Any other reference keeps upstream's behaviour.
+					if (
+						self.data.reference_doctype == "Payment Request"
+						and not stripe_receipt.covers(self.data.reference_docname)
+					):
+						frappe.log_error(
+							"Stripe: a charge does not cover the request it names",
+							f"payment_request={self.data.reference_docname} "
+							f"integration_request={self.integration_request.name}: the request is left as it is",
+						)
+					else:
+						custom_redirect_to = frappe.get_doc(
+							self.data.reference_doctype, self.data.reference_docname
+						).run_method("on_payment_authorized", self.flags.status_changed_to)
 				except Exception:
 					# //// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
 					# //// title, truncated at 140). See the file header.
