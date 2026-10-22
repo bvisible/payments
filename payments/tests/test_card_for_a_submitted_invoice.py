@@ -27,13 +27,34 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		_ensure_mock_setup()
 		# the site's own company: a test company of another suite may have no fiscal year
 		company = frappe.defaults.get_global_default("company")
-		self.mop = company and frappe.db.get_value(
+		currency = company and frappe.get_cached_value("Company", company, "default_currency")
+		# in the company's currency throughout: a Payment Entry through an account or for a customer in another currency
+		# needs an exchange rate, and the test records of a CI site hold such accounts and customers with no rate.
+		accounts = company and frappe.get_all(
 			"Mode of Payment Account",
-			{"default_account": ["is", "set"], "parenttype": "Mode of Payment", "company": company},
-			["parent", "company"],
-			as_dict=True,
+			filters={"default_account": ["is", "set"], "parenttype": "Mode of Payment", "company": company},
+			fields=["parent", "company", "default_account"],
+			order_by="parent",
 		)
-		customer = frappe.db.get_value("Customer", {"disabled": 0}, "name")
+		self.mop = next(
+			(
+				row
+				for row in accounts or []
+				if frappe.db.get_value("Account", row.default_account, "account_currency") == currency
+			),
+			None,
+		)
+		customers = frappe.get_all(
+			"Customer",
+			filters={"disabled": 0},
+			or_filters=[["default_currency", "is", "not set"], ["default_currency", "=", currency]]
+			if currency
+			else None,
+			pluck="name",
+			order_by="name",
+			limit=1,
+		)
+		customer = customers[0] if customers else None
 		item = frappe.db.get_value(
 			"Item", {"disabled": 0, "is_stock_item": 0, "is_sales_item": 1, "has_variants": 0}, "name"
 		)
