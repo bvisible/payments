@@ -13,6 +13,15 @@ from payments.api.reconciliation import _payment_entry, reconcile_payment_intent
 from payments.tests.test_intent_api import _ensure_mock_setup
 
 
+def _last_error() -> str:
+	"""The last row of the Error Log: reconcile_payment_intent runs in a doc_event that logs what it fails at and never
+	breaks the save, so a payment that was not booked says nothing else."""
+	rows = frappe.get_all("Error Log", fields=["method", "error"], order_by="creation desc", limit=1)
+	return (
+		f"{rows[0].method}: {(rows[0].error or '')[-1800:]}" if rows else "nothing in the Error Log"
+	)
+
+
 class TestACardForASubmittedInvoice(FrappeTestCase):
 	def setUp(self):
 		_ensure_mock_setup()
@@ -85,17 +94,23 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 			["name", "mode_of_payment", "paid_amount"],
 			as_dict=True,
 		)
-		self.assertTrue(pe, "the succeeded intent booked no payment")
+		self.assertTrue(pe, f"the succeeded intent booked no payment. {_last_error()}")
 		self.assertEqual(pe.mode_of_payment, self.mop.parent)
 		self.assertEqual(flt(pe.paid_amount), flt(self.si.outstanding_amount))
-		self.assertEqual(flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0)
+		self.assertEqual(
+			flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0
+		)
 		# never twice: the doc_event again, and the booking itself
 		self.assertEqual(reconcile_payment_intent(intent.name)["action"], "skipped_already_reconciled")
-		self.assertEqual(_payment_entry(intent, self.si, self.mop.parent)["action"], "skipped_already_paid")
-		self.assertEqual(frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 1)
+		self.assertEqual(
+			_payment_entry(intent, self.si, self.mop.parent)["action"], "skipped_already_paid"
+		)
+		self.assertEqual(
+			frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 1
+		)
 
 	def test_a_card_for_part_of_the_invoice_leaves_the_rest_to_pay(self):
 		before = flt(self.si.outstanding_amount)
 		self._paid_by_card(40)
 		left = flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount"))
-		self.assertEqual(left, flt(before - 40, 2))
+		self.assertEqual(left, flt(before - 40, 2), _last_error())
