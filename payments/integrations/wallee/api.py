@@ -650,7 +650,12 @@ def create_web_transaction(
 	# //// Neoffice — the webshop raises its request on the cart's PLACEHOLDER Sales Order, not on the quotation, since
 	# //// upstream ERPNext refuses a Payment Request against a Quotation (webshop pending_order.py). The order carries
 	# //// the cart's lines, taxes, contact and address (it is built from it): both read the same way.
-	if not line_items and pr.reference_doctype in ("Quotation", "Sales Order"):
+	# //// Neoffice — only a request the CHECKOUT raised (`from_checkout`, set by the webshop): one raised on an order from the
+	# //// desk (a deposit, a part of its total) keeps charging its own amount, which the lines of the order would replace.
+	if not line_items and (
+		pr.reference_doctype == "Quotation"
+		or (pr.reference_doctype == "Sales Order" and pr.get("from_checkout"))
+	):
 		try:
 			quotation = frappe.get_doc(pr.reference_doctype, pr.reference_name)
 			line_items = _build_line_items_from_quotation(quotation)

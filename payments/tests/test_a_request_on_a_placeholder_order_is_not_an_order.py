@@ -48,7 +48,7 @@ class TestTheWalleeTransactionReadsTheOrderTheRequestIsOn(unittest.TestCase):
 	"""create_web_transaction built the lines and the billing address from the quotation the request pointed at; the
 	request now points at the placeholder order, which carries the same lines (it is built from the cart)."""
 
-	def run_with(self, reference_doctype):
+	def run_with(self, reference_doctype, from_checkout=1):
 		from payments.integrations.wallee import api
 
 		pr = frappe._dict(
@@ -57,6 +57,7 @@ class TestTheWalleeTransactionReadsTheOrderTheRequestIsOn(unittest.TestCase):
 			reference_name="DOC-1",
 			grand_total=30,
 			currency="CHF",
+			from_checkout=from_checkout,
 		)
 		# not frappe._dict: `.items` would be the dict's own method
 		document = SimpleNamespace(
@@ -84,6 +85,12 @@ class TestTheWalleeTransactionReadsTheOrderTheRequestIsOn(unittest.TestCase):
 		getter.assert_any_call("Sales Order", "DOC-1")
 		self.assertEqual([row["sku"] for row in metadata["line_items"]], ["T-1"])
 		self.assertEqual(metadata["billing_address"]["email_address"], "buyer@yopmail.com")
+
+	def test_a_request_raised_from_the_desk_on_an_order_keeps_its_own_amount(self):
+		"""A deposit raised on an order is not the checkout's: the order's lines would charge its whole total."""
+		getter, metadata = self.run_with("Sales Order", from_checkout=0)
+		self.assertFalse(metadata["line_items"])
+		self.assertEqual([call.args[0] for call in getter.call_args_list], ["Payment Request"])
 
 	def test_from_a_quotation_as_before(self):
 		getter, metadata = self.run_with("Quotation")
