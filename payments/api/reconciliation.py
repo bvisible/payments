@@ -32,6 +32,7 @@ so callers don't need to know about it.
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
 from typing import Any
 
 import frappe
@@ -191,6 +192,38 @@ def _reconcile_sales_invoice(intent, name: str, mode_of_payment: str | None) -> 
 	}
 
 
+@contextmanager
+def _system_rights():
+	"""Run the block as Administrator and hand the session back exactly as it was.
+
+	erpnext 15.124 (5289982059) removed the `ignore_permissions` argument of get_payment_entry: it now asks the SESSION
+	user for the right to create a Payment Entry. A card is reconciled in the session of whoever saves the succeeded
+	Payment Intent (a webhook, a portal customer's browser), and this runs in a doc_event that only logs what fails:
+	money captured by the provider would be left unbooked. The session is put back field by field, as the webshop's
+	`shop_rights` does: `frappe.set_user(user)` rewrites the live session in place (its sid becomes the user name).
+	"""
+	session = frappe.local.session
+	user = session.user
+	if user == "Administrator":
+		yield
+		return
+	saved = {"sid": session.sid, "data": session.data}
+	form_dict = frappe.local.form_dict
+	frappe.set_user("Administrator")
+	try:
+		yield
+	finally:
+		session.user = user
+		session.sid = saved["sid"]
+		session.data = saved["data"]
+		frappe.local.form_dict = form_dict
+		# what set_user rightly drops on a switch, dropped again on the way back
+		frappe.local.cache = {}
+		frappe.local.jenv = None
+		frappe.local.role_permissions = {}
+		frappe.local.new_doc_templates = {}
+
+
 def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 	"""The payment of a submitted Sales Invoice: a Payment Entry against it, at the intent's amount, through the
 	mode of payment's account, with the provider's id as its reference — and never twice for one intent."""
@@ -215,19 +248,21 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 	major_amount = flt(intent.amount) / 100.0
 	# The mode of payment's account for the invoice's company (it says so when it has none), the provider's id as
 	# the reference: Neoffice's ERPNext takes both (get_payment_entry, its `//// Neoffice` arguments).
-	pe = get_payment_entry(
-		"Sales Invoice",
-		si.name,
-		party_amount=major_amount,
-		reference_date=nowdate(),
-		ignore_permissions=True,
-		reference_no=reference,
-		mode_of_payment=mop,
-		paid_to=get_bank_cash_account(mop, si.company)["account"],
-	)
-	pe.flags.ignore_permissions = True
-	pe.insert()
-	pe.submit()
+	# //// Neoffice — with the rights of the system, whoever the session is (see _system_rights): upstream no longer
+	# //// takes `ignore_permissions` and asks the session user for the right to create the entry.
+	with _system_rights():
+		pe = get_payment_entry(
+			"Sales Invoice",
+			si.name,
+			party_amount=major_amount,
+			reference_date=nowdate(),
+			reference_no=reference,
+			mode_of_payment=mop,
+			paid_to=get_bank_cash_account(mop, si.company)["account"],
+		)
+		pe.flags.ignore_permissions = True
+		pe.insert()
+		pe.submit()
 	return {
 		"action": "payment_entry_submitted",
 		"target_doctype": "Sales Invoice",

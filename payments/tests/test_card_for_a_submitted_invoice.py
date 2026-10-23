@@ -92,7 +92,7 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		frappe.delete_doc("Sales Invoice", self.si.name, force=True, ignore_permissions=True)
 		frappe.db.commit()
 
-	def _paid_by_card(self, amount):
+	def _paid_by_card(self, amount, session_user=None):
 		out = intent_api.create_intent(
 			provider="mock",
 			channel="terminal",
@@ -104,7 +104,13 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		)
 		self.intents.append(out["intent_name"])
 		intent = frappe.get_doc("Payment Intent", out["intent_name"])
-		intent.transition_to("succeeded")  # saved: the doc_event reconciles it, as a webhook would
+		if session_user:
+			frappe.set_user(session_user)
+		try:
+			intent.transition_to("succeeded")  # saved: the doc_event reconciles it, as a webhook would
+			self.session_after = frappe.session.user
+		finally:
+			frappe.set_user("Administrator")
 		return intent
 
 	def test_the_card_pays_the_invoice_through_a_payment_entry_once(self):
@@ -135,3 +141,16 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		self._paid_by_card(40)
 		left = flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount"))
 		self.assertEqual(left, flt(before - 40, 2), _last_error())
+
+	def test_a_card_confirmed_in_a_session_without_rights_is_booked_all_the_same(self):
+		# erpnext 15.124 no longer takes `ignore_permissions` in get_payment_entry: it asks the session user for the
+		# right to create the entry. A webhook or a customer's browser has none, and the doc_event only logs what fails.
+		intent = self._paid_by_card(self.si.outstanding_amount, session_user="Guest")
+		self.assertEqual(self.session_after, "Guest", "the session is handed back as it was")
+		pe = frappe.db.get_value(
+			"Payment Entry", {"reference_no": intent.provider_intent_id, "docstatus": 1}, "name"
+		)
+		self.assertTrue(pe, f"a guest session left the card unbooked. {_last_error()}")
+		self.assertEqual(
+			flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0
+		)
