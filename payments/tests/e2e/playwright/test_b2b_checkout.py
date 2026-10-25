@@ -17,7 +17,7 @@ Demo flow (used live in client presentations):
      the default group, NOT B2B yet).
   5. Backend : poll until the Customer exists, then reassign it to ``B2B``.
   6. UI      : navigate to ``/checkout``. The webshop must redirect to
-     ``/checkout_b2b`` because the customer is now in a B2B group.
+     ``/checkout-b2b`` because the customer is now in a B2B group.
   7. Assert  : the B2B template renders AND the grand total reflects the
      10% pricing rule (i.e. grand_total < list_price × 0.95, with a small
      safety margin for tax rounding).
@@ -72,7 +72,7 @@ def test_b2b_customer_sees_b2b_checkout_with_pricing_rule(
 	page: Page, base_url: str, backend, paying_item
 ):
 	"""End-to-end: ephemeral signup → B2B group → /checkout redirects to
-	/checkout_b2b → 10% pricing rule visible in the grand total."""
+	/checkout-b2b → 10% pricing rule visible in the grand total."""
 	suffix = str(int(time.time()))
 	email = f"e2e.b2b.{suffix}@example.test"
 	password = "TestB2B2026!"
@@ -137,7 +137,7 @@ def test_b2b_customer_sees_b2b_checkout_with_pricing_rule(
 			f"{assign['previous']} → {assign['customer_group']}"
 		)
 
-		# ---------- STEP 6 : /checkout must redirect to /checkout_b2b ----------
+		# ---------- STEP 6 : /checkout must redirect to /checkout-b2b ----------
 		# The redirect is server-side (302) from checkout.py get_context.
 		# Refresh the cart first so cached is_b2b_customer is recomputed.
 		open_cart(page, base_url)
@@ -146,11 +146,11 @@ def test_b2b_customer_sees_b2b_checkout_with_pricing_rule(
 		)
 		# Allow up to 5s for the redirect to settle on slow networks.
 		for _ in range(10):
-			if "/checkout_b2b" in page.url:
+			if "/checkout-b2b" in page.url:
 				break
 			page.wait_for_timeout(500)
-		assert "/checkout_b2b" in page.url, (
-			f"Expected redirect to /checkout_b2b, landed on {page.url}"
+		assert "/checkout-b2b" in page.url, (
+			f"Expected redirect to /checkout-b2b, landed on {page.url}"
 		)
 
 		# B2B template marker — h3 "B2B Checkout".

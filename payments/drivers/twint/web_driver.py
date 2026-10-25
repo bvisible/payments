@@ -105,7 +105,7 @@ class TwintWebDriver(TwintPHPBridgeDriver):
 		The buyer's frontend will:
 		1. Display the SVG QR (next_action_payload.qr_svg).
 		2. Subscribe to ``payment.intent.<intent_name>.updated`` via SocketIO.
-		3. Redirect to ``/thank_you`` on the realtime ``succeeded`` event.
+		3. Redirect to ``/thank-you`` on the realtime ``succeeded`` event.
 
 		Status sync is driven by :func:`payments.api.twint.fast_poll_intent`
 		(enqueued here) plus the existing per-minute

@@ -97,7 +97,7 @@ def test_checkout_twint_with_simulate(logged_in_page, paying_item, base_url, bac
 	sim.click()
 
 	# The status poller picks up the success and redirects.
-	page.wait_for_url("**/thank_you**", timeout=30_000)
+	page.wait_for_url("**/thank-you**", timeout=30_000)
 
 	# Backend assert
 	page.wait_for_timeout(2_000)

@@ -3,7 +3,7 @@
 # //// Wallee through the driver — Wallee can take a few seconds to confirm after the
 # //// redirect — then on `succeeded` finalise the Sales Order via
 # //// `webshop.controllers.payment_handler.handle_payment_success` and redirect to
-# //// /thank_you. Renamed from `www/wallee_success.py`: Frappe's www resolver maps
+# //// /thank-you. Renamed from `www/wallee_success.py`: Frappe's www resolver maps
 # //// `/wallee/success` to the path hierarchy, so the underscore file was a 404 for every
 # //// returning buyer even though the payment had succeeded server-side.
 # //// Commits: ce478ca 2026-05-28 "fix(wallee-web): /wallee/success and /wallee/failed routes (404 → working)"
@@ -23,7 +23,7 @@ Flow:
    may take a few seconds to confirm after the redirect).
 3. If status reached ``succeeded`` → call
    ``webshop.controllers.payment_handler.handle_payment_success`` to finalise
-   the Sales Order, redirect to ``/thank_you``.
+   the Sales Order, redirect to ``/thank-you``.
 4. Otherwise show the pending / error template with appropriate context.
 """
 
@@ -142,7 +142,7 @@ def get_context(context):  # noqa: ANN001
 	context.intent = intent_doc
 
 	# If the Payment Intent links a Payment Request and that request is already
-	# paid, short-circuit straight to /thank_you (handles double-clicks on the
+	# paid, short-circuit straight to /thank-you (handles double-clicks on the
 	# return URL).
 	if intent_doc.reference_doctype == "Payment Request" and intent_doc.reference_name:
 		pr_status = frappe.db.get_value(
@@ -155,7 +155,7 @@ def get_context(context):  # noqa: ANN001
 			order = submitted_sales_order(pr_ref_dt, pr_ref_name)
 			if status in ("Paid", "Completed") and order:
 				_debug(f"PR already paid, redirecting to {order}")
-				frappe.local.flags.redirect_location = f"/thank_you?sales_order={order}"
+				frappe.local.flags.redirect_location = f"/thank-you?sales_order={order}"
 				raise frappe.Redirect
 
 	# Refresh status from Wallee with retry (Wallee may lag by a few seconds).
@@ -184,7 +184,7 @@ def get_context(context):  # noqa: ANN001
 					order = submitted_sales_order(pr.reference_doctype, pr.reference_name)
 					if order:
 						frappe.local.flags.redirect_location = (
-							f"/thank_you?sales_order={order}"
+							f"/thank-you?sales_order={order}"
 						)
 						raise frappe.Redirect
 				else:

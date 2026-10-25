@@ -1,7 +1,7 @@
 # //// Neoffice — added file (no upstream equivalent). Controller of `/payrexx/success`:
 # //// look the Payment Intent up, refresh it from Payrexx (the redirect can beat the
 # //// settlement), finalise the Sales Order through `webshop.controllers.payment_handler`
-# //// and redirect to /thank_you, otherwise render the pending or failed state. The
+# //// and redirect to /thank-you, otherwise render the pending or failed state. The
 # //// polling is bounded — hard on the first load while the shopper watches, light on the
 # //// reloads after — because every attempt is an API call and Payrexx rate-limits at
 # //// ~600 requests per five minutes per account.
@@ -24,7 +24,7 @@ Flow:
 1. Look up the Payment Intent.
 2. Refresh its status from Payrexx (the redirect can beat the settlement).
 3. On ``succeeded`` → finalise the Sales Order through
-   ``webshop.controllers.payment_handler`` and redirect to ``/thank_you``.
+   ``webshop.controllers.payment_handler`` and redirect to ``/thank-you``.
 4. Otherwise render the pending or failed state; the template auto-refreshes while
    pending, so a payment that settles after our polling window is still caught.
 """
@@ -149,7 +149,7 @@ def get_context(context):  # noqa: ANN001
 		order = pr and submitted_sales_order(pr.reference_doctype, pr.reference_name)
 		if pr and pr.status in ("Paid", "Completed") and order:
 			_debug(f"PR already paid, redirecting to {order}")
-			frappe.local.flags.redirect_location = f"/thank_you?sales_order={order}"
+			frappe.local.flags.redirect_location = f"/thank-you?sales_order={order}"
 			raise frappe.Redirect
 
 	# Which reload this is. Carried in the URL rather than in the session: the
@@ -182,7 +182,7 @@ def get_context(context):  # noqa: ANN001
 					# //// Neoffice — only a real order (see above).
 					order = submitted_sales_order(pr_doc.reference_doctype, pr_doc.reference_name)
 					if order:
-						frappe.local.flags.redirect_location = f"/thank_you?sales_order={order}"
+						frappe.local.flags.redirect_location = f"/thank-you?sales_order={order}"
 						raise frappe.Redirect
 				else:
 					context.error = (result or {}).get("message") or _("Error finalising order")

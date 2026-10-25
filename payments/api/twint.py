@@ -386,7 +386,7 @@ _FAST_POLL_DELAYS: list[int] = (
 #
 # Used by the Webshop E2E runbook (Neoffice/Webshop/Runbooks/E2E-Twint-Only.md)
 # to validate the full chain — SocketIO push → Sales Order finalize →
-# /thank_you redirect — without needing a real TWINT app to scan the QR.
+# /thank-you redirect — without needing a real TWINT app to scan the QR.
 #
 # Safe to leave in production code because:
 #   (a) the gating flag is opt-in per-site via site_config
@@ -443,7 +443,7 @@ def simulate_consumer_success(intent_name: str, access_token: str | None = None)
 		# //// order (payments/utils/order_state.py).
 		order = pr_ref and submitted_sales_order(pr_ref.reference_doctype, pr_ref.reference_name)
 		if order:
-			extra["redirect_to"] = f"/thank_you?sales_order={order}"
+			extra["redirect_to"] = f"/thank-you?sales_order={order}"
 
 	_publish_intent_update(doc, doc.channel, "succeeded", extra)
 	frappe.db.commit()

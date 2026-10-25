@@ -22,7 +22,7 @@ safety net.
    (``https://<instance>.payrexx.com/?payment=<hash>``), not on ``api.payrexx.com``.
 2. The shopper pays and returns to ``/payrexx/success?payment_intent=PI-…``
    (:mod:`payments.www.payrexx.success`), which syncs the status, finalises the
-   order and redirects to ``/thank_you``.
+   order and redirects to ``/thank-you``.
 3. The transaction webhook drives the same FSM, and covers the case where the
    shopper closes the tab before returning.
 

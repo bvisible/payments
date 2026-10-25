@@ -69,7 +69,7 @@ def test_signup_creates_account_and_logs_in(page: Page, base_url: str, backend, 
 		# Some Frappe versions block set_value on User password; fall back.
 		pass
 
-	# Note: the test stops here because reaching /thank_you would require a
+	# Note: the test stops here because reaching /thank-you would require a
 	# proper Customer link, which Frappe Signup may not create automatically
 	# for Website Users without additional config. The acceptance criterion
 	# is: account created + login form accessible.

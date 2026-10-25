@@ -23,7 +23,7 @@ checkout is now just another Payment Intent on the unified FSM. The driver:
    ``/wallee/success?payment_intent=PI-2026-XXXXX`` (built by
    :mod:`payments.www.wallee_success`), which syncs the Payment Intent status,
    finalises the Sales Order via ``webshop.controllers.payment_handler``, and
-   redirects to ``/thank_you``.
+   redirects to ``/thank-you``.
 3. State changes also arrive via Wallee webhook (same handler as
    :class:`WalleeTerminalDriver`) for non-redirect-based flows or as a fallback.
 

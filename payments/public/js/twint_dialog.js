@@ -546,7 +546,7 @@ frappe.provide('frappe.twint');
                                                 console.error('TWINT simulate failed:', sr && sr.message);
                                             }
                                             // On success the existing status poller picks up the
-                                            // succeeded state and drives the redirect to /thank_you.
+                                            // succeeded state and drives the redirect to /thank-you.
                                         }
                                     });
                                 });
@@ -1007,7 +1007,7 @@ frappe.provide('frappe.twint');
                                 setTimeout(function() {
                                     frappe.show_alert({ message: __('Payment successful'), indicator: 'green' });
                                 }, 1500);
-                                const fallback = '/thank_you?payment_intent=' + encodeURIComponent(order_uuid);
+                                const fallback = '/thank-you?payment_intent=' + encodeURIComponent(order_uuid);
                                 setTimeout(function() {
                                     paymentDialog.hide();
                                     window.location.href = redirect_to || fallback;

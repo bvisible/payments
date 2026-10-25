@@ -47,8 +47,8 @@ def test_checkout_stripe_4242(logged_in_page, paying_item, base_url, backend):
 	click_pay(page)
 
 	# Stripe needs ~8s to tokenize + 3DS + redirect.
-	page.wait_for_url("**/thank_you**", timeout=45_000)
-	assert "/thank_you" in page.url
+	page.wait_for_url("**/thank-you**", timeout=45_000)
+	assert "/thank-you" in page.url
 
 	# Backend assert — Stripe webshop uses the upstream make_payment which does
 	# NOT create a unified Payment Intent, so we assert on the Sales Order.

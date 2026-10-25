@@ -555,7 +555,7 @@ def get_test_item_for_checkout() -> dict[str, Any]:
 # B2B checkout fixtures
 # ---------------------------------------------------------------------------
 #
-# The webshop redirects /checkout → /checkout_b2b when the logged-in
+# The webshop redirects /checkout → /checkout-b2b when the logged-in
 # customer's Customer Group is listed in Webshop Settings.b2b_customer_group
 # AND activate_b2b_checkout is on (see webshop/templates/pages/checkout.py
 # lines 80-88 and webshop/shopping_cart/cart.py lines 158-170).
