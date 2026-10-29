@@ -24,7 +24,11 @@ dependencies = [
     # //// 2026-08-11) are the Swiss acceptance platforms this fork adds and upstream has
     # //// no notion of. The payrexx one is a git URL because Payrexx publishes no
     # //// official Python SDK — the repo behind it is ours.
-    "wallee>=6.4.0",
+    # //// Neoffice — wallee 7.0.0 (2026-10-28) no longer has `wallee.models.PaymentTerminalCreate`, which the
+    # //// terminal wizard builds its request from (payments/integrations/wallee/api.py, maintenance#1730): a fresh
+    # //// install resolved ">=6.4.0" to it and the wizard's tests broke. Stay on the 6.x series; lift the cap when
+    # //// the wizard is ported to the 7.x models.
+    "wallee>=6.4.0,<7",
     # Payrexx client — no official Python SDK exists, so this is ours:
     # https://github.com/neoserviceai/payrexx-python
     "payrexx @ git+https://github.com/neoserviceai/payrexx-python.git@main",
