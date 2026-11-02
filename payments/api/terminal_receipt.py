@@ -159,10 +159,11 @@ def print_receipt(
 	require_intent_permission("read", intent_name)
 	receipt = _receipt_from_intent(intent_name)
 
+	# //// Neoffice — maintenance#2131: `frappe.db.get_value("Singles", …)` sorts on `modified`, a column `tabSingles` does
+	# //// not have, so naming no printer answered a 500. `get_single_value` would need the DocType's meta, which a site
+	# //// without the cloudprnt app does not have; this reads the row and lets such a site get the message below.
 	if not printer:
-		printer = frappe.db.get_value(
-			"Singles", {"doctype": "CloudPRNT Settings", "field": "default_printer"}, "value"
-		)
+		printer = frappe.db.get_singles_dict("CloudPRNT Settings").get("default_printer")
 	if not printer:
 		frappe.throw(_("No CloudPRNT printer given and no default configured"))
 
