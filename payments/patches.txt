@@ -39,3 +39,6 @@ payments.patches.v15_11.repair_webhook_endpoints
 # //// three instances with no URL to register. v15_11 is already logged
 # //// everywhere, so it cannot re-run.
 payments.patches.v15_12.repair_migrated_webhook_endpoints
+# //// Neoffice — v15_13 (2026-11-03): the Payment Gateway "Twint" of the image names the legacy `Twint Settings` DocType, gone from
+# //// `payments`; v15_04 repoints it only where `twint_integration` is installed, so a new client could not load its TWINT settings.
+payments.patches.v15_13.repoint_the_twint_gateway_to_the_bridge_settings
