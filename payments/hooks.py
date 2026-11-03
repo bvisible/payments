@@ -298,3 +298,23 @@ override_whitelisted_methods = {
 # Recommended only for DocTypes which have limited documents with untranslated names
 # For example: Role, Gender, etc.
 # translated_search_doctypes = []
+
+# //// Neoffice — the payment pages stay open while the website is in maintenance (Website Profile maintenance_mode, an
+# //// instance without a showcase site): a customer reaches them from a payment link sent by e-mail or from an invoice,
+# //// and the provider sends them back to the success, failure and cancel pages. Read by frappe/website/path_resolver.py
+# //// (website_route_stays_open, neoffice-maintenance#2171).
+website_maintenance_open_routes = [
+	"payrexx",
+	"wallee",
+	"stripe_checkout",
+	"braintree_checkout",
+	"gocardless_checkout",
+	"gocardless_confirmation",
+	"paytm_checkout",
+	"razorpay_checkout",
+	"payment-success",
+	"payment_success",
+	"payment-failed",
+	"payment-cancel",
+	"payment_cancel",
+]
