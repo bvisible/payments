@@ -46,6 +46,7 @@
 <div class="nb npay">
 	<div class="nb-card npay-card">
 		<span class="nb-eyebrow nb-eyebrow--muted">{{ _("Secure payment") }}</span>
+		{# //// Neoffice — values from the link were printed raw: escaped now. #}
 		{% if payee %}<h1 class="nb-title npay-house">{{ payee | e }}</h1>{% endif %}
 		{% if description %}<p class="nb-muted npay-what">{{ description | e }}</p>{% endif %}
 
@@ -60,12 +61,14 @@
 			<label class="npay-field">
 				<span class="npay-label">{{ _("Name") }}</span>
 				<input id="cardholder-name" name="cardholder-name" class="nba-input"
+					{# //// Neoffice — values from the link were printed raw: escaped now. #}
 					autocomplete="cc-name" value="{{ (payer_name or '') | e }}">
 			</label>
 
 			<label class="npay-field">
 				<span class="npay-label">{{ _("Email") }}</span>
 				<input id="cardholder-email" name="cardholder-email" class="nba-input"
+					{# //// Neoffice — values from the link were printed raw: escaped now. #}
 					type="email" autocomplete="email" value="{{ (payer_email or '') | e }}">
 			</label>
 

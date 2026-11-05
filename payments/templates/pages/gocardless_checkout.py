@@ -1,5 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
+# //// Neoffice — the payer comes from the request, and contact details prefill only for who may read the Customer.
 
 import frappe
 from frappe import _
@@ -9,6 +10,7 @@ from payments.payment_gateways.doctype.gocardless_settings.gocardless_settings i
 	get_gateway_controller,
 	gocardless_initialization,
 )
+# //// Neoffice — the payer comes from the request, and contact details prefill only for who may read the Customer.
 from payments.utils.utils import require_text
 
 no_cache = 1
@@ -73,6 +75,7 @@ def _customer_of(payment_request) -> str | None:
 def check_mandate(data: str, reference_doctype: str, reference_docname: str):
 	client = gocardless_initialization(reference_docname)
 
+	# //// Neoffice — the payer comes from the request, and contact details prefill only for who may read the Customer.
 	payment_request = frappe.get_doc("Payment Request", reference_docname)
 	customer = _customer_of(payment_request)
 	may_read = customer and frappe.has_permission("Customer", "read", doc=customer)
@@ -81,6 +84,7 @@ def check_mandate(data: str, reference_doctype: str, reference_docname: str):
 	if not payer:
 		prefilled_customer = {}
 
+	# //// Neoffice — the payer comes from the request, and contact details prefill only for who may read the Customer.
 	elif payer.customer_type == "Individual" and payer.customer_primary_contact is not None:
 		primary_contact = frappe.get_doc("Contact", payer.customer_primary_contact)
 		prefilled_customer = {
@@ -108,6 +112,7 @@ def check_mandate(data: str, reference_doctype: str, reference_docname: str):
 	try:
 		redirect_flow = client.redirect_flows.create(
 			params={
+				# //// Neoffice — the payer comes from the request, and contact details prefill only for who may read the Customer.
 				"description": _("Pay {0} {1}").format(
 					payment_request.grand_total, payment_request.currency
 				),

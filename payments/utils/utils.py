@@ -83,6 +83,7 @@ def get_payment_gateway_controller(payment_gateway):
 @rate_limit(limit=10, seconds=60)
 def get_checkout_url(**kwargs):
 	try:
+		# //// Neoffice — a gateway named by the caller must be a text and exist before a request is written.
 		payment_gateway = kwargs.get("payment_gateway")
 		if not isinstance(payment_gateway, str):
 			raise Exception

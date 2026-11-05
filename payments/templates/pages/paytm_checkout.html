@@ -28,6 +28,7 @@
 
 		<form method="post" action="{{ url }}" name="paytm_form">
 			{% for name, value in payment_details.items() %}
+				{# //// Neoffice — values from the link were printed raw: escaped now. #}
 				<input type="hidden" name="{{ name | e }}" value="{{ value | e }}">
 			{% endfor %}
 		</form>

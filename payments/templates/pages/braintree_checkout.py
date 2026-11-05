@@ -11,6 +11,7 @@ from payments.payment_gateways.doctype.braintree_settings.braintree_settings imp
 	get_client_token,
 	get_gateway_controller,
 )
+# //// Neoffice — the amount, currency and document came from the client: they come from the Payment Request.
 from payments.utils.utils import require_text
 
 no_cache = 1
@@ -83,6 +84,7 @@ def make_payment(payload_nonce: str, data: str, reference_doctype: str, referenc
 
 	data.update({"payload_nonce": payload_nonce})
 
+	# //// Neoffice — the amount, currency and document came from the client: they come from the Payment Request.
 	payment_request = _payable_request(reference_docname)
 	data.update(
 		{

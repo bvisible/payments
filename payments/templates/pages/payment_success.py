@@ -3,6 +3,7 @@
 
 import frappe
 
+# //// Neoffice — the helpers that refuse a non-text value and an off-site redirect.
 from payments.utils.utils import require_text, safe_redirect_to
 
 no_cache = True

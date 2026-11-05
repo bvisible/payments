@@ -91,6 +91,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import call_hook_method, cint, get_datetime, get_url
 from frappe.utils.data import get_system_timezone
 
+# //// Neoffice — a guest callback: refused first when PayPal is not set up, so a junk token writes nothing.
 from payments.api.webhook_common import log_once_an_hour
 from payments.utils import create_payment_gateway
 

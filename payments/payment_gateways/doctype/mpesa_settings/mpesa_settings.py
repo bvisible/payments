@@ -195,6 +195,7 @@ def verify_transaction(**kwargs):
 	if not isinstance(checkout_id, str):
 		frappe.throw(_("Invalid Checkout Request ID"))
 
+	# //// Neoffice — a guest callback: refused when M-Pesa is not set up, and bound to its own open request and amount.
 	integration_request = _mpesa_request(checkout_id)
 	transaction_data = frappe._dict(loads(integration_request.data))
 	total_paid = 0  # for multiple integration request made against a pos invoice
@@ -313,6 +314,7 @@ def process_balance_info(**kwargs):
 	if not isinstance(conversation_id, str):
 		frappe.throw(_("Invalid Conversation ID"))
 
+	# //// Neoffice — a guest callback: refused when M-Pesa is not set up, and bound to its own open request and amount.
 	request = _mpesa_request(conversation_id, also=("Completed",))
 
 	if request.status == "Completed":

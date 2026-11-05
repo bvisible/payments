@@ -12,6 +12,7 @@
 			{{ _("Payment Cancelled") }}</span>
 	</div>
 	<p>{{ _("Your payment is cancelled.") }}</p>
+	{# //// Neoffice — values from the link were printed raw: escaped now. #}
 	<div><a href="{{ (redirect_to or "/") | e }}" class='btn btn-primary btn-sm'>
 		{{ _("Continue") }}</a></div>
 </div>

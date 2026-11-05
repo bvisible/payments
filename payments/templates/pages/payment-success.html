@@ -17,6 +17,7 @@
 	{% if not payment_message %}
 		<div>
 			<a
+			   {# //// Neoffice — values from the link were printed raw, and redirect_to could leave the site: see payment_success.py. #}
 			   href="{{ (redirect_to or "/") | e }}"
 			   class='btn btn-primary btn-sm'>
 				{{ _("Continue") }}
@@ -29,9 +30,11 @@
 </style>
 <script>
 	frappe.ready(function() {
+		{# //// Neoffice — values from the link were printed raw, and redirect_to could leave the site: see payment_success.py. #}
 		var redirect_to = {{ (redirect_to or "") | tojson }};
 		if(redirect_to){
 			setTimeout(function(){
+				{# //// Neoffice — values from the link were printed raw, and redirect_to could leave the site: see payment_success.py. #}
 				window.location.href = redirect_to;
 			}, 4000);
 		}

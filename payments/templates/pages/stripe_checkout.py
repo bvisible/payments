@@ -15,6 +15,7 @@ from frappe.utils import cint, fmt_money
 from payments.payment_gateways.doctype.stripe_settings.stripe_settings import (
 	get_gateway_controller,
 )
+# //// Neoffice — the page's values must be texts, and make_payment takes texts: a filter told which documents exist.
 from payments.utils.utils import require_text
 
 no_cache = 1
@@ -117,6 +118,7 @@ def get_header_image(doc, gateway_controller):
 # permission-check: ok a public door: a buyer's payment link; the charge is checked against the request
 @frappe.whitelist(allow_guest=True)
 def make_payment(
+	# //// Neoffice — the page's values must be texts, and make_payment takes texts: a filter told which documents exist.
 	stripe_token_id: str,
 	data: str,
 	reference_doctype: str | None = None,

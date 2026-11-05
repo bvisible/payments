@@ -97,6 +97,7 @@ from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
 from frappe.utils import call_hook_method, cint, flt, get_timestamp, get_url
 
+# //// Neoffice — a guest callback: refused when Razorpay is not set up, and bound to its own request and order.
 from payments.api.webhook_common import log_once_an_hour
 from payments.utils import create_payment_gateway
 
@@ -696,6 +697,7 @@ def order_payment_success(integration_request: str, params: str):
 	integration.update_status(params, integration.status)
 	integration.reload()
 
+	# //// Neoffice — a guest callback: refused when Razorpay is not set up, and bound to its own request and order.
 	data = json.loads(integration.data)
 
 	# Update payment and integration data for payment controller object

@@ -1,3 +1,4 @@
+# //// Neoffice — the DocType came from the request, past core's checks: this wraps core's accept now.
 import frappe
 from frappe.utils import flt
 from frappe.website.doctype.web_form.web_form import WebForm
@@ -68,14 +69,18 @@ def accept(
 ):
 	"""Save the web form through core; a paid form then hands its visitor to the gateway."""
 	for_payment = frappe.parse_json(for_payment)
+	# //// Neoffice — the DocType came from the request, past core's checks: this wraps core's accept now.
 	doc = core_accept(web_form, data, web_form_request_key)
 
 	web_form = frappe.get_doc("Web Form", web_form)
+	# //// Neoffice — the DocType came from the request, past core's checks: this wraps core's accept now.
 	if for_payment and getattr(web_form, "accept_payment", False):
 		web_form.validate_mandatory(doc)
 		doc.run_method("validate_payment")
 
+		# //// Neoffice — the paid step only: core saved the document, and a refusal raises and rolls it back.
 		# this is needed for Payments app
 		return web_form.get_payment_gateway_url(doc)
 
+	# //// Neoffice — the paid step only: core saved the document, and a refusal raises and rolls it back.
 	return doc
