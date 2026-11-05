@@ -308,16 +308,9 @@ class StripeTerminalDriver(PaymentDriverBase):
 	def handle_webhook(self, payload: bytes, headers: dict[str, str]) -> WebhookResult:
 		"""Verify the Stripe signature and map the event to an FSM transition.
 
-		Two invocation modes:
-		- **Live webhook** (called from ``handle()`` with real HTTP headers):
-		  verify the Stripe-Signature header against the webhook_secret.
-		- **Trusted replay** (called from ``process_event()`` worker with
-		  empty headers): the signature was already validated at insertion
-		  time, so we skip the check and just JSON-parse the payload.
-
-		The signature_valid flag in the returned WebhookResult is True in both
-		modes — the worker can't distinguish a re-parse from a fresh call, and
-		shouldn't have to.
+		A delivery with no valid signature comes back with ``signature_valid=False``,
+		whatever else it carries. The worker reads the row a proven delivery left with
+		:meth:`parse_verified_event`, which no request reaches.
 		"""
 		# Stripe-Signature header. We accept any case for the header dict (Werkzeug
 		# vs lower-case sources).
@@ -327,48 +320,55 @@ class StripeTerminalDriver(PaymentDriverBase):
 			or headers.get("STRIPE_SIGNATURE")
 		)
 
-		if signature:
-			# Live mode — verify signature against webhook_secret.
-			webhook_secret = self._resolve_webhook_secret()
-			if not webhook_secret:
-				return WebhookResult(
-					event_id="unknown",
-					event_type="unknown",
-					signature_valid=False,
-					error_code="no_webhook_secret",
-					error_message="Stripe webhook_secret not configured on this Provider",
-				)
-			try:
-				event = self._stripe.Webhook.construct_event(payload, signature, webhook_secret)
-			except self._stripe.error.SignatureVerificationError as exc:
-				return WebhookResult(
-					event_id="unknown",
-					event_type="unknown",
-					signature_valid=False,
-					error_code="invalid_signature",
-					error_message=str(exc),
-				)
-			except (ValueError, TypeError) as exc:
-				return WebhookResult(
-					event_id="unknown",
-					event_type="unknown",
-					signature_valid=False,
-					error_code="invalid_payload",
-					error_message=str(exc),
-				)
-		else:
-			# Trusted replay mode (worker re-processes a verified row).
-			try:
-				event = json.loads(payload.decode("utf-8"))
-			except (ValueError, UnicodeDecodeError) as exc:
-				return WebhookResult(
-					event_id="unknown",
-					event_type="unknown",
-					signature_valid=False,
-					error_code="invalid_payload",
-					error_message=str(exc),
-				)
+		# //// Neoffice — an absent or empty header used to mean "trusted replay", the shape of the worker's
+		# //// own call, which any guest could send: a forged body came back with signature_valid=True and
+		# //// moved a Payment Intent, secret configured or not. The worker has its own method now; this one
+		# //// proves the delivery or refuses it.
+		webhook_secret = self._resolve_webhook_secret()
+		if not webhook_secret:
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="no_webhook_secret",
+				error_message="Stripe webhook_secret not configured on this Provider",
+			)
+		if not signature:
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="no_signature_header",
+				error_message="Stripe-Signature header missing",
+			)
+		try:
+			event = self._stripe.Webhook.construct_event(payload, signature, webhook_secret)
+		except self._stripe.error.SignatureVerificationError as exc:
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="invalid_signature",
+				error_message=str(exc),
+			)
+		except (ValueError, TypeError) as exc:
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="invalid_payload",
+				error_message=str(exc),
+			)
+		return self._map_event(event)
 
+	# //// Neoffice — the worker's half of the old "trusted replay", under a name no request reaches.
+	def parse_verified_event(self, payload: bytes) -> WebhookResult:
+		"""Map a stored delivery to an FSM transition. Only for a row a proven delivery wrote."""
+		return self._map_event(json.loads(payload.decode("utf-8")))
+
+	# //// Neoffice — the rest of the old handle_webhook, moved and unchanged.
+	def _map_event(self, event) -> WebhookResult:  # noqa: ANN001
+		"""Map a Stripe event to an FSM transition and to its Payment Intent."""
 		event_id = event["id"]
 		event_type = event["type"]
 		target_status = _EVENT_TO_STATUS.get(event_type)

@@ -402,3 +402,10 @@ class WalleeWebDriver(PaymentDriverBase):
 
 		terminal_view = WalleeTerminalDriver(self.provider, self.channel, self.settings_doc)
 		return terminal_view.handle_webhook(payload, headers)
+
+	# //// Neoffice — the worker's half of handle_webhook, see WalleeTerminalDriver.parse_verified_event.
+	def parse_verified_event(self, payload: bytes) -> WebhookResult:
+		from payments.drivers.wallee.terminal_driver import WalleeTerminalDriver
+
+		terminal_view = WalleeTerminalDriver(self.provider, self.channel, self.settings_doc)
+		return terminal_view.parse_verified_event(payload)

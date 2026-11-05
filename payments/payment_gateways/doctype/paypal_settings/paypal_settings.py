@@ -86,12 +86,18 @@ import pytz
 from frappe import _
 from frappe.integrations.utils import create_request_log, make_post_request
 from frappe.model.document import Document
+# //// Neoffice — rate_limit and log_once_an_hour serve the guards of this file, see _require_paypal.
+from frappe.rate_limiter import rate_limit
 from frappe.utils import call_hook_method, cint, get_datetime, get_url
 from frappe.utils.data import get_system_timezone
 
+from payments.api.webhook_common import log_once_an_hour
 from payments.utils import create_payment_gateway
 
 api_path = "/api/method/payments.payment_gateways.doctype.paypal_settings.paypal_settings"
+
+# //// Neoffice — see ipn_handler.
+_IPN_CALLS_PER_MINUTE = 30
 
 
 class PayPalSettings(Document):
@@ -187,6 +193,8 @@ class PayPalSettings(Document):
 			frappe.throw(_("Invalid payment gateway credentials"))
 
 	def get_payment_url(self, **kwargs):
+		# //// Neoffice — refused on a site with no PayPal: guest `get_checkout_url` called PayPal from here.
+		_require_paypal()
 		setattr(self, "use_sandbox", cint(kwargs.get("use_sandbox", 0)))
 
 		response = self.execute_set_express_checkout(**kwargs)
@@ -249,6 +257,21 @@ class PayPalSettings(Document):
 		)
 
 
+# //// Neoffice — the guards of the guest doors of this file. No client uses PayPal: on a site with no account
+# //// they refuse first. Before the `try` of each door, whose except turned a junk token into one Error Log
+# //// row per call, and `str` on the token, which reached frappe.get_doc: a JSON body made a filter of it.
+def _require_paypal() -> None:
+	username = frappe.db.get_single_value("PayPal Settings", "api_username")
+	if not (username or frappe.conf.sandbox_api_username):
+		frappe.throw(_("PayPal is not configured on this site"), frappe.PermissionError)
+
+
+def _require_paypal_token(token: str) -> None:
+	_require_paypal()
+	if frappe.db.get_value("Integration Request", token, "integration_request_service") != "PayPal":
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+
 def get_paypal_and_transaction_details(token):
 	doc = frappe.get_doc("PayPal Settings")
 	doc.setup_sandbox_env(token)
@@ -278,8 +301,10 @@ def setup_redirect(data, redirect_url, custom_redirect_to=None, redirect=True):
 		frappe.local.response["location"] = get_url(redirect_url)
 
 
+# //// Neoffice — `str` and the guard, see _require_paypal.
 @frappe.whitelist(allow_guest=True, xss_safe=True)
-def get_express_checkout_details(token):
+def get_express_checkout_details(token: str):
+	_require_paypal_token(token)
 	try:
 		doc = frappe.get_doc("PayPal Settings")
 		doc.setup_sandbox_env(token)
@@ -318,8 +343,10 @@ def get_express_checkout_details(token):
 		frappe.log_error("Error in PayPal payment processing", frappe.get_traceback())
 
 
+# //// Neoffice — `str` and the guard, see _require_paypal.
 @frappe.whitelist(allow_guest=True, xss_safe=True)
-def confirm_payment(token):
+def confirm_payment(token: str):
+	_require_paypal_token(token)
 	try:
 		custom_redirect_to = None
 		data, params, url = get_paypal_and_transaction_details(token)
@@ -367,8 +394,10 @@ def confirm_payment(token):
 		frappe.log_error("Error in PayPal payment processing", frappe.get_traceback())
 
 
+# //// Neoffice — `str` and the guard, see _require_paypal.
 @frappe.whitelist(allow_guest=True, xss_safe=True)
-def create_recurring_profile(token, payerid):
+def create_recurring_profile(token: str, payerid: str):
+	_require_paypal_token(token)
 	try:
 		custom_redirect_to = None
 		updating = False
@@ -473,8 +502,12 @@ def manage_recurring_payment_profile_status(profile_id, action, args, url):
 		frappe.throw(_("Failed while amending subscription"))
 
 
+# //// Neoffice — limited: it spends one call to PayPal, with the merchant's credentials, per request.
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=_IPN_CALLS_PER_MINUTE, seconds=60)
 def ipn_handler():
+	# //// Neoffice — each guest POST called PayPal with the merchant's credentials.
+	_require_paypal()
 	try:
 		data = frappe.local.form_dict
 
@@ -509,7 +542,8 @@ def ipn_handler():
 		# //// expected, and `frappe.log()` only appends to `debug_log` (it never writes an
 		# //// Error Log) so it merely stringified the doc that log_error had just written.
 		# //// TO REVIEW: `e` is now bound but unused in this except clause.
-		frappe.log_error("Error in PayPal webhook handling", frappe.get_traceback())
+		# //// Neoffice — once an hour: a junk body wrote a row per call.
+		log_once_an_hour("Error in PayPal webhook handling", frappe.get_traceback())
 
 
 def validate_ipn_request(data):

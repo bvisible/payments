@@ -93,9 +93,20 @@ from frappe.integrations.utils import (
 	make_post_request,
 )
 from frappe.model.document import Document
-from frappe.utils import call_hook_method, cint, get_timestamp, get_url
+# //// Neoffice — rate_limit, flt and log_once_an_hour serve the guards at the end of this file.
+from frappe.rate_limiter import rate_limit
+from frappe.utils import call_hook_method, cint, flt, get_timestamp, get_url
 
+from payments.api.webhook_common import log_once_an_hour
 from payments.utils import create_payment_gateway
+
+# //// Neoffice — what a browser may bring to a request of this gateway: Razorpay's three fields, or its
+# //// error. Everything else stays what the server stored: upstream merged the whole body into the request's
+# //// data, so the caller rewrote the document to settle, the amount, the redirect and `use_sandbox`.
+_CALLBACK_KEYS = ("razorpay_payment_id", "razorpay_order_id", "razorpay_signature")
+_FAILURE_KEYS = ("error",)
+_MAX_CALLBACK_CHARS = 8192
+_GUEST_CALLS_PER_MINUTE = 30
 
 
 class RazorpaySettings(Document):
@@ -367,6 +378,9 @@ class RazorpaySettings(Document):
 		return kwargs
 
 	def get_payment_url(self, **kwargs):
+		# //// Neoffice — refused on a site with no Razorpay: guest `get_checkout_url` wrote a row per call
+		# //// here.
+		_require_razorpay()
 		integration_request = create_request_log(kwargs, service_name="Razorpay")
 		return get_url(f"./razorpay_checkout?token={integration_request.name}")
 
@@ -397,6 +411,9 @@ class RazorpaySettings(Document):
 					data=payment_options,
 				)
 				order["integration_request"] = integration_request.name
+				# //// Neoffice — kept with the request: it is what the signature of the callback is checked
+				# //// on.
+				integration_request.update_status({"razorpay_order_id": order.get("id")}, "Queued")
 				return order  # Order returned to be consumed by razorpay.js
 			except Exception:
 				# //// Neoffice — only the log line diverges. Upstream ran TWO statements here:
@@ -412,9 +429,20 @@ class RazorpaySettings(Document):
 
 	def create_request(self, data):
 		self.data = frappe._dict(data)
+		# //// Neoffice — before the try: its except would turn a refusal into one Error Log row per guest
+		# //// call.
+		self.integration_request = _razorpay_request(self.data.token)
 
 		try:
-			self.integration_request = frappe.get_doc("Integration Request", self.data.token)
+			# //// Neoffice — the document to settle is the one the request stored, not the one the page sent
+			# //// back.
+			stored = json.loads(self.integration_request.data)
+			self.data = frappe._dict(
+				{key: self.data.get(key) for key in _CALLBACK_KEYS},
+				token=self.data.token,
+				reference_doctype=stored.get("reference_doctype"),
+				reference_docname=stored.get("reference_docname"),
+			)
 			self.integration_request.update_status(self.data, "Queued")
 			return self.authorize_payment()
 
@@ -447,7 +475,13 @@ class RazorpaySettings(Document):
 				auth=(settings.api_key, settings.api_secret),
 			)
 
-			if resp.get("status") == "authorized":
+			# //// Neoffice — Razorpay was only asked whether the payment exists: one small real payment
+			# //// settled any request, as many times as there are requests. It must be the payment of this
+			# //// request.
+			if not _is_for_this_request(resp, data, self.integration_request.name):
+				frappe.log_error("Razorpay Payment not authorized", str(resp))
+
+			elif resp.get("status") == "authorized":
 				self.integration_request.update_status(data, "Authorized")
 				self.flags.status_changed_to = "Authorized"
 
@@ -618,8 +652,13 @@ def get_api_key():
 	return controller.api_key
 
 
+# //// Neoffice — the four doors below answer only on a site with Razorpay, and `str` on every parameter that
+# //// names a document: a JSON body made a dict of it, which frappe.get_doc read as a filter on the whole
+# //// table.
 @frappe.whitelist(allow_guest=True)
-def get_order(doctype, docname):
+@rate_limit(limit=_GUEST_CALLS_PER_MINUTE, seconds=60)
+def get_order(doctype: str, docname: str):
+	_require_razorpay()
 	# Order returned to be consumed by razorpay.js
 	doc = frappe.get_doc(doctype, docname)
 	try:
@@ -630,12 +669,15 @@ def get_order(doctype, docname):
 		# //// _("Controller method get_razorpay_order missing"))`, which the swap hack in
 		# //// `frappe/utils/error.py` already fixed at runtime (the title held newlines and
 		# //// a message was present, so the two were exchanged). Same result, written out.
-		frappe.log_error(_("Controller method get_razorpay_order missing"), frappe.get_traceback())
+		# //// Neoffice — once an hour: a guest naming any document wrote a row per call.
+		log_once_an_hour(_("Controller method get_razorpay_order missing"), frappe.get_traceback())
 		frappe.throw(_("Could not create Razorpay order. Please contact Administrator"))
 
 
+# //// Neoffice — limited and annotated, see the marker of get_order.
 @frappe.whitelist(allow_guest=True)
-def order_payment_success(integration_request, params):
+@rate_limit(limit=_GUEST_CALLS_PER_MINUTE, seconds=60)
+def order_payment_success(integration_request: str, params: str):
 	"""Called by razorpay.js on order payment success, the params
 	contains razorpay_payment_id, razorpay_order_id, razorpay_signature
 	that is updated in the data field of integration request
@@ -644,15 +686,17 @@ def order_payment_success(integration_request, params):
 	        integration_request (string): Name for integration request doc
 	        params (string): Params to be updated for integration request.
 	"""
-	params = json.loads(params)
-	integration = frappe.get_doc("Integration Request", integration_request)
+	integration = _razorpay_request(integration_request)
+	params = _callback_params(params, _CALLBACK_KEYS)
+	controller = frappe.get_doc("Razorpay Settings")
+	# //// Neoffice — upstream's verify_signature had no caller.
+	_verify_order_signature(controller, integration, params)
 
 	# Update integration request
 	integration.update_status(params, integration.status)
 	integration.reload()
 
 	data = json.loads(integration.data)
-	controller = frappe.get_doc("Razorpay Settings")
 
 	# Update payment and integration data for payment controller object
 	controller.integration_request = integration
@@ -662,8 +706,10 @@ def order_payment_success(integration_request, params):
 	controller.authorize_payment()
 
 
+# //// Neoffice — limited and annotated, see the marker of get_order.
 @frappe.whitelist(allow_guest=True)
-def order_payment_failure(integration_request, params):
+@rate_limit(limit=_GUEST_CALLS_PER_MINUTE, seconds=60)
+def order_payment_failure(integration_request: str, params: str):
 	"""Called by razorpay.js on failure
 
 	Args:
@@ -676,9 +722,12 @@ def order_payment_failure(integration_request, params):
 	# //// per distinct payload. Swapped: the title stays upstream's, because that is what
 	# //// makes the entry findable, and the payload becomes the message where it fits
 	# //// whole. A generic constant title stood here until 2026-09-04.
-	frappe.log_error("Razorpay Payment Failure", params)
-	params = json.loads(params)
-	integration = frappe.get_doc("Integration Request", integration_request)
+	# //// Neoffice — after the request is proven, and bounded: this row came first, whatever the caller sent,
+	# //// with a value up to the size of the request. A guest filled the Error Log with no Razorpay on the
+	# //// site.
+	integration = _razorpay_request(integration_request)
+	params = _callback_params(params, _FAILURE_KEYS)
+	frappe.log_error("Razorpay Payment Failure", json.dumps(params))
 	integration.update_status(params, integration.status)
 
 
@@ -689,8 +738,12 @@ def convert_rupee_to_paisa(**kwargs):
 	frappe.conf.converted_rupee_to_paisa = True
 
 
+# //// Neoffice — limited: it spends one call to Razorpay, with the merchant's key, per request.
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=_GUEST_CALLS_PER_MINUTE, seconds=60)
 def razorpay_subscription_callback():
+	# //// Neoffice — before the try and before any outbound call: each guest POST called Razorpay.
+	_require_razorpay()
 	try:
 		data = frappe.local.form_dict
 
@@ -725,7 +778,8 @@ def razorpay_subscription_callback():
 		# //// expected, and `frappe.log()` only appends to `debug_log` (it never writes an
 		# //// Error Log) so it merely stringified the doc that log_error had just written.
 		# //// TO REVIEW: `e` is now bound but unused in this except clause.
-		frappe.log_error("Error in Razorpay webhook handling", frappe.get_traceback())
+		# //// Neoffice — once an hour: a junk body wrote a row per call.
+		log_once_an_hour("Error in Razorpay webhook handling", frappe.get_traceback())
 
 
 def validate_payment_callback(data):
@@ -752,3 +806,67 @@ def validate_payment_callback(data):
 
 def handle_subscription_notification(doctype, docname):
 	call_hook_method("handle_subscription_notification", doctype=doctype, docname=docname)
+
+
+# //// Neoffice — the guards of the guest doors of this file. No client uses Razorpay: on a site with no
+# //// account they refuse first, which closes the Error Log rows and the outbound calls. On a site with one,
+# //// they bind a callback to the Integration Request it names, with the checks upstream left unused.
+def _require_razorpay() -> None:
+	if not (frappe.db.get_single_value("Razorpay Settings", "api_key") or frappe.conf.sandbox_api_key):
+		frappe.throw(_("Razorpay is not configured on this site"), frappe.PermissionError)
+
+
+def _razorpay_request(name: str):
+	"""An open Integration Request of this gateway, or ``frappe.PermissionError``."""
+	_require_razorpay()
+	row = None
+	if name and isinstance(name, str):
+		row = frappe.db.get_value(
+			"Integration Request", name, ["integration_request_service", "status"], as_dict=True
+		)
+	if not row or row.integration_request_service != "Razorpay" or row.status != "Queued":
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	return frappe.get_doc("Integration Request", name)
+
+
+def _callback_params(params: str, keys: tuple) -> dict:
+	"""The ``keys`` of a browser's JSON, or ``frappe.PermissionError``: nothing else is stored."""
+	try:
+		parsed = json.loads(params) if len(params) <= _MAX_CALLBACK_CHARS else None
+	except (TypeError, ValueError):
+		parsed = None
+	if not isinstance(parsed, dict):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	return {key: parsed[key] for key in keys if key in parsed}
+
+
+def _verify_order_signature(controller, integration, params: dict) -> None:  # noqa: ANN001
+	"""Razorpay signs `order|payment` with the key secret: the order is the one this request created."""
+	stored = json.loads(integration.data)
+	payment_id = params.get("razorpay_payment_id")
+	signature = str(params.get("razorpay_signature") or "").encode("ascii", "ignore").decode()
+	secret = controller.get_settings(stored).api_secret or ""
+	controller.verify_signature(f"{stored.get('razorpay_order_id')}|{payment_id}", signature, secret)
+
+
+def _is_for_this_request(payment: dict, data: dict, integration_request: str) -> bool:
+	"""The payment Razorpay describes is the one this Integration Request asks for.
+
+	An order is bound by its id and stored its amount in paise. The checkout page has no order: it writes the
+	request's name in the payment's notes, and stored its amount in rupees; razorpay.js truncates that amount,
+	hence the one paisa of tolerance. A subscription's charges are the plan's, Razorpay checks them.
+	"""
+	if data.get("subscription_id"):
+		return True
+	asked = flt(data.get("amount"))
+	if data.get("razorpay_order_id"):
+		same = payment.get("order_id") == data.get("razorpay_order_id")
+	else:
+		same = (payment.get("notes") or {}).get("token") == integration_request
+		asked *= 100
+	currency = (data.get("currency") or "INR").upper()
+	return (
+		same
+		and abs(flt(payment.get("amount")) - asked) <= 1
+		and str(payment.get("currency") or "").upper() == currency
+	)

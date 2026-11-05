@@ -28,9 +28,19 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils import now_datetime
+# //// Neoffice — rate_limit, flt and web_checkout serve the guest doors of the webshop helpers below.
+from frappe.rate_limiter import rate_limit
+from frappe.utils import flt, now_datetime
 
 from payments.drivers.wallee.provider import WalleeProvider
+from payments.integrations.web_checkout import (
+	SCRIPT_URLS_PER_MINUTE,
+	WEB_TRANSACTIONS_PER_MINUTE,
+	refusal,
+	require_own_request,
+	require_own_transaction,
+	require_provider_choice,
+)
 
 from payments.api.terminal import SETUP_ROLES  # //// Neoffice — maintenance#1732
 
@@ -600,13 +610,42 @@ def _build_billing_address_from_quotation(quotation_doc) -> dict[str, Any] | Non
 	return addr
 
 
+# //// Neoffice — see where create_web_transaction calls it.
+def _lines_add_up(line_items: list[dict[str, Any]], pr) -> bool:  # noqa: ANN001
+	"""Wallee charges the sum of the lines, so they must say what the request asks."""
+	total = sum(flt(line.get("amount_including_tax")) for line in line_items)
+	return abs(total - flt(pr.grand_total)) < 0.005
+
+
+# //// Neoffice — both addresses came from the browser as they were: Wallee sent a buyer wherever it said.
+def _return_url(wanted: str | None, page: str, payment_request_id: str) -> str:
+	"""Where Wallee sends the buyer back: a page of this site, for this request, whatever the browser asked.
+
+	The checkout sends ``window.location.origin``, which is worth keeping: a shop served on a second domain
+	brings its buyer back to the domain that holds their session. Only that origin is read from the value.
+	"""
+	from urllib.parse import quote, urlsplit
+
+	base = frappe.utils.get_url()
+	try:
+		parts = urlsplit(wanted) if isinstance(wanted, str) else None
+	except ValueError:
+		parts = None
+	hosts = {urlsplit(base).netloc, frappe.request.host if frappe.request else None}
+	if parts and parts.scheme in ("http", "https") and parts.netloc in hosts:
+		base = f"{parts.scheme}://{parts.netloc}"
+	return f"{base}/wallee/{page}?payment_request={quote(payment_request_id)}"
+
+
 # //// Neoffice — POST only (maintenance#1721): creates a transaction at Wallee; see sync_locations_from_wallee.
+# //// Neoffice — `line_items` and `billing_address` are gone from the arguments: Wallee charges the lines and
+# //// nothing compared them with the request, so a buyer paid the sum of their choice and the order concluded
+# //// at full price. No caller sent them; Frappe drops an argument the method does not take.
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=WEB_TRANSACTIONS_PER_MINUTE, seconds=60, methods=["POST"])
 def create_web_transaction(
 	payment_request_id: str,
 	mode: str = "Redirect",
-	line_items: list[dict[str, Any]] | str | None = None,
-	billing_address: dict[str, Any] | str | None = None,
 	success_url: str | None = None,
 	failed_url: str | None = None,
 	provider: str | None = None,
@@ -620,59 +659,57 @@ def create_web_transaction(
 	  payment_request_id: name of the Frappe Payment Request created by
 	    ``webshop.controllers.payment_handler.create_payment_request``.
 	  mode: ``Redirect`` | ``Lightbox`` | ``iFrame``.
-	  line_items: optional override. If omitted, built from the quotation
-	    referenced by the Payment Request.
-	  billing_address: optional override. If omitted, built from the quotation.
-	  success_url / failed_url: optional overrides for the Wallee return URLs.
-	    Defaults derived from the Payment Request id so ``/wallee/success`` can
-	    resolve the right Payment Intent.
+	  success_url / failed_url: the browser's own origin for the Wallee return URLs,
+	    see :func:`_return_url`. The address itself is derived from the Payment
+	    Request id so ``/wallee/success`` can resolve the right Payment Intent.
 	  provider: optional Wallee provider name; first enabled is used otherwise.
 	"""
-	import json as _json
-
 	from payments.api.intent import create_intent
 
-	# Accept JSON strings (Frappe HTTP layer may pass them as strings).
-	if isinstance(line_items, str):
-		line_items = _json.loads(line_items) if line_items else None
-	if isinstance(billing_address, str):
-		billing_address = _json.loads(billing_address) if billing_address else None
+	# //// Neoffice — it opened a transaction on any request a guest named, at the provider a guest named,
+	# //// with no limit. The request must be the caller's, see web_checkout.py; an unknown name answers like
+	# //// a stranger's.
+	pr = require_own_request(payment_request_id)
+	require_provider_choice(provider)
 
-	mode = (mode or "Redirect").strip()
+	mode = str(mode or "Redirect").strip()
 	if mode not in ("Redirect", "Lightbox", "iFrame"):
 		frappe.throw(_("Invalid Wallee mode: {0}").format(mode))
 
-	pr = frappe.get_doc("Payment Request", payment_request_id)
-	if pr.payment_request_type != "Inward":
-		frappe.throw(_("Payment Request {0} is not Inward").format(payment_request_id))
+	refused = refusal(pr, payment_request_id, "wallee_web")
+	if refused:
+		return {"status": "error", "message": refused, "payment_request_id": payment_request_id}
 
-	# Auto-build line_items / billing_address from the Quotation when not provided.
+	# Build line_items / billing_address from the Quotation.
+	line_items = billing_address = None
 	# //// Neoffice — the webshop raises its request on the cart's PLACEHOLDER Sales Order, not on the quotation, since
 	# //// upstream ERPNext refuses a Payment Request against a Quotation (webshop pending_order.py). The order carries
 	# //// the cart's lines, taxes, contact and address (it is built from it): both read the same way.
 	# //// Neoffice — only a request the CHECKOUT raised (`from_checkout`, set by the webshop): one raised on an order from the
 	# //// desk (a deposit, a part of its total) keeps charging its own amount, which the lines of the order would replace.
-	if not line_items and (
-		pr.reference_doctype == "Quotation"
-		or (pr.reference_doctype == "Sales Order" and pr.get("from_checkout"))
+	if pr.reference_doctype == "Quotation" or (
+		pr.reference_doctype == "Sales Order" and pr.get("from_checkout")
 	):
 		try:
 			quotation = frappe.get_doc(pr.reference_doctype, pr.reference_name)
 			line_items = _build_line_items_from_quotation(quotation)
-			if not billing_address:
-				billing_address = _build_billing_address_from_quotation(quotation)
+			billing_address = _build_billing_address_from_quotation(quotation)
 		except frappe.DoesNotExistError:
 			pass
 
+	# //// Neoffice — the lines leave out what a document discounts, rounds or taxes on top. The request's
+	# //// amount is the one every other part of the payment reads, so lines that do not reach it give way to
+	# //// the driver's single line for that amount.
+	if line_items and not _lines_add_up(line_items, pr):
+		line_items = None
+
 	provider_name = _resolve_wallee_provider_name(provider)
 
-	# Default callback URLs include the PR id so ``/wallee/success`` can
+	# Callback URLs include the PR id so ``/wallee/success`` can
 	# resolve the Payment Intent by reference (legacy compat path).
-	base_url = frappe.utils.get_url()
-	if not success_url:
-		success_url = f"{base_url}/wallee/success?payment_request={payment_request_id}"
-	if not failed_url:
-		failed_url = f"{base_url}/wallee/failed?payment_request={payment_request_id}"
+	# //// Neoffice — never an address of the browser's choice: see _return_url.
+	success_url = _return_url(success_url, "success", payment_request_id)
+	failed_url = _return_url(failed_url, "failed", payment_request_id)
 
 	metadata = {
 		"line_items": line_items,
@@ -725,12 +762,10 @@ def create_web_transaction(
 	if mode == "Redirect":
 		result["payment_url"] = payment_url
 	elif mode == "Lightbox":
-		result["javascript_url"] = get_lightbox_javascript_url(transaction_id, provider=provider_name)
+		result["javascript_url"] = _lightbox_javascript_url(transaction_id, provider_name)
 	elif mode == "iFrame":
-		result["javascript_url"] = get_iframe_javascript_url(transaction_id, provider=provider_name)
-		methods = get_payment_method_configurations(
-			transaction_id, integration_mode="IFRAME", provider=provider_name
-		)
+		result["javascript_url"] = _iframe_javascript_url(transaction_id, provider_name)
+		methods = _payment_method_configurations(transaction_id, "IFRAME", provider_name)
 		if methods:
 			result["payment_method_id"] = methods[0]["id"]
 			result["payment_methods"] = methods
@@ -738,28 +773,51 @@ def create_web_transaction(
 	return result
 
 
+# //// Neoffice — the guard of the three doors below.
+def _own_transaction_provider(transaction_id: int | str, provider: str | None) -> str:
+	"""The provider of a transaction whose checkout is the caller's, or ``frappe.PermissionError``."""
+	require_provider_choice(provider)
+	intent = require_own_transaction(transaction_id)
+	return provider or intent.provider
+
+
+# //// Neoffice — the three doors below sent a request to Wallee, with the merchant's key, for any number a
+# //// guest named, as often as it liked. Now a transaction of the caller's own checkout. No page calls them
+# //// over HTTP: create_web_transaction hands the addresses back itself, through the private functions they
+# //// wrap.
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=SCRIPT_URLS_PER_MINUTE, seconds=60)
 def get_lightbox_javascript_url(transaction_id: int | str, provider: str | None = None) -> str:
 	"""Fetch the Wallee Lightbox JS URL for a created transaction."""
+	return _lightbox_javascript_url(transaction_id, _own_transaction_provider(transaction_id, provider))
+
+
+def _lightbox_javascript_url(transaction_id: int | str, provider_name: str) -> str:
 	from wallee import TransactionsService
 
-	prov = _provider(_resolve_wallee_provider_name(provider))
+	prov = _provider(provider_name)
 	service = TransactionsService(prov.build_configuration())
 	# SDK signature: (transaction_id, space_id)
 	return str(service.get_payment_transactions_id_lightbox_javascript_url(int(transaction_id), prov.space_id))
 
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=SCRIPT_URLS_PER_MINUTE, seconds=60)
 def get_iframe_javascript_url(transaction_id: int | str, provider: str | None = None) -> str:
 	"""Fetch the Wallee iFrame JS URL for a created transaction."""
+	return _iframe_javascript_url(transaction_id, _own_transaction_provider(transaction_id, provider))
+
+
+def _iframe_javascript_url(transaction_id: int | str, provider_name: str) -> str:
 	from wallee import TransactionsService
 
-	prov = _provider(_resolve_wallee_provider_name(provider))
+	prov = _provider(provider_name)
 	service = TransactionsService(prov.build_configuration())
 	return str(service.get_payment_transactions_id_iframe_javascript_url(int(transaction_id), prov.space_id))
 
 
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=SCRIPT_URLS_PER_MINUTE, seconds=60)
 def get_payment_method_configurations(
 	transaction_id: int | str,
 	integration_mode: str = "IFRAME",
@@ -770,9 +828,17 @@ def get_payment_method_configurations(
 	``integration_mode`` is one of ``IFRAME``, ``LIGHTBOX``, ``PAYMENT_PAGE``.
 	Used by the iFrame flow to pick which payment method tab to display.
 	"""
+	return _payment_method_configurations(
+		transaction_id, integration_mode, _own_transaction_provider(transaction_id, provider)
+	)
+
+
+def _payment_method_configurations(
+	transaction_id: int | str, integration_mode: str, provider_name: str
+) -> list[dict[str, Any]]:
 	from wallee import TransactionsService
 
-	prov = _provider(_resolve_wallee_provider_name(provider))
+	prov = _provider(provider_name)
 	service = TransactionsService(prov.build_configuration())
 
 	response = service.get_payment_transactions_id_payment_method_configurations(

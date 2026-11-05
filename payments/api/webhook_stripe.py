@@ -13,7 +13,8 @@
 Implements the recommended pattern (compass §6):
 
 1. Capture the **raw** request body (Werkzeug caches it once).
-2. Verify the Stripe signature against the configured webhook secret.
+2. Verify the Stripe signature against the webhook secret of the provider that
+   signed it (:mod:`payments.api.webhook_common`). No valid signature, no row.
 3. Deduplicate via the unique index on ``Webhook Event Log.event_id``.
 4. Insert the log row with status ``Queued``, ``frappe.db.commit()``.
 5. Enqueue a background job with a deterministic ``job_id`` and
@@ -22,9 +23,9 @@ Implements the recommended pattern (compass §6):
    log row but does not surface to Stripe (otherwise we trigger a retry storm).
 
 The actual event handling lives in :func:`process_event`, which is the RQ job
-target. It loads the driver corresponding to the provider, calls its
-``handle_webhook`` method, and applies the resulting transition to the Payment
-Intent FSM.
+target. It loads the driver of the provider that proved the delivery, reads the
+row with its ``parse_verified_event`` method, and applies the resulting transition
+to the Payment Intent FSM, for an intent that provider holds.
 """
 
 from __future__ import annotations
@@ -32,16 +33,17 @@ from __future__ import annotations
 import json
 
 import frappe
-from frappe import _
 
 # Stripe provider records are detected by their driver_class (any class under
 # ``payments.drivers.stripe.*``). This avoids hard-coding a single provider name
-# — operators can have ``stripe_test`` + ``stripe_live`` cohabiting and the
-# webhook just resolves the first enabled match.
+# — operators can have ``stripe_test`` + ``stripe_live`` cohabiting, each with its
+# own secret: see :func:`payments.api.webhook_common.signed_delivery`.
+# //// Neoffice — the pattern of the two helpers that stood here, gone with them to webhook_common.
+_STRIPE_DRIVERS = "payments.drivers.stripe.%"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-def handle() -> str:
+def handle() -> str:  # permission-check: ok the caller is the provider, its signature is the proof
 	"""Stripe webhook receiver. Returns plain text for Stripe's UI.
 
 	NOTE: ``allow_guest=True`` is required because Stripe does not authenticate
@@ -49,29 +51,19 @@ def handle() -> str:
 	"""
 	# 1. Raw body — must not be parsed/re-serialized or signature breaks.
 	payload: bytes = frappe.request.get_data() or b""
-	signature: str | None = frappe.get_request_header("Stripe-Signature")
 
 	# Lazy import to keep module load fast and to allow the driver layer to be
 	# patched in tests.
-	from payments.drivers.registry import DriverResolutionError, resolve_driver
+	from payments.api.webhook_common import provider_of, refuse_delivery, signed_delivery
 
-	# 2. Resolve the Stripe webhook driver. For Phase 1 we resolve any
-	#    (stripe, *) binding because the webhook is provider-scoped not
-	#    channel-scoped; we pick the first enabled binding to obtain the secret.
-	try:
-		driver = _resolve_stripe_webhook_driver()
-	except DriverResolutionError as exc:
-		# No Stripe provider configured — drop the call but log so ops can react.
-		frappe.log_error("Stripe webhook unresolved provider", str(exc))
-		frappe.local.response["http_status_code"] = 503
-		return "stripe provider not configured"
-
-	# 3. Verify signature + parse via the driver.
-	result = driver.handle_webhook(payload, dict(frappe.request.headers or {}))
-
-	if not result.signature_valid:
-		frappe.local.response["http_status_code"] = 400
-		return "invalid signature"
+	# 2. + 3. Verify the signature + parse via the driver.
+	# //// Neoffice — against every enabled Stripe binding, and with one refusal for all reasons. Only the
+	# //// provider saved last was asked, whose secret is not the one of an intent of the other provider; a
+	# //// site with no Stripe answered 503 and wrote one Error Log row per anonymous POST, which told a guest
+	# //// what it has.
+	driver, result = signed_delivery(_STRIPE_DRIVERS, payload, dict(frappe.request.headers or {}))
+	if not driver:
+		return refuse_delivery("Stripe", result.error_code if result else None)
 
 	# 4. Idempotency — dedup via unique index on Webhook Event Log.event_id.
 	if frappe.db.exists("Webhook Event Log", result.event_id):
@@ -83,7 +75,9 @@ def handle() -> str:
 		{
 			"doctype": "Webhook Event Log",
 			"event_id": result.event_id,
-			"provider": _stripe_provider_name() or "stripe",
+			# //// Neoffice — the provider that proved it: the worker reads the row with this provider's
+			# //// driver.
+			"provider": provider_of(driver),
 			"event_type": result.event_type,
 			"signature_valid": 1,
 			"status": "Queued",
@@ -101,49 +95,6 @@ def handle() -> str:
 		log_name=log.name,
 	)
 	return "ok"
-
-
-def _stripe_provider_name() -> str | None:
-	"""First enabled Payment Provider record with a Stripe driver class.
-
-	Operators name their providers anything they like (``stripe_test``,
-	``stripe_live``, ``stripe_main``, …) — we detect Stripe via the driver
-	class path instead of a hard-coded record name.
-	"""
-	return frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.stripe.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
-
-
-def _resolve_stripe_webhook_driver():
-	"""Pick the first enabled Stripe binding and resolve its driver.
-
-	The driver is responsible for signature verification against the secret it
-	finds in its ``Provider Channel Settings`` config_json. If multiple Stripe
-	bindings exist (web + terminal), they share the same webhook signing secret
-	per Stripe account, so any of them can verify.
-	"""
-	from payments.drivers.registry import DriverResolutionError, resolve_driver
-
-	provider_name = _stripe_provider_name()
-	if not provider_name:
-		raise DriverResolutionError(_("No enabled Stripe Payment Provider found"))
-
-	binding = frappe.db.get_value(
-		"Provider Channel Settings",
-		{"provider": provider_name, "enabled": 1},
-		["channel"],
-		as_dict=True,
-		order_by="modified desc",
-	)
-	if not binding:
-		raise DriverResolutionError(
-			_("No enabled Provider Channel Settings for {0}").format(provider_name)
-		)
-	return resolve_driver(provider_name, binding["channel"])
 
 
 def _capture_after_action_succeeded(log, driver) -> None:  # noqa: ANN001
@@ -211,6 +162,12 @@ def process_event(log_name: str) -> None:
 	but is NOT re-raised: returning ``200 OK`` to Stripe is the contract.
 	"""
 	log = frappe.get_doc("Webhook Event Log", log_name)
+	# //// Neoffice — this worker trusts its row, so a row that does not say it was proven is not read at all.
+	if not log.signature_valid:
+		log.status = "Failed"
+		log.error = "row stored without a valid signature"
+		log.save(ignore_permissions=True)
+		return
 	try:
 		raw = json.loads(log.raw_payload or "{}")
 	except (ValueError, TypeError) as exc:
@@ -220,8 +177,10 @@ def process_event(log_name: str) -> None:
 		return
 
 	# Re-resolve the driver (cannot pickle it across processes).
+	from payments.api.webhook_common import publish_intent_update, skip_foreign_intent, webhook_drivers
+
 	try:
-		driver = _resolve_stripe_webhook_driver()
+		driver = webhook_drivers(_STRIPE_DRIVERS, log.provider)[0]
 	except Exception as exc:  # noqa: BLE001
 		log.status = "Failed"
 		log.error = f"resolve_driver failed: {exc!r}"
@@ -235,7 +194,8 @@ def process_event(log_name: str) -> None:
 	from frappe.utils import now_datetime
 
 	try:
-		result = driver.handle_webhook(log.raw_payload.encode("utf-8"), headers={})
+		# //// Neoffice — parse_verified_event, not handle_webhook with no headers: see the driver.
+		result = driver.parse_verified_event(log.raw_payload.encode("utf-8"))
 	except Exception as exc:  # noqa: BLE001
 		log.status = "Failed"
 		log.error = f"handle_webhook raised: {exc!r}"
@@ -257,6 +217,10 @@ def process_event(log_name: str) -> None:
 	if result.intent_name and result.target_status:
 		try:
 			intent_doc = frappe.get_doc("Payment Intent", result.intent_name)
+			# //// Neoffice — nothing compared the provider: the metadata named any intent, of any PSP.
+			if intent_doc.provider != log.provider:
+				skip_foreign_intent(log, intent_doc)
+				return
 			intent_doc.transition_to(
 				result.target_status,
 				event_source="webhook",
@@ -268,14 +232,14 @@ def process_event(log_name: str) -> None:
 			)
 			log.intent = result.intent_name
 			# Push the new state to the frontend (POSNext) via SocketIO.
-			frappe.publish_realtime(
-				event=f"payment.intent.{result.intent_name}.updated",
-				message={
+			# //// Neoffice — to the account that started it, see publish_intent_update.
+			publish_intent_update(
+				intent_doc,
+				{
 					"intent_name": result.intent_name,
 					"status": intent_doc.status,
 					"event_type": result.event_type,
 				},
-				after_commit=True,
 			)
 		except frappe.DoesNotExistError:
 			log.status = "Skipped"

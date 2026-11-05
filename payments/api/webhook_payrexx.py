@@ -61,7 +61,7 @@ from payments.drivers.payrexx._common import NEEDS_HUMAN, map_status
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-def handle() -> str:
+def handle() -> str:  # permission-check: ok the caller is the provider, its signature is the proof
 	"""Payrexx webhook receiver.
 
 	NOTE: ``allow_guest=True`` is required because Payrexx does not authenticate
@@ -70,32 +70,24 @@ def handle() -> str:
 	payload: bytes = frappe.request.get_data() or b""
 	headers = dict(frappe.request.headers or {})
 
+	# //// Neoffice — one refusal for all reasons: 503 and two messages told a guest what the site has, and
+	# //// each call left an Error Log row.
+	from payments.api.webhook_common import refuse_delivery
+
 	provider_name = _payrexx_provider_name()
 	if not provider_name:
-		frappe.log_error(
-			"Payrexx webhook unresolved provider",
-			"No enabled Payment Provider with a payments.drivers.payrexx.* driver_class",
-		)
-		frappe.local.response["http_status_code"] = 503
-		return "payrexx provider not configured"
+		return refuse_delivery("Payrexx", "no enabled provider")
 
 	signing_key = _signing_key(provider_name)
 	if not signing_key:
 		# Refusing is deliberate: an unverified webhook is attacker-controlled
 		# input, and accepting it would let anyone mark an invoice paid.
-		frappe.log_error(
-			"Payrexx webhook rejected: no signing key",
-			f"Payment Provider {provider_name} has no 'webhook_signing_key' in "
-			f"credentials_json. Copy it from the Payrexx back office (Webhooks).",
-		)
-		frappe.local.response["http_status_code"] = 503
-		return "webhook signing key not configured"
+		return refuse_delivery("Payrexx", f"no webhook_signing_key on {provider_name}")
 
 	result = parse_delivery(payload, headers, signing_key=signing_key)
 
 	if not result.signature_valid:
-		frappe.local.response["http_status_code"] = 400
-		return "invalid signature"
+		return refuse_delivery("Payrexx", result.error_code)
 
 	if frappe.db.exists("Webhook Event Log", result.event_id):
 		return "ok"
@@ -125,14 +117,33 @@ def handle() -> str:
 
 
 def parse_delivery(
-	payload: bytes, headers: dict[str, str], *, signing_key: str | None
+	payload: bytes,
+	headers: dict[str, str],
+	*,
+	signing_key: str | None,
+	already_verified: bool = False,
 ) -> WebhookResult:
 	"""Verify and parse a delivery into a :class:`WebhookResult`.
 
 	Shared by both Payrexx drivers, since one webhook stream serves every channel.
 	Never raises: a malformed or unsigned delivery comes back with
 	``signature_valid=False`` so the caller answers ``400`` rather than ``500``.
+
+	``already_verified`` is for the worker alone, which reads a row a proven delivery
+	wrote. Any other caller with no key gets a refusal.
 	"""
+	# //// Neoffice — parse_webhook checks nothing without a key, so the drivers' handle_webhook of a provider
+	# //// with no signing key read any body as signature_valid=True. No route calls them today; the rule
+	# //// holds anyway.
+	if not signing_key and not already_verified:
+		return WebhookResult(
+			event_id="payrexx_invalid",
+			event_type="unknown",
+			signature_valid=False,
+			error_code="no_signing_key",
+			error_message="no webhook_signing_key to verify this delivery with",
+		)
+
 	try:
 		from payrexx import parse_webhook
 	except ImportError:  # pragma: no cover - environment issue
@@ -341,13 +352,24 @@ def process_event(log_name: str) -> None:
 	"""
 	from frappe.utils import now_datetime
 
+	from payments.api.webhook_common import publish_intent_update, skip_foreign_intent
+
 	log = frappe.get_doc("Webhook Event Log", log_name)
+
+	# //// Neoffice — this worker trusts its row, so a row that does not say it was proven is not read at all.
+	if not log.signature_valid:
+		log.status = "Failed"
+		log.error = "row stored without a valid signature"
+		log.save(ignore_permissions=True)
+		frappe.db.commit()
+		return
 
 	try:
 		result = parse_delivery(
 			(log.raw_payload or "").encode("utf-8"),
 			headers={},
-			signing_key=None,  # already verified at ingress; re-checking is pointless
+			signing_key=None,
+			already_verified=True,  # at ingress; re-checking is pointless
 		)
 
 		if not result.intent_name or not frappe.db.exists("Payment Intent", result.intent_name):
@@ -364,6 +386,15 @@ def process_event(log_name: str) -> None:
 			return
 
 		intent = frappe.get_doc("Payment Intent", result.intent_name)
+
+		# //// Neoffice — an intent is moved by the account that holds it: the reference named any intent, of
+		# //// any PSP. Compared on the signing key: two provider records may stand for one account, and a
+		# //// terminal intent of one of them must not lose its delivery to the other.
+		if not _same_account(intent.provider, log.provider):
+			skip_foreign_intent(log, intent)
+			frappe.db.commit()
+			return
+
 		log.intent = intent.name
 
 		if result.target_status:
@@ -392,11 +423,8 @@ def process_event(log_name: str) -> None:
 			if redirect_to:
 				extra["redirect_to"] = redirect_to
 
-		frappe.publish_realtime(
-			f"payment.intent.{intent.name}.updated",
-			{"intent_name": intent.name, "status": intent.status, **extra},
-			after_commit=True,
-		)
+		# //// Neoffice — to the account that started it, see publish_intent_update.
+		publish_intent_update(intent, {"intent_name": intent.name, "status": intent.status, **extra})
 	except Exception as exc:  # noqa: BLE001 - a job failure must not retry forever
 		log.status = "Failed"
 		log.error = str(exc)[:2000]
@@ -502,6 +530,14 @@ def _signing_key(provider_name: str) -> str | None:
 	creds = provider_doc.get_credentials() or {}
 	value = creds.get("webhook_signing_key")
 	return str(value).strip() if value else None
+
+
+# //// Neoffice — see where process_event calls it.
+def _same_account(provider: str, other: str) -> bool:
+	if provider == other:
+		return True
+	key = _signing_key(provider)
+	return bool(key) and key == _signing_key(other)
 
 
 def _safe_truncate(payload: bytes, max_bytes: int = 200_000) -> str:

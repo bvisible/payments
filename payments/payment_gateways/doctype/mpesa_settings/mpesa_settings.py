@@ -24,7 +24,8 @@ import frappe
 from frappe import _
 from frappe.integrations.utils import create_request_log
 from frappe.model.document import Document
-from frappe.utils import call_hook_method, fmt_money, get_request_site_address
+# //// Neoffice — flt: the amount of a callback is capped by what this site asked for.
+from frappe.utils import call_hook_method, flt, fmt_money, get_request_site_address
 
 from payments.payment_gateways.doctype.mpesa_settings.mpesa_connector import MpesaConnector
 from payments.payment_gateways.doctype.mpesa_settings.mpesa_custom_fields import (
@@ -184,13 +185,17 @@ def sanitize_mobile_number(number):
 @frappe.whitelist(allow_guest=True)
 def verify_transaction(**kwargs):
 	"""Verify the transaction result received via callback from stk."""
-	transaction_response = frappe._dict(kwargs["Body"]["stkCallback"])
+	# //// Neoffice — Safaricom signs nothing, so the id it was given is the only proof of this callback, and
+	# //// that id is never shown to a buyer. Any Integration Request of any gateway was accepted, whose name
+	# //// a buyer may hold.
+	_require_mpesa()
+	transaction_response = frappe._dict(_callback_part(kwargs, "Body", "stkCallback"))
 
 	checkout_id = getattr(transaction_response, "CheckoutRequestID", "")
 	if not isinstance(checkout_id, str):
 		frappe.throw(_("Invalid Checkout Request ID"))
 
-	integration_request = frappe.get_doc("Integration Request", checkout_id)
+	integration_request = _mpesa_request(checkout_id)
 	transaction_data = frappe._dict(loads(integration_request.data))
 	total_paid = 0  # for multiple integration request made against a pos invoice
 	success = False  # for reporting successfull callback to point of sale ui
@@ -200,6 +205,8 @@ def verify_transaction(**kwargs):
 			try:
 				item_response = transaction_response["CallbackMetadata"]["Item"]
 				amount = fetch_param_value(item_response, "Amount", "Name")
+				# //// Neoffice — never more than this site asked for: the amount is the server's.
+				amount = min(flt(amount), flt(transaction_data.get("request_amount") or amount))
 				mpesa_receipt = fetch_param_value(item_response, "MpesaReceiptNumber", "Name")
 				pr = frappe.get_doc(
 					integration_request.reference_doctype, integration_request.reference_docname
@@ -298,13 +305,15 @@ def get_account_balance(request_payload):
 @frappe.whitelist(allow_guest=True)
 def process_balance_info(**kwargs):
 	"""Process and store account balance information received via callback from the account balance API call."""
-	account_balance_response = frappe._dict(kwargs["Result"])
+	# //// Neoffice — same proof as verify_transaction.
+	_require_mpesa()
+	account_balance_response = frappe._dict(_callback_part(kwargs, "Result"))
 
 	conversation_id = getattr(account_balance_response, "ConversationID", "")
 	if not isinstance(conversation_id, str):
 		frappe.throw(_("Invalid Conversation ID"))
 
-	request = frappe.get_doc("Integration Request", conversation_id)
+	request = _mpesa_request(conversation_id, also=("Completed",))
 
 	if request.status == "Completed":
 		return
@@ -336,6 +345,34 @@ def process_balance_info(**kwargs):
 			frappe.log_error("Mpesa Account Balance Processing Error", account_balance_response)
 	else:
 		request.handle_failure(account_balance_response)
+
+
+# //// Neoffice — the guards of the two guest callbacks above. No client uses M-Pesa: refused first on a site
+# //// with no account. A junk body is a refusal too: it was a KeyError, a 500 and a snapshot per anonymous
+# //// call.
+def _require_mpesa() -> None:
+	if not frappe.db.exists("Mpesa Settings", {"consumer_key": ["is", "set"]}):
+		frappe.throw(_("M-Pesa is not configured on this site"), frappe.PermissionError)
+
+
+def _callback_part(body: dict, *path: str) -> dict:
+	for key in path:
+		body = body.get(key) if isinstance(body, dict) else None
+	if not isinstance(body, dict):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	return body
+
+
+def _mpesa_request(name: str, also: tuple = ()):
+	"""The open Integration Request of a call this site made to M-Pesa, or ``frappe.PermissionError``."""
+	row = None
+	if name:
+		row = frappe.db.get_value(
+			"Integration Request", name, ["integration_request_service", "status"], as_dict=True
+		)
+	if not row or row.integration_request_service != "Mpesa" or row.status not in ("Queued", *also):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	return frappe.get_doc("Integration Request", name)
 
 
 def format_string_to_json(balance_info):

@@ -20,13 +20,15 @@ Same shape as :mod:`payments.api.webhook_stripe`:
 4. Persist + enqueue with ``deduplicate=True``.
 5. Reply ``200 OK`` in < 1s.
 
-The RQ worker (``process_event``) re-resolves the driver, re-parses the body,
-and drives the Payment Intent FSM. SocketIO is published after a successful
-transition so POSNext re-renders the dialog.
+The RQ worker (``process_event``) re-resolves the driver of the provider that
+proved the delivery, re-parses the body, and drives the Payment Intent FSM.
+SocketIO is published after a successful transition so POSNext re-renders the
+dialog.
 
 Convention: the Wallee Payment Provider record is conventionally named
-``wallee_test`` or ``wallee_live``. The webhook handler looks up the first
-enabled binding whose driver class belongs to ``payments.drivers.wallee``.
+``wallee_test`` or ``wallee_live``. The webhook handler asks every enabled binding
+whose driver class belongs to ``payments.drivers.wallee``. A provider with no
+``webhook_secret`` refuses: the poller settles its payments.
 """
 
 from __future__ import annotations
@@ -34,11 +36,13 @@ from __future__ import annotations
 import json
 
 import frappe
-from frappe import _
+
+# //// Neoffice — the pattern of the two helpers that stood below, gone with them to webhook_common.
+_WALLEE_DRIVERS = "payments.drivers.wallee.%"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-def handle() -> str:
+def handle() -> str:  # permission-check: ok the caller is the provider, its signature is the proof
 	"""Wallee webhook receiver. Returns plain text.
 
 	NOTE: ``allow_guest=True`` is required — Wallee does not authenticate with a
@@ -47,27 +51,22 @@ def handle() -> str:
 	"""
 	payload: bytes = frappe.request.get_data() or b""
 
-	from payments.drivers.registry import DriverResolutionError
+	from payments.api.webhook_common import provider_of, refuse_delivery, signed_delivery
 
-	try:
-		driver = _resolve_wallee_webhook_driver()
-	except DriverResolutionError as exc:
-		frappe.log_error("Wallee webhook unresolved provider", str(exc))
-		frappe.local.response["http_status_code"] = 503
-		return "wallee provider not configured"
-
-	result = driver.handle_webhook(payload, dict(frappe.request.headers or {}))
-
-	if not result.signature_valid:
-		frappe.local.response["http_status_code"] = 400
-		return f"invalid signature: {result.error_code or 'unknown'}"
+	# //// Neoffice — against every enabled Wallee provider (each has its Wallee Settings, so its secret), and
+	# //// with one refusal for all reasons: a 503 and the error code told a guest what the site has, and each
+	# //// call left an Error Log row. Only the provider saved last was asked.
+	driver, result = signed_delivery(_WALLEE_DRIVERS, payload, dict(frappe.request.headers or {}))
+	if not driver:
+		return refuse_delivery("Wallee", result.error_code if result else None)
 
 	# Idempotency — dedup via unique index on Webhook Event Log.event_id.
 	if frappe.db.exists("Webhook Event Log", result.event_id):
 		return "ok"
 
 	# Persist + queue.
-	provider_name = _wallee_provider_name()
+	# //// Neoffice — the provider that proved it: the worker reads the row with this provider's driver.
+	provider_name = provider_of(driver)
 	log = frappe.get_doc(
 		{
 			"doctype": "Webhook Event Log",
@@ -102,6 +101,15 @@ def process_event(log_name: str) -> None:
 	log = frappe.get_doc("Webhook Event Log", log_name)
 	from frappe.utils import now_datetime
 
+	from payments.api.webhook_common import publish_intent_update, skip_foreign_intent, webhook_drivers
+
+	# //// Neoffice — this worker trusts its row, so a row that does not say it was proven is not read at all.
+	if not log.signature_valid:
+		log.status = "Failed"
+		log.error = "row stored without a valid signature"
+		log.save(ignore_permissions=True)
+		return
+
 	try:
 		_body = json.loads(log.raw_payload or "{}")  # noqa: F841 — parsed for sanity
 	except (ValueError, TypeError) as exc:
@@ -111,7 +119,7 @@ def process_event(log_name: str) -> None:
 		return
 
 	try:
-		driver = _resolve_wallee_webhook_driver()
+		driver = webhook_drivers(_WALLEE_DRIVERS, log.provider)[0]
 	except Exception as exc:  # noqa: BLE001
 		log.status = "Failed"
 		log.error = f"resolve_driver failed: {exc!r}"
@@ -119,7 +127,8 @@ def process_event(log_name: str) -> None:
 		return
 
 	try:
-		result = driver.handle_webhook(log.raw_payload.encode("utf-8"), headers={})
+		# //// Neoffice — parse_verified_event, not handle_webhook with no headers: see the driver.
+		result = driver.parse_verified_event(log.raw_payload.encode("utf-8"))
 	except Exception as exc:  # noqa: BLE001
 		log.status = "Failed"
 		log.error = f"handle_webhook raised: {exc!r}"
@@ -130,6 +139,10 @@ def process_event(log_name: str) -> None:
 	if result.intent_name and result.target_status:
 		try:
 			intent_doc = frappe.get_doc("Payment Intent", result.intent_name)
+			# //// Neoffice — an intent is moved by the provider that holds it.
+			if intent_doc.provider != log.provider:
+				skip_foreign_intent(log, intent_doc)
+				return
 			intent_doc.transition_to(
 				result.target_status,
 				event_source="webhook",
@@ -156,14 +169,14 @@ def process_event(log_name: str) -> None:
 
 				_finalize_wallee_web_sales_order(intent_doc)
 
-			frappe.publish_realtime(
-				event=f"payment.intent.{result.intent_name}.updated",
-				message={
+			# //// Neoffice — to the account that started it, see publish_intent_update.
+			publish_intent_update(
+				intent_doc,
+				{
 					"intent_name": result.intent_name,
 					"status": intent_doc.status,
 					"event_type": result.event_type,
 				},
-				after_commit=True,
 			)
 		except frappe.DoesNotExistError:
 			log.status = "Skipped"
@@ -180,43 +193,6 @@ def process_event(log_name: str) -> None:
 # ----------------------------------------------------------------------------
 # Internals
 # ----------------------------------------------------------------------------
-
-
-def _resolve_wallee_webhook_driver():
-	"""Pick the first enabled Wallee terminal binding and resolve its driver.
-
-	Wallee webhook secrets are configured per-instance (in ``Wallee Settings``),
-	not per-binding, so any enabled binding can verify the signature.
-	"""
-	from payments.drivers.registry import DriverResolutionError, resolve_driver
-
-	provider_name = _wallee_provider_name()
-	if not provider_name:
-		raise DriverResolutionError(_("No enabled Wallee provider found"))
-
-	binding = frappe.db.get_value(
-		"Provider Channel Settings",
-		{"provider": provider_name, "enabled": 1},
-		["channel"],
-		as_dict=True,
-		order_by="modified desc",
-	)
-	if not binding:
-		raise DriverResolutionError(
-			_("No enabled Provider Channel Settings for {0}").format(provider_name)
-		)
-	return resolve_driver(provider_name, binding["channel"])
-
-
-def _wallee_provider_name() -> str | None:
-	"""First enabled Payment Provider record using a Wallee driver class."""
-	row = frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.wallee.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
-	return row
 
 
 def _safe_truncate(payload: bytes, max_bytes: int = 200_000) -> str:

@@ -22,6 +22,7 @@ Modules:
 - ``terminal``: Stripe Terminal management (readers, locations)
 - ``twint``: TWINT scheduler + helpers (no webhook exists, so state is polled)
 - ``payrexx_setup``: one-call provisioning of the Payrexx provider and bindings
+- ``webhook_common``: what the three receivers share: how a delivery is proven, the one refusal.
 - ``webhook_stripe`` / ``webhook_wallee`` / ``webhook_payrexx``: the per-PSP
   receivers (raw body + signature + dedup + RQ)
 """

@@ -43,6 +43,9 @@ import frappe
 from frappe import _
 from frappe.utils import now_datetime
 
+# //// Neoffice — see _publish_intent_update.
+from payments.api.webhook_common import publish_intent_update
+
 # //// Neoffice — see order_state.py.
 from payments.utils.order_state import submitted_sales_order
 
@@ -95,11 +98,8 @@ def _publish_intent_update(doc, channel: str, target: str, extra: dict[str, Any]
 	}
 	if extra:
 		message.update(extra)
-	frappe.publish_realtime(
-		event=f"payment.intent.{doc.name}.updated",
-		message=message,
-		after_commit=True,
-	)
+	# //// Neoffice — to the account that started it, see publish_intent_update.
+	publish_intent_update(doc, message)
 
 
 def _finalize_webshop_sales_order(doc) -> dict[str, Any] | None:

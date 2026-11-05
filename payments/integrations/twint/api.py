@@ -29,6 +29,15 @@ from typing import Any
 
 import frappe
 from frappe import _
+# //// Neoffice — rate_limit and web_checkout serve create_web_transaction, see there.
+from frappe.rate_limiter import rate_limit
+
+from payments.integrations.web_checkout import (
+	WEB_TRANSACTIONS_PER_MINUTE,
+	refusal,
+	require_own_request,
+	require_provider_choice,
+)
 
 
 def _resolve_twint_provider_name(provider: str | None = None) -> str:
@@ -67,6 +76,7 @@ def _resolve_merchant_uuid_for_provider(provider_name: str) -> str | None:
 # //// Neoffice — POST only (maintenance#1721): it creates (or cancels) a TWINT order through create_intent /
 # //// cancel_intent, and Frappe rolls a GET's transaction back: the PSP would act and the intent would not change.
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=WEB_TRANSACTIONS_PER_MINUTE, seconds=60, methods=["POST"])
 def create_web_transaction(
 	payment_request_id: str,
 	provider: str | None = None,
@@ -89,9 +99,14 @@ def create_web_transaction(
 	from payments.api.intent import create_intent
 	from payments.api.intent_access import web_access_token
 
-	pr = frappe.get_doc("Payment Request", payment_request_id)
-	if pr.payment_request_type != "Inward":
-		frappe.throw(_("Payment Request {0} is not Inward").format(payment_request_id))
+	# //// Neoffice — it opened a transaction on any request a guest named, at the provider a guest named,
+	# //// with no limit. The request must be the caller's, see web_checkout.py; an unknown name answers like
+	# //// a stranger's.
+	pr = require_own_request(payment_request_id)
+	require_provider_choice(provider)
+	refused = refusal(pr, payment_request_id, "twint_web")
+	if refused:
+		return {"status": "error", "message": refused, "payment_request_id": payment_request_id}
 
 	provider_name = _resolve_twint_provider_name(provider)
 	merchant_uuid = _resolve_merchant_uuid_for_provider(provider_name)

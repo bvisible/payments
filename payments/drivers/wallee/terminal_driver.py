@@ -371,41 +371,46 @@ class WalleeTerminalDriver(PaymentDriverBase):
 			or headers.get("x-signature")
 			or headers.get("HTTP_X_SIGNATURE")
 		)
+		# //// Neoffice — a provider in test mode with no secret skipped this check, so a forged body moved
+		# //// any Payment Intent, and `mode` does not even say the provider is a sandbox. No secret, no
+		# //// proof: the delivery is refused, and the poller of this file, which asks Wallee every minute,
+		# //// settles the payment.
 		webhook_secret = self._wallee_provider.webhook_secret
-		# Mode test/debug: when no webhook_secret is configured AND the provider is
-		# in test mode, we accept the webhook without signature verification. This
-		# lets the operator iterate on the UI flow before configuring the secret
-		# on the Wallee dashboard. In live mode the secret is mandatory.
-		provider_mode = getattr(self.provider.provider_doc, "mode", "live")
-		bypass_signature = (provider_mode == "test") and not webhook_secret
+		if not webhook_secret:
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="no_webhook_secret",
+				error_message="Wallee Settings.webhook_secret is not configured",
+			)
+		if not signature:
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="no_signature_header",
+				error_message="X-Signature header missing",
+			)
+		expected = hmac.new(webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
+		# //// Neoffice — compared as bytes: compare_digest raises TypeError on a text that is not ASCII,
+		# //// which any guest could send for a 500.
+		if not hmac.compare_digest(expected.encode(), signature.encode()):
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="invalid_signature",
+				error_message="HMAC mismatch",
+			)
+		return self.parse_verified_event(payload)
 
-		if not bypass_signature:
-			if not webhook_secret:
-				return WebhookResult(
-					event_id="unknown",
-					event_type="unknown",
-					signature_valid=False,
-					error_code="no_webhook_secret",
-					error_message="Wallee Settings.webhook_secret is not configured (required in live mode)",
-				)
-			if not signature:
-				return WebhookResult(
-					event_id="unknown",
-					event_type="unknown",
-					signature_valid=False,
-					error_code="no_signature_header",
-					error_message="X-Signature header missing",
-				)
-			expected = hmac.new(webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
-			if not hmac.compare_digest(expected, signature):
-				return WebhookResult(
-					event_id="unknown",
-					event_type="unknown",
-					signature_valid=False,
-					error_code="invalid_signature",
-					error_message="HMAC mismatch",
-				)
-
+	# //// Neoffice — split from handle_webhook. The worker called handle_webhook with no headers, so on a
+	# //// provider with a secret every genuine delivery came back unproven, was marked Processed and moved
+	# //// nothing: only the poller ever settled a Wallee payment. The worker reads its row here, and no
+	# //// request reaches this method.
+	def parse_verified_event(self, payload: bytes) -> WebhookResult:
+		"""Map a delivery whose signature is proven to an FSM transition."""
 		try:
 			body = json.loads(payload.decode("utf-8") or "{}")
 		except (ValueError, UnicodeDecodeError) as exc:
@@ -441,10 +446,12 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				"name",
 			)
 			# Fallback: try without channel filter (defensive)
+			# //// Neoffice — this provider's intents only: with the id alone, a delivery named an intent of
+			# //// any PSP.
 			if not frappe_intent_name:
 				frappe_intent_name = frappe.db.get_value(
 					"Payment Intent",
-					{"provider_intent_id": str(entity_id)},
+					{"provider_intent_id": str(entity_id), "provider": self.provider.provider_doc.name},
 					"name",
 				)
 			if target_status == "failed":
@@ -539,10 +546,12 @@ def _finalize_wallee_web_sales_order(intent_doc) -> None:  # noqa: ANN001
 		if result and result.get("status") == "success" and result.get("redirect_to"):
 			extra["redirect_to"] = result["redirect_to"]
 		# Push the new state so any open POS/checkout tab can react.
-		frappe.publish_realtime(
-			event=f"payment.intent.{intent_doc.name}.updated",
-			message={"intent_name": intent_doc.name, "status": "succeeded", "channel": "wallee_web", **extra},
-			after_commit=True,
+		# //// Neoffice — to the account that started it, see publish_intent_update.
+		from payments.api.webhook_common import publish_intent_update
+
+		publish_intent_update(
+			intent_doc,
+			{"intent_name": intent_doc.name, "status": "succeeded", "channel": "wallee_web", **extra},
 		)
 	except ImportError:
 		pass  # webshop app not installed on this site

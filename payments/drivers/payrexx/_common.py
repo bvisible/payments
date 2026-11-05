@@ -251,7 +251,11 @@ def resolve_provider_name(channel: str | None = None) -> str | None:
 	pool = live or candidates
 
 	if len(pool) > 1:
-		frappe.log_error(
+		# //// Neoffice — once an hour: this also runs on each anonymous POST to the webhook, one row per
+		# //// call.
+		from payments.api.webhook_common import log_once_an_hour
+
+		log_once_an_hour(
 			"Payrexx provider is ambiguous",
 			f"channel={channel or '-'} candidates={[c.name for c in pool]} — using "
 			f"{pool[0].name}. Disable the ones this site must not use, or pass the "
