@@ -1,5 +1,10 @@
 {% extends "templates/web.html" %}
 
+<!-- //// Neoffice — the template printed `redirect_to` as it came, in a link and in a script, and nothing
+     escapes a page here: a link could run a script on the ERP's origin or send a buyer off the site after
+     4 seconds. `payment_success.py` hands a value that stays on this site, and each place escapes it its
+     own way. Outside any block, so this comment never reaches the page. -->
+
 {% block title %}{{ _("Payment Success") }}{% endblock %}
 
 {%- block page_content -%}
@@ -12,7 +17,7 @@
 	{% if not payment_message %}
 		<div>
 			<a
-			   href='{{ frappe.form_dict.redirect_to or "/" }}'
+			   href="{{ (redirect_to or "/") | e }}"
 			   class='btn btn-primary btn-sm'>
 				{{ _("Continue") }}
 			</a>
@@ -24,9 +29,10 @@
 </style>
 <script>
 	frappe.ready(function() {
-		if('{{ frappe.form_dict.redirect_to or "" }}'){
+		var redirect_to = {{ (redirect_to or "") | tojson }};
+		if(redirect_to){
 			setTimeout(function(){
-				window.location.href = '{{ frappe.form_dict.redirect_to }}';
+				window.location.href = redirect_to;
 			}, 4000);
 		}
 	})

@@ -119,8 +119,12 @@ def mobile_context() -> dict[str, Any]:
 	the Stripe SDK on the phone; the app combines both before drawing a button.
 	"""
 	settings = _settings()
-	card = _card_context(settings)
-	twint = _twint_context(settings)
+	# //// Neoffice — a portal account read the Stripe location and the provider names of on-site collection
+	# //// here, though it never collects and those DocTypes refuse it. It gets the same answer, with nothing on
+	# //// offer: the app then draws no payment, where a refusal would be an error on every screen that asks.
+	staff = _is_staff()
+	card = _card_context(settings) if staff else {"enabled": False, "provider": None, "location_id": None}
+	twint = _twint_context(settings) if staff else {"enabled": False, "provider": None}
 	return {
 		# Apple's Tap to Pay terms are accepted once per Stripe account, by someone
 		# who may commit the merchant — the same person who may switch the method
@@ -189,6 +193,10 @@ def mobile_start_payment(
 	Terminal SDK confirms; for TWINT, ``next_action_payload`` carries the QR and
 	the pairing token.
 	"""
+	# //// Neoffice — the check below only ran for a payment with no document, so naming any row a portal account
+	# //// can read (a Country) started a payment with the merchant's credentials. Nobody but staff collects:
+	# //// the phone's accounts are desk accounts, and `connection_token` already asks the same.
+	_require_staff()
 	channel = METHODS.get(str(method or "").lower())
 	if not channel:
 		frappe.throw(_("Unknown payment method {0}").format(method))
@@ -226,8 +234,6 @@ def mobile_start_payment(
 				frappe.PermissionError,
 			)
 	else:
-		# No document to lean on for permissions: the person must be staff.
-		_require_staff()
 		metadata["kind"] = "standalone"
 
 	return create_intent(
@@ -260,21 +266,29 @@ def _require_staff() -> None:
 def _require_phone_intent(intent_name: str, ptype: str) -> None:
 	"""Refuse (403) unless the intent is a phone's payment this account may follow.
 
-	One started against a document answers whoever may read that document (the rule of mobile_start_payment); one
-	started on its own, from the Collect tool, answers people who work on the site. Any other intent, or a name that
-	does not exist, answers only an account the Payment Intent DocType permits (``ptype``), so a portal account
+	People who work on the site only. The account that took the payment may always follow it. One started
+	against a document also answers whoever has ``ptype`` on that document; one started on its own, from the
+	Collect tool, is that person's till and answers nobody else. Any other intent, or a name that does not
+	exist, answers only an account the Payment Intent DocType permits (``ptype``), so a portal account
 	cannot learn which names exist.
 	"""
 	row = frappe.db.get_value(
-		"Payment Intent", intent_name, ["channel", "reference_doctype", "reference_name"], as_dict=True
+		"Payment Intent", intent_name, ["channel", "reference_doctype", "reference_name", "owner"], as_dict=True
 	)
-	if row and row.channel in MOBILE_CHANNELS:
-		if row.reference_doctype and row.reference_name:
-			if frappe.db.exists(row.reference_doctype, row.reference_name) and frappe.has_permission(
-				row.reference_doctype, "read", doc=row.reference_name
-			):
-				return
-		elif _is_staff():
+	if row and row.channel in MOBILE_CHANNELS and _is_staff():
+		# //// Neoffice — the Collect tool's payments answered every desk account: a colleague read the card
+		# //// details, mailed the receipt anywhere and cancelled an open payment, against what
+		# //// `mobile_recent_payments` says. And `read` on a document was enough to abandon its payment, whatever
+		# //// `ptype` asked, a portal account's too. The owner comes first: a plain employee reads his jobs and
+		# //// writes none, and must still be able to abandon the payment he started.
+		if row.owner == frappe.session.user:
+			return
+		if (
+			row.reference_doctype
+			and row.reference_name
+			and frappe.db.exists(row.reference_doctype, row.reference_name)
+			and frappe.has_permission(row.reference_doctype, ptype, doc=row.reference_name)
+		):
 			return
 
 	from payments.api.intent_http import require_intent_permission
@@ -363,6 +377,18 @@ def mobile_payments_for(reference_doctype: str, reference_name: str) -> list[dic
 	return _rows({"reference_doctype": reference_doctype, "reference_name": reference_name})
 
 
+# //// Neoffice — added helper (no upstream equivalent). A reader of the document follows a payment by its
+# //// status: the secrets that finish it are the phone's that started it (`useOnSiteIntentWatch` reads the
+# //// status alone).
+def _status_for_caller(intent_name: str) -> dict[str, Any]:
+	status = get_intent_status(intent_name)
+	took_it = frappe.db.get_value("Payment Intent", intent_name, "owner") == frappe.session.user
+	if not took_it and not frappe.has_permission("Payment Intent", "read"):
+		for key in ("client_secret", "next_action_payload", "provider_intent_id"):
+			status.pop(key, None)
+	return status
+
+
 # //// Neoffice — stays open to GET (maintenance#1721): the phones in the field poll it with GET (`call.get` in
 # //// the app's useOnSitePayment hook). It only copies Stripe's own verdict onto an open card intent and
 # //// cannot move money. Close it once every installed build polls over POST.
@@ -380,14 +406,14 @@ def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
 	_require_phone_intent(intent_name, "read")
 	doc = frappe.get_doc("Payment Intent", intent_name)
 	if doc.channel != CARD_CHANNEL or doc.status not in OPEN_STATES or not doc.provider_intent_id:
-		return get_intent_status(intent_name)
+		return _status_for_caller(intent_name)
 
 	try:
 		driver = resolve_driver(doc.provider, doc.channel)
 		response = driver.get_status(doc.provider_intent_id)
 	except Exception as exc:  # noqa: BLE001 — a failed read is not a failed payment
 		frappe.log_error("mobile_refresh_status: provider read failed", f"{intent_name}: {exc!r}")
-		return get_intent_status(intent_name)
+		return _status_for_caller(intent_name)
 
 	if response.status in ("succeeded", "failed", "canceled") and response.status != doc.status:
 		try:
@@ -404,7 +430,7 @@ def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
 			# being read, so this copy of the intent is stale. Nothing is lost —
 			# report what the webhook wrote instead of failing the poll.
 			frappe.db.rollback()
-			return get_intent_status(intent_name)
+			return _status_for_caller(intent_name)
 		if moved:
 			frappe.publish_realtime(
 				event=f"payment.intent.{doc.name}.updated",
@@ -412,7 +438,7 @@ def mobile_refresh_status(intent_name: str) -> dict[str, Any]:
 				after_commit=True,
 			)
 			frappe.db.commit()
-	return get_intent_status(intent_name)
+	return _status_for_caller(intent_name)
 
 
 # //// Neoffice — POST only (maintenance#1721): it starts (or abandons) a payment at the PSP through create_intent /
@@ -672,8 +698,9 @@ def send_receipt(intent_name: str, email: str) -> dict[str, Any]:
 	the intent (``metadata.receipt_sent_to``): it is theirs, not a contact.
 	"""
 	_require_staff()
-	# //// Neoffice — maintenance#1732: see _require_phone_intent.
-	_require_phone_intent(intent_name, "read")
+	# //// Neoffice — maintenance#1732: see _require_phone_intent. `write`, not `read`: this sends a mail to an
+	# //// address of the caller's choice and keeps it on the intent.
+	_require_phone_intent(intent_name, "write")
 	email = (email or "").strip()
 	if not email or not frappe.utils.validate_email_address(email):
 		frappe.throw(_("Please enter a valid email address"))

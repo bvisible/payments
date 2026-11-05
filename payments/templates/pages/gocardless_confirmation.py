@@ -31,8 +31,10 @@ def get_context(context):
 		raise frappe.Redirect
 
 
+# //// Neoffice — annotated: unannotated, a JSON body made a filter of `reference_docname`.
+# permission-check: ok a public door: the gateway's return; GoCardless answers for the flow it names
 @frappe.whitelist(allow_guest=True)
-def confirm_payment(redirect_flow_id, reference_doctype, reference_docname):
+def confirm_payment(redirect_flow_id: str, reference_doctype: str, reference_docname: str):
 
 	client = gocardless_initialization(reference_docname)
 

@@ -336,6 +336,12 @@ def get_pos_certificate_alerts(pos_profile: str | None = None) -> list[dict]:
 	"""
 	from frappe.utils import date_diff
 
+	# //// Neoffice — any signed-in account, a portal customer included, read the merchant labels and certificate
+	# //// dates that the DocType keeps to Admin and System Manager. The banner is for the people who work here;
+	# //// it never blocks anything, so anyone else simply gets none.
+	if frappe.get_cached_value("User", frappe.session.user, "user_type") != "System User":
+		return []
+
 	# An instance has at most a handful of TWINT merchants; return alerts for all
 	# enabled ones. (pos_profile is accepted for future per-profile scoping.)
 	rows = frappe.get_all(

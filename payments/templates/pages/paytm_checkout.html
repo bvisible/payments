@@ -17,6 +17,9 @@
 </script>
 {% endblock %}
 
+<!-- //// Neoffice — these values come from what a visitor stored in the Integration Request, printed raw.
+     Outside any block, so never sent to a visitor. -->
+
 {%- block page_content -%}
 <body>
 	<div class="centered">
@@ -25,7 +28,7 @@
 
 		<form method="post" action="{{ url }}" name="paytm_form">
 			{% for name, value in payment_details.items() %}
-				<input type="hidden" name="{{ name }}" value="{{ value }}">
+				<input type="hidden" name="{{ name | e }}" value="{{ value | e }}">
 			{% endfor %}
 		</form>
 	</div>

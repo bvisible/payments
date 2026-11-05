@@ -2,9 +2,10 @@ $(document).ready(function() {
 
 	var button = document.querySelector('#submit-button');
 	var form = document.querySelector('#payment-form');
-	var data = {{ frappe.form_dict | json }};
-	var doctype = "{{ reference_doctype }}"
-	var docname = "{{ reference_docname }}"
+	//// Neoffice — from the link, printed raw: see the same lines of stripe_checkout.js.
+	var data = {{ frappe.form_dict | tojson }};
+	var doctype = {{ reference_doctype | tojson }}
+	var docname = {{ reference_docname | tojson }}
 
 	braintree.dropin.create({
 		authorization: "{{ client_token }}",

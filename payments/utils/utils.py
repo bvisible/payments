@@ -4,8 +4,57 @@ from frappe import _
 from contextlib import contextmanager
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+# //// Neoffice — added imports: `require_text`, `safe_redirect_to` and the limit on `get_checkout_url`.
+from frappe.rate_limiter import rate_limit
+from frappe.utils.data import get_host_name_from_request, get_url
+from urllib.parse import urlsplit
+
+
+# //// Neoffice — added helper (no upstream equivalent). A page takes no annotation and `frappe.form_dict`
+# //// keeps the list or the dict of a JSON body; `frappe.get_doc` and `frappe.db.*` then read it as a filter
+# //// of the caller's choice, operators included, and a guest could test any stored value one bit at a time.
+# //// A request names a document by a text, or not at all.
+def require_text(*values) -> None:
+	"""Refuse (403) a request value that is neither absent nor a text."""
+	for value in values:
+		if value is not None and not isinstance(value, str):
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+
+# //// Neoffice — added helper (no upstream equivalent). The result pages followed `redirect_to` as it came,
+# //// so a link on the shop's own address could end on any other site or run a `javascript:` URL. Core's
+# //// `frappe.www.login.sanitize_redirect` is the login page's: it rewrites a refused target to /app and lets
+# //// `javascript:` through, so the rule is spelled out here.
+def safe_redirect_to(target) -> str | None:
+	"""Return ``target`` when a browser sent there stays on this site, else None.
+
+	A path stays, and so does an http(s) address on the host of this request or the site's own. What a
+	browser reads differently from ``urlsplit`` is refused first: it turns a backslash into a slash, drops
+	tabs and newlines, and takes any number of leading slashes for the start of a host.
+	"""
+	if not target or not isinstance(target, str):
+		return None
+	target = target.strip()
+	if "\\" in target or any(char < " " for char in target):
+		return None
+	try:
+		parts = urlsplit(target)
+	except ValueError:
+		return None
+	if not parts.scheme and not parts.netloc:
+		return None if target.startswith("//") else target
+	if parts.scheme not in ("", "http", "https"):
+		return None
+	site_hosts = {
+		urlsplit(get_url()).netloc.lower(),
+		urlsplit(get_host_name_from_request() or "").netloc.lower(),
+	}
+	return target if parts.netloc and parts.netloc.lower() in site_hosts else None
+
 
 def validate_integration_request(docname: str | None):
+	# //// Neoffice — the Razorpay and Paytm checkout pages pass the link's own token here: see `require_text`.
+	require_text(docname)
 	if frappe.db.get_value("Integration Request", docname, "status") == "Cancelled":
 		frappe.throw(_("Expired Token"))
 
@@ -25,11 +74,20 @@ def get_payment_gateway_controller(payment_gateway):
 			frappe.throw(_("{0} Settings not found").format(payment_gateway))
 
 
+# //// Neoffice — upstream wrote one Integration Request per call for any visitor, also on a gateway the site
+# //// never set up, with no limit: table growth, and an outbound call on PayPal. A gateway has its `Payment
+# //// Gateway` row once its settings are saved: without one the visitor gets the page of a broken
+# //// configuration, as for a gateway that fails, and a caller is held to 10 calls a minute.
+# permission-check: ok a public door: a checkout link for a gateway this site set up, it reads no record
 @frappe.whitelist(allow_guest=True, xss_safe=True)
+@rate_limit(limit=10, seconds=60)
 def get_checkout_url(**kwargs):
 	try:
-		if kwargs.get("payment_gateway"):
-			doc = frappe.get_doc("{} Settings".format(kwargs.get("payment_gateway")))
+		payment_gateway = kwargs.get("payment_gateway")
+		if not isinstance(payment_gateway, str):
+			raise Exception
+		if frappe.db.exists("Payment Gateway", payment_gateway):
+			doc = frappe.get_doc("{} Settings".format(payment_gateway))
 			return doc.get_payment_url(**kwargs)
 		else:
 			raise Exception

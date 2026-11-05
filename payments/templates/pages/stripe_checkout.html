@@ -15,6 +15,9 @@
     //// `#card-errors`, `#submit`, `input[name=cardholder-name]`,
     //// `input[name=cardholder-email]`, `.error` and `.success`. -#}
 
+<!-- //// Neoffice — every value below comes from the link and nothing escapes a page here, so a crafted
+     link ran a script on the ERP's origin: each one is escaped now. Outside any block, so never sent. -->
+
 {% block title %}{{ _("Payment") }}{% endblock %}
 
 {%- block header -%}
@@ -43,27 +46,27 @@
 <div class="nb npay">
 	<div class="nb-card npay-card">
 		<span class="nb-eyebrow nb-eyebrow--muted">{{ _("Secure payment") }}</span>
-		{% if payee %}<h1 class="nb-title npay-house">{{ payee }}</h1>{% endif %}
-		{% if description %}<p class="nb-muted npay-what">{{ description }}</p>{% endif %}
+		{% if payee %}<h1 class="nb-title npay-house">{{ payee | e }}</h1>{% endif %}
+		{% if description %}<p class="nb-muted npay-what">{{ description | e }}</p>{% endif %}
 
 		{#- //// Neoffice — added block: the amount, shown before the form. Upstream only
 		    //// ever showed it inside the submit button's label. -#}
 		<div class="npay-amount">
 			<span class="nb-eyebrow nb-eyebrow--muted">{{ _("Amount to pay") }}</span>
-			<span class="nb-amount">{{ amount }}</span>
+			<span class="nb-amount">{{ amount | e }}</span>
 		</div>
 
 		<form id="payment-form" class="npay-form">
 			<label class="npay-field">
 				<span class="npay-label">{{ _("Name") }}</span>
 				<input id="cardholder-name" name="cardholder-name" class="nba-input"
-					autocomplete="cc-name" value="{{ payer_name or '' }}">
+					autocomplete="cc-name" value="{{ (payer_name or '') | e }}">
 			</label>
 
 			<label class="npay-field">
 				<span class="npay-label">{{ _("Email") }}</span>
 				<input id="cardholder-email" name="cardholder-email" class="nba-input"
-					type="email" autocomplete="email" value="{{ payer_email or '' }}">
+					type="email" autocomplete="email" value="{{ (payer_email or '') | e }}">
 			</label>
 
 			{#- //// Neoffice — replaces upstream's `div.group.col-12 > label > span Card Details`
@@ -81,7 +84,7 @@
 			    //// Full-width ink button now (Neoffice design system: a primary action is ink,
 			    //// never clay). The reassurance note under it is new. -#}
 			<button type="submit" class="nb-btn nb-btn--ink npay-submit" id="submit">
-				{{ _("Pay") }} {{ amount }}
+				{{ _("Pay") }} {{ amount | e }}
 			</button>
 
 			<p class="npay-note">{{ _("Payment handled by Stripe. Your card details never pass through our servers.") }}</p>

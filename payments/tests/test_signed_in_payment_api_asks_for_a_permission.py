@@ -207,8 +207,10 @@ class TestSignedInPaymentApiAsksForAPermission(FrappeTestCase):
 		self.assertEqual(intent_api.cancel_intent(created["intent_name"])["status"], "canceled")
 
 	def test_the_phone_follows_only_what_a_phone_started(self):
-		collected = _intent(mobile_payments.CARD_CHANNEL)
+		# //// Neoffice — the account that took the payment, not any desk account: a colleague is refused now
+		# //// (payments/tests/test_audit_guards_p1.py).
 		frappe.set_user(DESK)
+		collected = _intent(mobile_payments.CARD_CHANNEL)
 		mobile_payments._require_phone_intent(collected, "write")
 		with self.assertRaises(frappe.PermissionError):
 			mobile_payments._require_phone_intent(self.till_intent, "read")

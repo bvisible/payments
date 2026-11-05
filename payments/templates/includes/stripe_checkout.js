@@ -6,7 +6,7 @@ var elements = stripe.elements();
 //// ships Stripe's sample palette: color #32325d, lineHeight 18px, "Helvetica
 //// Neue", placeholder #aab7c4, invalid #fa755a. Retuned to the Neoffice tokens
 //// (ink #141414 / Karla / muted #8A8078 / danger #B3261E) so the card fields
-//// match the page around them. Nothing else in this file diverges.
+//// match the page around them. The only other divergence is marked at `args` below.
 //// The card fields are drawn BY Stripe inside its own iframe: our stylesheet
 //// cannot reach them, only this object can. Without it, three lines of blue
 //// Helvetica in the middle of a page set in Karla ink.
@@ -45,12 +45,14 @@ function setOutcome(result) {
 			method:"payments.templates.pages.stripe_checkout.make_payment",
 			freeze:true,
 			headers: {"X-Requested-With": "XMLHttpRequest"},
+			//// Neoffice — these come from the link and were printed raw: a closing tag in any of them ended this
+			//// block and ran what followed. `tojson` writes a JSON value that cannot leave the script.
 			args: {
 				"stripe_token_id": result.token.id,
-				"data": JSON.stringify({{ frappe.form_dict|json }}),
-				"reference_doctype": "{{ reference_doctype }}",
-				"reference_docname": "{{ reference_docname }}",
-				"payment_gateway": "{{ payment_gateway }}"
+				"data": JSON.stringify({{ frappe.form_dict | tojson }}),
+				"reference_doctype": {{ reference_doctype | tojson }},
+				"reference_docname": {{ reference_docname | tojson }},
+				"payment_gateway": {{ payment_gateway | tojson }}
 			},
 			callback: function(r) {
 				if (r.message.status == "Completed") {

@@ -10,10 +10,12 @@ from frappe.utils import cint, fmt_money
 # //// "un montant sans devise, un titre en double, deux libellés anglais"), plus the
 # //// `neoffice_amount` helper it adds. Both are marked in place below. The helper's
 # //// French locals and comments were rewritten in English on 2026-09-04 (RULE #00);
-# //// no behaviour changed with them.
+# //// no behaviour changed with them. The text check of `get_context` and the annotations
+# //// of `make_payment` are marked in place too.
 from payments.payment_gateways.doctype.stripe_settings.stripe_settings import (
 	get_gateway_controller,
 )
+from payments.utils.utils import require_text
 
 no_cache = 1
 
@@ -35,6 +37,8 @@ def get_context(context):
 
 	# all these keys exist in form_dict
 	if not (set(expected_keys) - set(list(frappe.form_dict))):
+		# //// Neoffice — these go to `frappe.get_doc` and `frappe.db.*`: see `require_text`.
+		require_text(*(frappe.form_dict[key] for key in expected_keys))
 		for key in expected_keys:
 			context[key] = frappe.form_dict[key]
 
@@ -109,9 +113,15 @@ def get_header_image(doc, gateway_controller):
 	return frappe.db.get_value("Stripe Settings", gateway_controller, "header_img")
 
 
+# //// Neoffice — annotated: unannotated, a JSON body made a filter of `reference_docname`.
+# permission-check: ok a public door: a buyer's payment link; the charge is checked against the request
 @frappe.whitelist(allow_guest=True)
 def make_payment(
-	stripe_token_id, data, reference_doctype=None, reference_docname=None, payment_gateway=None
+	stripe_token_id: str,
+	data: str,
+	reference_doctype: str | None = None,
+	reference_docname: str | None = None,
+	payment_gateway: str | None = None,
 ):
 	data = json.loads(data)
 

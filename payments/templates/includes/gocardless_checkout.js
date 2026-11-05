@@ -1,7 +1,8 @@
 $(document).ready(function() {
-	var data = {{ frappe.form_dict | json }};
-	var doctype = "{{ reference_doctype }}"
-	var docname = "{{ reference_docname }}"
+	//// Neoffice — from the link, printed raw: see the same lines of stripe_checkout.js.
+	var data = {{ frappe.form_dict | tojson }};
+	var doctype = {{ reference_doctype | tojson }}
+	var docname = {{ reference_docname | tojson }}
 
 	frappe.call({
 		method: "payments.templates.pages.gocardless_checkout.check_mandate",

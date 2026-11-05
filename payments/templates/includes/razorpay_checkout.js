@@ -1,21 +1,26 @@
 $(document).ready(function(){
 	(function(e){
+		//// Neoffice — these come from the link or from what a visitor stored in the Integration Request, printed
+		//// raw: see the same lines of stripe_checkout.js.
 		var options = {
 			"key": "{{ api_key }}",
 			"amount": cint({{ amount }} * 100), // 2000 paise = INR 20
-			"currency": "{{ currency }}",
-			"name": "{{ title }}",
-			"description": "{{ description }}",
-			"subscription_id": "{{ subscription_id }}",
+			"currency": {{ currency | tojson }},
+			"name": {{ title | tojson }},
+			"description": {{ description | tojson }},
+			"subscription_id": {{ subscription_id | tojson }},
 			"handler": function (response){
-				razorpay.make_payment_log(response, options, "{{ reference_doctype }}", "{{ reference_docname }}", "{{ token }}");
+				razorpay.make_payment_log(
+					response, options, {{ reference_doctype | tojson }},
+					{{ reference_docname | tojson }}, {{ token | tojson }}
+				);
 			},
 			"prefill": {
-				"name": "{{ payer_name }}",
-				"email": "{{ payer_email }}",
-				"order_id": "{{ order_id }}"
+				"name": {{ payer_name | tojson }},
+				"email": {{ payer_email | tojson }},
+				"order_id": {{ order_id | tojson }}
 			},
-			"notes": {{ frappe.form_dict|json }}
+			"notes": {{ frappe.form_dict | tojson }}
 		};
 
 		var rzp = new Razorpay(options);

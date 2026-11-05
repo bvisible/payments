@@ -2,9 +2,8 @@
 # //// look the Payment Intent up, refresh it from Payrexx (the redirect can beat the
 # //// settlement), finalise the Sales Order through `webshop.controllers.payment_handler`
 # //// and redirect to /thank-you, otherwise render the pending or failed state. The
-# //// polling is bounded — hard on the first load while the shopper watches, light on the
-# //// reloads after — because every attempt is an API call and Payrexx rate-limits at
-# //// ~600 requests per five minutes per account.
+# //// polling is bounded, one read of the gateway per load, because every attempt is an API
+# //// call and Payrexx rate-limits at ~600 requests per five minutes per account.
 # //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
 # ////          a009847 2026-08-31 "fix(payrexx): the return page span for ever on a payment that never came"
 # Copyright (c) 2026, Neoffice and contributors
@@ -31,8 +30,6 @@ Flow:
 
 from __future__ import annotations
 
-import time
-
 import frappe
 from frappe import _
 
@@ -41,16 +38,14 @@ from payments.utils.order_state import submitted_sales_order
 
 no_cache = 1
 
-#: How hard to poll on the first load, and on the reloads after it.
-#:
-#: The first load happens while the shopper is still watching, so it is worth
-#: waiting; the ones after are a safety net and must not hold the request open.
-#: Every attempt is an API call, and Payrexx rate-limits at ~600 requests per five
-#: minutes per account — a page that polls six times every three seconds burns
-#: that on a handful of abandoned baskets.
-_POLL_FIRST_LOAD = 6
-_POLL_LATER_LOADS = 2
-_POLL_DELAY_SECONDS = 3
+# //// Neoffice — a load used to read the gateway up to six times with `time.sleep(3)` in between, on a
+# //// synchronous web worker: one guest with one open intent held a worker for 15 s per GET, and three such
+# //// GETs held every worker of the site. A load now reads the gateway once and never sleeps: the waiting is
+# //// the template's own reload, every 3 s, which holds nothing on the server.
+#: The least time between two reads of the gateway for one intent, just under the
+#: template's reload: parallel loads share a read, because every attempt is an API
+#: call and Payrexx rate-limits at ~600 requests per five minutes per account.
+_READ_GAP_SECONDS = 2
 
 #: How many times the page may reload itself before it stops and says so.
 #:
@@ -60,7 +55,10 @@ _POLL_DELAY_SECONDS = 3
 #: closed. Roughly 45 s of trying is generous for a settlement that is normally
 #: instantaneous; past that the honest thing is to say the payment did not arrive
 #: and offer to start again. The webhook still settles it if it lands later.
-_MAX_PENDING_LOADS = 5
+# //// Neoffice — 15 reloads three seconds apart: the same 45 s as the 5 slower ones it replaces.
+_MAX_PENDING_LOADS = 15
+
+_FINAL_STATES = ("succeeded", "failed", "canceled", "refunded")
 
 
 def _debug(msg: str) -> None:
@@ -72,39 +70,42 @@ def _debug(msg: str) -> None:
 	frappe.logger("payrexx").debug(msg)
 
 
-def _refresh_status(intent_doc, max_retries: int, retry_delay: int = _POLL_DELAY_SECONDS) -> None:
-	"""Poll the gateway until the Payment Intent is final, or retries run out.
+def _may_read_gateway(intent_name: str) -> bool:
+	"""True at most once per :data:`_READ_GAP_SECONDS` for one intent."""
+	key = f"payrexx_return_read:{intent_name}"
+	if frappe.cache.get_value(key):
+		return False
+	frappe.cache.set_value(key, 1, expires_in_sec=_READ_GAP_SECONDS)
+	return True
 
-	The caller decides how hard, because the first load and the reloads after it
-	are not the same situation — see :data:`_POLL_FIRST_LOAD`. The template
-	refreshes itself a bounded number of times while pending, so a slower
-	settlement is still picked up, and the webhook remains the real backstop.
+
+def _refresh_status(intent_doc) -> None:
+	"""Read the gateway once and move the Payment Intent to what it says.
+
+	The template refreshes itself a bounded number of times while pending, so a
+	slower settlement is still picked up, and the webhook remains the real backstop.
 	"""
 	from payments.drivers.registry import resolve_driver
 
-	if not intent_doc.provider_intent_id:
+	if not intent_doc.provider_intent_id or intent_doc.status in _FINAL_STATES:
+		return
+	if not _may_read_gateway(intent_doc.name):
 		return
 
 	driver = resolve_driver(intent_doc.provider, intent_doc.channel)
 
-	for attempt in range(max_retries):
-		try:
-			response = driver.get_status(intent_doc.provider_intent_id)
-			if response.status and response.status != intent_doc.status:
-				intent_doc.transition_to(
-					response.status,
-					event_source="redirect",
-					payload_excerpt=f"payrexx gateway {intent_doc.provider_intent_id}",
-					ignore_invalid=True,
-				)
-				intent_doc.reload()
-			if intent_doc.status in ("succeeded", "failed", "canceled", "refunded"):
-				return
-		except Exception as exc:  # noqa: BLE001 - keep polling, never break the page
-			_debug(f"sync error (attempt {attempt + 1}): {exc!r}")
-
-		if attempt < max_retries - 1:
-			time.sleep(retry_delay)
+	try:
+		response = driver.get_status(intent_doc.provider_intent_id)
+		if response.status and response.status != intent_doc.status:
+			intent_doc.transition_to(
+				response.status,
+				event_source="redirect",
+				payload_excerpt=f"payrexx gateway {intent_doc.provider_intent_id}",
+				ignore_invalid=True,
+			)
+			intent_doc.reload()
+	except Exception as exc:  # noqa: BLE001 - never break the page, the next load reads again
+		_debug(f"sync error: {exc!r}")
 
 
 def get_context(context):  # noqa: ANN001
@@ -161,7 +162,7 @@ def get_context(context):  # noqa: ANN001
 		attempt = 0
 	context.attempt = attempt
 
-	_refresh_status(intent_doc, _POLL_FIRST_LOAD if attempt == 0 else _POLL_LATER_LOADS)
+	_refresh_status(intent_doc)
 	_debug(f"after refresh status={intent_doc.status} attempt={attempt}")
 
 	if intent_doc.status == "succeeded":

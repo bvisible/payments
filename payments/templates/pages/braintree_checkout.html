@@ -6,6 +6,8 @@
 
 {%- block header -%}{% endblock %}
 
+<!-- //// Neoffice — `currency` came from the link and was printed raw. Outside any block, so never sent. -->
+
 {% block script %}
 <script src="https://js.braintreegateway.com/web/dropin/1.9.3/js/dropin.min.js"></script>
 <script>{% include "templates/includes/braintree_checkout.js" %}</script>
@@ -28,7 +30,7 @@
 				</div>
 			</section>
 
-			<button class="btn btn-primary" type="submit" id="submit-button" disabled><span>{{ _("Pay") }} {{ amount }} {{ currency }}</span></button>
+			<button class="btn btn-primary" type="submit" id="submit-button" disabled><span>{{ _("Pay") }} {{ amount }} {{ currency | e }}</span></button>
 		</form>
 
 	</div>

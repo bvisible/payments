@@ -4,9 +4,10 @@
 # //// ═══════════════════════════════════════════════════════════════════════════
 # //// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
 # //// 2025-02-28 "update error log and stripe version"). Besides that, the file diverges
-# //// from upstream in two places, each marked in place: the receipt of a captured
-# //// charge (`stripe_receipt`, maintenance#1807) and the check that a charge covers the
-# //// Payment Request it names before that request is booked as paid.
+# //// from upstream in three places, each marked in place: the receipt of a captured
+# //// charge (`stripe_receipt`, maintenance#1807), the check that a charge covers the
+# //// Payment Request it names before that request is booked as paid, and
+# //// `get_gateway_controller`, which no longer tells a guest which documents exist.
 # ////
 # //// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
 # //// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
@@ -31,6 +32,9 @@ from payments.utils import create_payment_gateway
 
 # //// Neoffice — see create_charge_on_stripe: the receipt of a captured charge (maintenance#1807).
 from payments.utils import stripe_receipt
+
+# //// Neoffice — see get_gateway_controller.
+from payments.utils.utils import require_text
 
 
 class StripeSettings(Document):
@@ -346,6 +350,13 @@ class StripeSettings(Document):
 
 def get_gateway_controller(doctype, docname, payment_gateway=None):
 	if not payment_gateway:
-		reference_doc = frappe.get_doc(doctype, docname)
-		payment_gateway = reference_doc.payment_gateway
+		# //// Neoffice — upstream loaded the document whatever it was: a guest told a name that exists (500 with
+		# //// AttributeError) from one that does not (403), for any DocType, an e-mail address on User included.
+		# //// Only a document that carries a gateway answers now; anything else gets the one refusal.
+		require_text(doctype, docname)
+		if doctype and docname and frappe.db.exists("DocType", doctype):
+			if frappe.get_meta(doctype).has_field("payment_gateway"):
+				payment_gateway = frappe.db.get_value(doctype, docname, "payment_gateway")
+		if not payment_gateway:
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 	return frappe.db.get_value("Payment Gateway", payment_gateway, "gateway_controller")

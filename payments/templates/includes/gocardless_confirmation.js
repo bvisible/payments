@@ -1,7 +1,9 @@
 $(document).ready(function() {
-	var redirect_flow_id = "{{ redirect_flow_id }}";
-	var doctype = "{{ reference_doctype }}";
-	var docname = "{{ reference_docname }}";
+	//// Neoffice — from the link, printed raw, with no configuration needed to reach this page: see the same
+	//// lines of stripe_checkout.js.
+	var redirect_flow_id = {{ redirect_flow_id | tojson }};
+	var doctype = {{ reference_doctype | tojson }};
+	var docname = {{ reference_docname | tojson }};
 
 	frappe.call({
 		method: "payments.templates.pages.gocardless_confirmation.confirm_payment",
