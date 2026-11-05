@@ -358,7 +358,9 @@ class TestPaymentFailed(FrappeTestCase):
 				self.assertRegex(_render("payment-failed", redirect_to=target)[1], _link(target))
 
 	def test_the_site_configured_host_counts_as_this_site(self):
-		with patch.dict(frappe.local.conf, {"host_name": "https://erp.example.test"}):
+		# A production bench: on a development one, get_url adds the web server's port to host_name.
+		conf = {"host_name": "https://erp.example.test", "restart_supervisor_on_update": 1}
+		with patch.dict(frappe.local.conf, conf):
 			html = _render("payment-failed", redirect_to="https://erp.example.test/orders/SO-1")[1]
 		self.assertRegex(html, _link("https://erp.example.test/orders/SO-1"))
 
