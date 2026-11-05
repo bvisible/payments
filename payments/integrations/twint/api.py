@@ -33,6 +33,7 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 
 from payments.integrations.web_checkout import (
+	failure_message,
 	WEB_TRANSACTIONS_PER_MINUTE,
 	refusal,
 	require_own_request,
@@ -134,9 +135,10 @@ def create_web_transaction(
 	)
 
 	if intent.get("status") in ("failed", "canceled"):
+		# //// Neoffice — the PSP's own reason named its host and our instance to the buyer: see failure_message.
 		return {
 			"status": "error",
-			"message": intent.get("error_message") or _("TWINT transaction creation failed"),
+			"message": failure_message(intent, _("TWINT transaction creation failed")),
 			"payment_request_id": payment_request_id,
 		}
 

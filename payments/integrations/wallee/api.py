@@ -34,6 +34,7 @@ from frappe.utils import flt, now_datetime
 
 from payments.drivers.wallee.provider import WalleeProvider
 from payments.integrations.web_checkout import (
+	failure_message,
 	SCRIPT_URLS_PER_MINUTE,
 	WEB_TRANSACTIONS_PER_MINUTE,
 	refusal,
@@ -734,9 +735,10 @@ def create_web_transaction(
 	)
 
 	if intent.get("status") in ("failed", "canceled"):
+		# //// Neoffice — the PSP's own reason named its host and our instance to the buyer: see failure_message.
 		return {
 			"status": "error",
-			"message": intent.get("error_message") or _("Wallee transaction creation failed"),
+			"message": failure_message(intent, _("Wallee transaction creation failed")),
 			"payment_request_id": payment_request_id,
 		}
 

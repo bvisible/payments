@@ -597,12 +597,16 @@ def poll_pending_transactions() -> dict[str, Any]:
 			"provider": ["in", wallee_providers],
 			"channel": ["in", ("terminal", "wallee_web")],
 		},
-		fields=["name", "provider", "channel", "provider_intent_id"],
+		# //// Neoffice — an intent whose request was deleted can never be saved again: it asked the PSP and
+		# //// wrote one Error Log row at every pass, for as long as it stayed open. It is left alone now.
+		fields=["name", "provider", "channel", "provider_intent_id", "reference_doctype", "reference_name"],
 		limit=200,
 	)
 	for row in intents:
 		stats["checked"] += 1
 		if not row.provider_intent_id:
+			continue
+		if row.reference_name and not frappe.db.exists(row.reference_doctype, row.reference_name):
 			continue
 		try:
 			driver = resolve_driver(row.provider, row.channel)

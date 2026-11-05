@@ -36,6 +36,17 @@ _OPEN_STATUSES = ("requires_action", "processing")
 _CLOSED_STATUSES = ("Paid", "Cancelled")
 
 
+def failure_message(intent: dict, fallback: str) -> str:
+	"""What a failed attempt tells its caller.
+
+	The reason a PSP or the network gave is in English and can name a host and our merchant instance: it stays
+	on the intent, for whoever reads intents at the desk.
+	"""
+	if frappe.has_permission("Payment Intent", "read"):
+		return intent.get("error_message") or fallback
+	return fallback
+
+
 def _deny() -> None:
 	# One answer for a stranger's request and a name that does not exist: names must not be enumerated.
 	frappe.throw(_("Not permitted"), frappe.PermissionError)

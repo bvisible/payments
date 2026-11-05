@@ -1382,3 +1382,44 @@ class TestPayPalWhenItIsConfigured(_WithIntegrationRequests):
 			http_call(f"{PAYPAL}.confirm_payment", token=name)
 		outbound.assert_called_once()
 		self.assertEqual(frappe.db.get_value("Integration Request", name, "status"), "Completed")
+
+
+class TestWhatAFailureTellsAndWhatThePollerSkips(FrappeTestCase):
+	"""Seen on the live test of the shop: the buyer read the transport error, the operator a row a minute."""
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_a_buyer_reads_no_transport_error(self):
+		from payments.integrations.web_checkout import failure_message
+
+		intent = {"error_message": "HTTPSConnectionPool(host='psp.example', port=443): instance ours"}
+		frappe.set_user("Guest")
+		self.assertEqual(failure_message(intent, "Payment failed"), "Payment failed")
+		frappe.set_user("Administrator")
+		self.assertIn("psp.example", failure_message(intent, "Payment failed"))
+
+	def test_the_poller_leaves_an_intent_whose_request_is_gone(self):
+		from payments.drivers.wallee import terminal_driver
+
+		orphan = frappe._dict(
+			name="PI-orphan",
+			provider="wallee_x",
+			channel="terminal",
+			provider_intent_id="1",
+			reference_doctype="Payment Request",
+			reference_name="_no such request",
+		)
+
+		def rows(doctype, **kwargs):
+			if doctype == "Payment Provider":
+				return [frappe._dict(name="wallee_x")]
+			return [orphan] if kwargs.get("filters", {}).get("status") else []
+
+		with (
+			patch.object(terminal_driver.frappe, "get_all", side_effect=rows),
+			patch("payments.drivers.registry.resolve_driver") as resolve,
+		):
+			stats = terminal_driver.poll_pending_transactions()
+		resolve.assert_not_called()
+		self.assertEqual(stats["errors"], 0)
