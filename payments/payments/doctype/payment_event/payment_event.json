@@ -47,7 +47,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Event Source",
-   "options": "api\nwebhook\npoll\nmanual\nsystem",
+   "options": "api\nwebhook\npoll\nmanual\nsystem\nredirect",
    "reqd": 1
   },
   {
@@ -72,7 +72,7 @@
  "in_create": 0,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-05-13 17:50:00.000000",
+ "modified": "2026-11-06 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payments",
  "name": "Payment Event",

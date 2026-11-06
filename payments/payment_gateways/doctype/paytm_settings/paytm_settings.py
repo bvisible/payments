@@ -37,6 +37,8 @@ from frappe.utils.password import get_decrypted_password
 from paytmchecksum import generateSignature, verifySignature
 
 from payments.utils import create_payment_gateway
+# //// Neoffice — maintenance#2296: see payments/utils/all_or_nothing.py.
+from payments.utils.all_or_nothing import all_or_nothing
 
 
 class PaytmSettings(Document):
@@ -172,9 +174,11 @@ def finalize_request(order_id, transaction_response):
 		if transaction_data.reference_doctype and transaction_data.reference_docname:
 			custom_redirect_to = None
 			try:
-				custom_redirect_to = frappe.get_doc(
-					transaction_data.reference_doctype, transaction_data.reference_docname
-				).run_method("on_payment_authorized", "Completed")
+				# //// Neoffice — maintenance#2296: what the hook booked before it failed is undone (all_or_nothing).
+				with all_or_nothing("Paytm on_payment_authorized"):
+					custom_redirect_to = frappe.get_doc(
+						transaction_data.reference_doctype, transaction_data.reference_docname
+					).run_method("on_payment_authorized", "Completed")
 				request.db_set("status", "Completed")
 			except Exception:
 				request.db_set("status", "Failed")

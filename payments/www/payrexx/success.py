@@ -106,6 +106,11 @@ def _refresh_status(intent_doc) -> None:
 			intent_doc.reload()
 	except Exception as exc:  # noqa: BLE001 - never break the page, the next load reads again
 		_debug(f"sync error: {exc!r}")
+		# //// Neoffice — maintenance#2296: a move that failed half-way left its status written and in memory, and the
+		# //// order was concluded on it, then committed with no Payment Event. The page reads the database again:
+		# //// nothing was written before the move in this request.
+		frappe.db.rollback()
+		intent_doc.reload()
 
 
 def get_context(context):  # noqa: ANN001

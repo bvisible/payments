@@ -171,6 +171,12 @@ class PaymentIntent(Document):
 			}
 		)
 		event.insert(ignore_permissions=True)
+		# //// Neoffice — maintenance#2296: a settled payment is committed once the move is whole (its status, its
+		# //// booking, its Payment Event). The doc_event of reconciliation committed it from inside the save, before
+		# //// this event was written, so a failure here left a succeeded intent with no event. The commit stays (a
+		# //// return page is a GET, which Frappe rolls back): it comes after the event now.
+		if new_status == "succeeded":
+			frappe.db.commit()
 		return True
 
 	def get_metadata(self) -> dict:

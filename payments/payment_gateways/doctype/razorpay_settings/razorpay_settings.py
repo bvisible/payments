@@ -100,6 +100,8 @@ from frappe.utils import call_hook_method, cint, flt, get_timestamp, get_url
 # //// Neoffice — a guest callback: refused when Razorpay is not set up, and bound to its own request and order.
 from payments.api.webhook_common import log_once_an_hour
 from payments.utils import create_payment_gateway
+# //// Neoffice — maintenance#2296: see payments/utils/all_or_nothing.py.
+from payments.utils.all_or_nothing import all_or_nothing
 
 # //// Neoffice — what a browser may bring to a request of this gateway: Razorpay's three fields, or its
 # //// error. Everything else stays what the server stored: upstream merged the whole body into the request's
@@ -523,9 +525,11 @@ class RazorpaySettings(Document):
 				custom_redirect_to = None
 				try:
 					frappe.flags.data = data
-					custom_redirect_to = frappe.get_doc(
-						self.data.reference_doctype, self.data.reference_docname
-					).run_method("on_payment_authorized", self.flags.status_changed_to)
+					# //// Neoffice — maintenance#2296: what the hook booked before it failed is undone (all_or_nothing).
+					with all_or_nothing("Razorpay on_payment_authorized"):
+						custom_redirect_to = frappe.get_doc(
+							self.data.reference_doctype, self.data.reference_docname
+						).run_method("on_payment_authorized", self.flags.status_changed_to)
 
 				except Exception:
 					# //// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as

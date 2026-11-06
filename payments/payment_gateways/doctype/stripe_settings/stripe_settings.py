@@ -26,12 +26,16 @@ import frappe
 from frappe import _
 from frappe.integrations.utils import create_request_log, make_get_request
 from frappe.model.document import Document
-from frappe.utils import call_hook_method, cint, flt, get_url
+# //// Neoffice — `cint` went with the truncated charge amount (maintenance#2296).
+from frappe.utils import call_hook_method, flt, get_url
 
 from payments.utils import create_payment_gateway
 
 # //// Neoffice — see create_charge_on_stripe: the receipt of a captured charge (maintenance#1807).
 from payments.utils import stripe_receipt
+
+# //// Neoffice — maintenance#2296: see payments/utils/all_or_nothing.py.
+from payments.utils.all_or_nothing import all_or_nothing
 
 # //// Neoffice — see get_gateway_controller.
 from payments.utils.utils import require_text
@@ -245,7 +249,8 @@ class StripeSettings(Document):
 
 		try:
 			charge = stripe.Charge.create(
-				amount=cint(flt(self.data.amount) * 100),
+				# //// Neoffice — maintenance#2296: in cents, rounded; truncated, 4.35 was charged 4.34 (stripe_minor_units).
+				amount=stripe_receipt.stripe_minor_units(self.data.amount),
 				currency=self.data.currency,
 				source=self.data.stripe_token_id,
 				description=self.data.description,
@@ -316,9 +321,11 @@ class StripeSettings(Document):
 							f"integration_request={self.integration_request.name}: the request is left as it is",
 						)
 					else:
-						custom_redirect_to = frappe.get_doc(
-							self.data.reference_doctype, self.data.reference_docname
-						).run_method("on_payment_authorized", self.flags.status_changed_to)
+						# //// Neoffice — maintenance#2296: what the hook booked before it failed is undone (all_or_nothing).
+						with all_or_nothing("Stripe on_payment_authorized"):
+							custom_redirect_to = frappe.get_doc(
+								self.data.reference_doctype, self.data.reference_docname
+							).run_method("on_payment_authorized", self.flags.status_changed_to)
 				except Exception:
 					# //// Neoffice — upstream: `frappe.log_error(frappe.get_traceback())` (traceback as
 					# //// title, truncated at 140). See the file header.

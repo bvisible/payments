@@ -110,6 +110,55 @@ def signed_delivery(driver_class_like: str, payload: bytes, headers: dict[str, s
 	return signed or (None, refused)
 
 
+# //// Neoffice — maintenance#2296: the rows a job has not finished. A retry of their delivery queues them again.
+UNFINISHED = ("Queued", "Failed")
+
+
+def queue_event(method: str, job_prefix: str, log_name: str) -> None:
+	"""Queue the job that applies a stored delivery, once at a time (its id is the row's)."""
+	frappe.enqueue(
+		method,
+		queue="short",
+		job_id=f"{job_prefix}-{log_name}",
+		deduplicate=True,
+		enqueue_after_commit=True,
+		log_name=log_name,
+	)
+
+
+def received_before(event_id: str, method: str, job_prefix: str) -> bool:
+	"""True when this delivery has a row already. A row its job never finished is queued again.
+
+	The dedup answered « ok » to any row it had, whatever became of it (maintenance#2296). The row is committed
+	before its job is queued: a queue that was down (the provider got a 500 and retries), a job lost or one that
+	died left it « Queued » for good, and every retry was told « ok » with nothing done; Stripe Terminal has no
+	poller to make up for it. The job is idempotent: a move to the status an intent has is no move, a booking is
+	stamped once, a capture carries its key.
+	"""
+	status = frappe.db.get_value("Webhook Event Log", event_id, "status")
+	if status is None:
+		return False
+	if status in UNFINISHED:
+		queue_event(method, job_prefix, event_id)
+	return True
+
+
+def fail_the_row(log, exc: Exception) -> None:  # noqa: ANN001
+	"""A job could not apply a proven delivery: what it wrote is undone, and its row says why.
+
+	The job caught only a missing intent, so any other error (two moves of one intent at once, a booking that
+	failed) rolled it back with its row left « Queued » and no trace of why (maintenance#2296). A retry of the
+	delivery queues a « Failed » row again (received_before).
+	"""
+	frappe.db.rollback()
+	log.reload()
+	log.status = "Failed"
+	log.error = repr(exc)[:2000]
+	log.processed_at = frappe.utils.now_datetime()
+	log.save(ignore_permissions=True)
+	frappe.log_error("Webhook delivery not applied", f"{log.name}: {frappe.get_traceback()}")
+
+
 def skip_foreign_intent(log, intent_doc) -> None:  # noqa: ANN001
 	"""A proven delivery names an intent another provider holds: it is not that provider's word."""
 	log.status = "Skipped"

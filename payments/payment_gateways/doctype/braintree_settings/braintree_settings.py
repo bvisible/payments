@@ -27,6 +27,8 @@ from frappe.model.document import Document
 from frappe.utils import call_hook_method, get_url
 
 from payments.utils import create_payment_gateway
+# //// Neoffice — maintenance#2296: see payments/utils/all_or_nothing.py.
+from payments.utils.all_or_nothing import all_or_nothing
 
 
 class BraintreeSettings(Document):
@@ -268,9 +270,11 @@ class BraintreeSettings(Document):
 			if self.data.reference_doctype and self.data.reference_docname:
 				custom_redirect_to = None
 				try:
-					custom_redirect_to = frappe.get_doc(
-						self.data.reference_doctype, self.data.reference_docname
-					).run_method("on_payment_authorized", self.flags.status_changed_to)
+					# //// Neoffice — maintenance#2296: what the hook booked before it failed is undone (all_or_nothing).
+					with all_or_nothing("Braintree on_payment_authorized"):
+						custom_redirect_to = frappe.get_doc(
+							self.data.reference_doctype, self.data.reference_docname
+						).run_method("on_payment_authorized", self.flags.status_changed_to)
 					braintree_success_page = frappe.get_hooks("braintree_success_page")
 					if braintree_success_page:
 						custom_redirect_to = frappe.get_attr(braintree_success_page[-1])(self.data)

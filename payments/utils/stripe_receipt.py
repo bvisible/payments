@@ -20,8 +20,12 @@ RECEIPT_SERVICE = "Stripe"
 
 
 def stripe_minor_units(amount) -> int:
-	"""An amount as `Stripe Settings.create_charge_on_stripe` hands it to Stripe: truncated, in cents."""
-	return cint(flt(amount) * 100)
+	"""An amount as `Stripe Settings.create_charge_on_stripe` hands it to Stripe: in cents, rounded.
+
+	It was truncated (maintenance#2296): 4.35 × 100 is 434.99999999999994 in floating point, so 4.35 was charged 4.34,
+	and 19.90 was charged 19.89, while the payment was booked at the full amount.
+	"""
+	return cint(round(flt(amount, 2) * 100))
 
 
 def write(integration_request, charge, payment_request=None) -> None:
@@ -62,7 +66,9 @@ def covers(payment_request_name: str) -> bool:
 	)
 	if not request:
 		return False
-	expected = {stripe_minor_units(request.grand_total), int(round(flt(request.grand_total) * 100))}
+	# //// Neoffice — maintenance#2296: the charge is rounded now, so is what it is compared with; the truncated
+	# //// figure, one cent short, no longer covers a request.
+	expected = {stripe_minor_units(request.grand_total)}
 	for output in frappe.get_all(
 		"Integration Request",
 		filters={

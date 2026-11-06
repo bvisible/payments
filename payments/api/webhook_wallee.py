@@ -39,6 +39,9 @@ import frappe
 
 # //// Neoffice — the pattern of the two helpers that stood below, gone with them to webhook_common.
 _WALLEE_DRIVERS = "payments.drivers.wallee.%"
+# //// Neoffice — the job and its id, for the first delivery and for a retry (webhook_common.received_before).
+_PROCESS_EVENT = "payments.api.webhook_wallee.process_event"
+_JOB_PREFIX = "wallee-webhook"
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -51,7 +54,13 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 	"""
 	payload: bytes = frappe.request.get_data() or b""
 
-	from payments.api.webhook_common import provider_of, refuse_delivery, signed_delivery
+	from payments.api.webhook_common import (
+		provider_of,
+		queue_event,
+		received_before,
+		refuse_delivery,
+		signed_delivery,
+	)
 
 	# //// Neoffice — against every enabled Wallee provider (each has its Wallee Settings, so its secret), and
 	# //// with one refusal for all reasons: a 503 and the error code told a guest what the site has, and each
@@ -61,7 +70,8 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 		return refuse_delivery("Wallee", result.error_code if result else None)
 
 	# Idempotency — dedup via unique index on Webhook Event Log.event_id.
-	if frappe.db.exists("Webhook Event Log", result.event_id):
+	# //// Neoffice — maintenance#2296: a row its job never finished is queued again (see received_before).
+	if received_before(result.event_id, _PROCESS_EVENT, _JOB_PREFIX):
 		return "ok"
 
 	# Persist + queue.
@@ -80,14 +90,8 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 	).insert(ignore_permissions=True)
 	frappe.db.commit()  # noqa: T201 — explicit commit so the dedup row survives.
 
-	frappe.enqueue(
-		"payments.api.webhook_wallee.process_event",
-		queue="short",
-		job_id=f"wallee-webhook-{result.event_id}",
-		deduplicate=True,
-		enqueue_after_commit=True,
-		log_name=log.name,
-	)
+	# //// Neoffice — the same job, through the helper a retry uses too.
+	queue_event(_PROCESS_EVENT, _JOB_PREFIX, log.name)
 	return "ok"
 
 
@@ -101,7 +105,12 @@ def process_event(log_name: str) -> None:
 	log = frappe.get_doc("Webhook Event Log", log_name)
 	from frappe.utils import now_datetime
 
-	from payments.api.webhook_common import publish_intent_update, skip_foreign_intent, webhook_drivers
+	from payments.api.webhook_common import (
+		fail_the_row,
+		publish_intent_update,
+		skip_foreign_intent,
+		webhook_drivers,
+	)
 
 	# //// Neoffice — this worker trusts its row, so a row that does not say it was proven is not read at all.
 	if not log.signature_valid:
@@ -138,7 +147,8 @@ def process_event(log_name: str) -> None:
 	# Apply FSM transition if the event maps to a known Intent.
 	if result.intent_name and result.target_status:
 		try:
-			intent_doc = frappe.get_doc("Payment Intent", result.intent_name)
+			# //// Neoffice — maintenance#2296: under lock, see webhook_stripe.process_event.
+			intent_doc = frappe.get_doc("Payment Intent", result.intent_name, for_update=True)
 			# //// Neoffice — an intent is moved by the provider that holds it.
 			if intent_doc.provider != log.provider:
 				skip_foreign_intent(log, intent_doc)
@@ -183,6 +193,10 @@ def process_event(log_name: str) -> None:
 			log.error = f"Payment Intent {result.intent_name} not found"
 			log.processed_at = now_datetime()
 			log.save(ignore_permissions=True)
+			return
+		except Exception as exc:  # noqa: BLE001 — the row says why, the provider got its 200
+			# //// Neoffice — maintenance#2296: see webhook_common.fail_the_row.
+			fail_the_row(log, exc)
 			return
 
 	log.status = "Processed"

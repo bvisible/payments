@@ -40,13 +40,16 @@ from frappe import _
 from frappe.utils import flt, now_datetime, nowdate
 
 
-def reconcile_payment_intent(intent_name: str) -> dict[str, Any]:
+def reconcile_payment_intent(intent_name: str, commit: bool = True) -> dict[str, Any]:
 	"""Idempotently reconcile a succeeded Payment Intent with its reference doc.
 
 	Returns a dict ``{action, target_doctype, target_name, message}`` summarizing
 	what happened. ``action`` is one of: ``skipped_not_succeeded``,
 	``skipped_already_reconciled``, ``skipped_no_reference``,
 	``invoice_payment_recorded``, ``unsupported_reference``.
+
+	``commit=False`` is the doc_event's: it runs inside the save of the intent, and the
+	transition that saved it commits once its Payment Event is written (``transition_to``).
 	"""
 	doc = frappe.get_doc("Payment Intent", intent_name)
 
@@ -96,7 +99,11 @@ def reconcile_payment_intent(intent_name: str) -> dict[str, Any]:
 	md["reconciliation_action"] = result.get("action")
 	doc.metadata_json = json.dumps(md)
 	doc.db_update()
-	frappe.db.commit()
+	# //// Neoffice — maintenance#2296: from the doc_event this commit ended the save of the intent half-way: its
+	# //// version, its search entry and the Payment Event of its transition came after it, and a failure there left
+	# //// a succeeded intent with no event. The doc_event passes commit=False; a direct caller keeps the commit.
+	if commit:
+		frappe.db.commit()
 
 	return result
 
@@ -314,8 +321,15 @@ def on_payment_intent_after_update(doc, method=None):  # noqa: ANN001 — Frappe
 	# Error Log is what hides the entries that matter.
 	if getattr(doc, "docstatus", 0) == 2:
 		return
+	from payments.utils.all_or_nothing import all_or_nothing
+
 	try:
-		reconcile_payment_intent(doc.name)
+		# //// Neoffice — maintenance#2296: a booking that failed half-way (a Payment Entry inserted, its submit
+		# //// refused by frozen books or a missing fiscal year) was only logged, and what it had written committed
+		# //// with the save: a submitted payment with no GL entry, which a later save took for « already paid ».
+		# //// It is undone now: the invoice stays to pay, the intent stays unstamped, and its next save tries again.
+		with all_or_nothing(f"reconcile {doc.name}"):
+			reconcile_payment_intent(doc.name, commit=False)
 	except Exception as exc:  # noqa: BLE001 — never break the save
 		# The traceback matters more than the message here: this runs inside a
 		# doc_event, so the failing write is usually several frames away from the

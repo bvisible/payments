@@ -3430,3 +3430,7 @@ msgstr "La configuration {0} n'a pas d'identifiant de configuration Wallee — s
 #: payments/integrations/wallee/api.py:428
 msgid "Wallee did not create the terminal: {0}"
 msgstr "Wallee n'a pas créé le terminal : {0}"
+
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:106
+msgid "The expiry date of the certificate could not be read: check its password. No reminder will be sent before it expires."
+msgstr "Impossible de lire la date d'expiration du certificat : vérifiez son mot de passe. Aucun rappel ne sera envoyé avant son expiration."

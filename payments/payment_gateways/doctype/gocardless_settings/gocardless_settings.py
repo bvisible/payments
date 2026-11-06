@@ -11,6 +11,9 @@ from frappe.integrations.utils import create_request_log
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, flt, get_url
 
+# //// Neoffice — maintenance#2296: see payments/utils/all_or_nothing.py.
+from payments.utils.all_or_nothing import all_or_nothing
+
 
 class GoCardlessSettings(Document):
 	supported_currencies = ["EUR", "DKK", "GBP", "SEK", "AUD", "NZD", "CAD", "USD"]
@@ -180,9 +183,11 @@ class GoCardlessSettings(Document):
 			if "reference_doctype" in self.data and "reference_docname" in self.data:
 				custom_redirect_to = None
 				try:
-					custom_redirect_to = frappe.get_doc(
-						self.data.get("reference_doctype"), self.data.get("reference_docname")
-					).run_method("on_payment_authorized", self.flags.status_changed_to)
+					# //// Neoffice — maintenance#2296: what the hook booked before it failed is undone (all_or_nothing).
+					with all_or_nothing("GoCardless on_payment_authorized"):
+						custom_redirect_to = frappe.get_doc(
+							self.data.get("reference_doctype"), self.data.get("reference_docname")
+						).run_method("on_payment_authorized", self.flags.status_changed_to)
 				except Exception:
 					frappe.log_error("Gocardless redirect failed")
 

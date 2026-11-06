@@ -60,8 +60,10 @@ class MpesaSettings(Document):
 			"payment_gateway_enabled", gateway="Mpesa-" + self.payment_gateway_name, payment_channel="Phone"
 		)
 
-		# required to fetch the bank account details from the payment gateway account
-		frappe.db.commit()  # nosemgrep
+		# //// Neoffice — maintenance#2296: upstream committed here « to fetch the bank account details from the payment
+		# //// gateway account ». The read below is in the same transaction, so it sees that account without a commit,
+		# //// and the commit ended the save half-way: a Mode of Payment that failed left the settings, the gateway
+		# //// and its account written, with no version, and the next save of the form said « duplicate ».
 		create_mode_of_payment("Mpesa-" + self.payment_gateway_name, payment_type="Phone")
 
 	def request_for_payment(self, **kwargs):
@@ -413,6 +415,12 @@ def create_mode_of_payment(gateway, payment_type="General"):
 	payment_gateway_account = frappe.db.get_value(
 		"Payment Gateway Account", {"payment_gateway": gateway}, ["payment_account"]
 	)
+	# //// Neoffice — maintenance#2296: the account's own company. ERPNext makes the gateway account in the site's
+	# //// default company, and `get_default_company()` is the session user's, which differs on a site of several
+	# //// companies: the Mode of Payment then refused its account (« does not match with Company »).
+	company = get_default_company()
+	if payment_gateway_account:
+		company = frappe.db.get_value("Account", payment_gateway_account, "company") or company
 
 	mode_of_payment = frappe.db.exists("Mode of Payment", gateway)
 	if not mode_of_payment and payment_gateway_account:
@@ -425,7 +433,8 @@ def create_mode_of_payment(gateway, payment_type="General"):
 				"accounts": [
 					{
 						"doctype": "Mode of Payment Account",
-						"company": get_default_company(),
+						# //// Neoffice — the account's own company (maintenance#2296, see above)
+						"company": company,
 						"default_account": payment_gateway_account,
 					}
 				],

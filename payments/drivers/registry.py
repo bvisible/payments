@@ -107,3 +107,51 @@ def resolve_driver(provider_name: str, channel_code: str) -> "PaymentDriverBase"
 	# To keep the contract clear, drivers receive the three docs and decide what
 	# to do.
 	return driver_cls.from_docs(provider_doc, channel_doc, binding_doc)
+
+
+# //// Neoffice — maintenance#2296: the provider a payment goes to when none is named was the one saved last
+# //// (`order_by="modified desc"`): opening and saving a test provider sent the next TWINT or Wallee payments of
+# //// the shop to it. The rule of the Payrexx resolver, which learnt it first (drivers/payrexx/_common.py), now
+# //// stands for them too.
+def pick_provider(driver_class_like: str, channel: str | None = None) -> str | None:
+	"""The enabled provider of one PSP family that acts when none is named, by a rule that does not move.
+
+	1. Enabled providers whose driver class matches.
+	2. When a channel is named, those with an enabled binding for it, if any has one: a site with no binding
+	   rows still resolves, as it did.
+	3. ``live`` before ``test``: a site that holds both takes real money.
+	4. Then by name. Several still left is a guess, said in the Error Log once an hour.
+	"""
+	candidates = frappe.get_all(
+		"Payment Provider",
+		filters={"driver_class": ["like", driver_class_like], "enabled": 1},
+		fields=["name", "mode"],
+		order_by="name asc",
+	)
+	if not candidates:
+		return None
+	if channel:
+		bound = set(
+			frappe.get_all(
+				"Provider Channel Settings",
+				filters={
+					"provider": ["in", [c.name for c in candidates]],
+					"channel": channel,
+					"enabled": 1,
+				},
+				pluck="provider",
+			)
+		)
+		if bound:
+			candidates = [c for c in candidates if c.name in bound]
+	live = [c for c in candidates if (c.mode or "").lower() == "live"]
+	pool = live or candidates
+	if len(pool) > 1:
+		from payments.api.webhook_common import log_once_an_hour
+
+		log_once_an_hour(
+			f"Payment provider is ambiguous: {driver_class_like}",
+			f"channel={channel or '-'} candidates={[c.name for c in pool]}: {pool[0].name} is used. Disable the "
+			"ones this site must not use, or name the provider.",
+		)
+	return pool[0].name

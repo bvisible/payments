@@ -69,6 +69,47 @@ class TwintBridgeSettings(Document):
 		# successful deploy the field is cleared, so this is a no-op on later saves.
 		if self.p12_certificate:
 			self._deploy_certificate()
+		# //// Neoffice — maintenance#2296: a password corrected without uploading the file again is the usual fix of
+		# //// a renewal whose date could not be read; nothing read the date again, so no reminder came, or a false
+		# //// « expired » one. It is read again from the copy the instance keeps.
+		elif self._password_changed():
+			self._read_expiry_again()
+
+	def _password_changed(self) -> bool:
+		stored = getattr(self, "_stored_p12_password", None)
+		if stored is None:
+			return False
+		return (self.get_password("p12_password", raise_exception=False) or "") != stored
+
+	def _read_expiry_again(self):
+		from payments.drivers.twint import local_engine
+
+		raw = local_engine.stored_certificate(self.merchant_uuid)
+		if not raw:
+			return
+		expiry = self._read_cert_expiry(raw)
+		if expiry:
+			self.db_set("certificate_expires_on", expiry, update_modified=False)
+		else:
+			self._expiry_not_read()
+
+	def _expiry_not_read(self):
+		"""Say that the certificate's date could not be read: no reminder will come until it is."""
+		# //// Neoffice — maintenance#2296: it said nothing, and kept the date of the certificate it replaced.
+		self.db_set("certificate_expires_on", None, update_modified=False)
+		frappe.log_error(
+			"TWINT certificate expiry not read",
+			f"{self.name}: the password does not open the certificate, or openssl is missing. No expiry "
+			"reminder is sent for it.",
+		)
+		frappe.msgprint(
+			_(
+				"The expiry date of the certificate could not be read: check its password. No reminder will be "
+				"sent before it expires."
+			),
+			indicator="orange",
+			alert=True,
+		)
 
 	def on_trash(self):
 		# Best-effort: remove the merchant's certificate from neoservice so the
@@ -83,12 +124,10 @@ class TwintBridgeSettings(Document):
 		"""Resolve the TWINT Payment Provider (service URL + bridge auth token)."""
 		from payments.drivers.twint.provider import TwintProvider
 
-		name = self.linked_payment_provider or frappe.db.get_value(
-			"Payment Provider",
-			{"driver_class": ["like", "payments.drivers.twint.%"], "enabled": 1},
-			"name",
-			order_by="modified desc",
-		)
+		# //// Neoffice — maintenance#2296: by a rule that does not move, not the provider saved last (pick_provider).
+		from payments.drivers.registry import pick_provider
+
+		name = self.linked_payment_provider or pick_provider("payments.drivers.twint.%")
 		if not name:
 			frappe.throw(
 				_(
@@ -170,6 +209,8 @@ class TwintBridgeSettings(Document):
 		self.db_set("certificate_deployed_on", now_datetime(), update_modified=False)
 		if expiry:
 			self.db_set("certificate_expires_on", expiry, update_modified=False)
+		else:
+			self._expiry_not_read()
 		msg = _("Certificate deployed to neoservice ✓")
 		if expiry:
 			msg += " " + _("(expires {0})").format(frappe.utils.formatdate(expiry, "dd.MM.yyyy"))

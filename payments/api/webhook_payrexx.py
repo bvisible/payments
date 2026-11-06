@@ -59,6 +59,10 @@ from frappe import _
 from payments.drivers.base import WebhookResult
 from payments.drivers.payrexx._common import NEEDS_HUMAN, map_status
 
+# //// Neoffice — the job and its id, for the first delivery and for a retry (webhook_common.received_before).
+_PROCESS_EVENT = "payments.api.webhook_payrexx.process_event"
+_JOB_PREFIX = "payrexx-webhook"
+
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def handle() -> str:  # permission-check: ok the caller is the provider, its signature is the proof
@@ -89,7 +93,10 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 	if not result.signature_valid:
 		return refuse_delivery("Payrexx", result.error_code)
 
-	if frappe.db.exists("Webhook Event Log", result.event_id):
+	# //// Neoffice — maintenance#2296: a row its job never finished is queued again (see received_before).
+	from payments.api.webhook_common import queue_event, received_before
+
+	if received_before(result.event_id, _PROCESS_EVENT, _JOB_PREFIX):
 		return "ok"
 
 	log = frappe.get_doc(
@@ -105,14 +112,8 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 	).insert(ignore_permissions=True)
 	frappe.db.commit()  # explicit: the dedup record must survive a later failure
 
-	frappe.enqueue(
-		"payments.api.webhook_payrexx.process_event",
-		queue="short",
-		job_id=f"payrexx-webhook-{result.event_id}",
-		deduplicate=True,
-		enqueue_after_commit=True,
-		log_name=log.name,
-	)
+	# //// Neoffice — the same job, through the helper a retry uses too.
+	queue_event(_PROCESS_EVENT, _JOB_PREFIX, log.name)
 	return "ok"
 
 
@@ -385,7 +386,8 @@ def process_event(log_name: str) -> None:
 			frappe.db.commit()
 			return
 
-		intent = frappe.get_doc("Payment Intent", result.intent_name)
+		# //// Neoffice — maintenance#2296: under lock, see webhook_stripe.process_event.
+		intent = frappe.get_doc("Payment Intent", result.intent_name, for_update=True)
 
 		# //// Neoffice — an intent is moved by the account that holds it: the reference named any intent, of
 		# //// any PSP. Compared on the signing key: two provider records may stand for one account, and a
@@ -426,6 +428,10 @@ def process_event(log_name: str) -> None:
 		# //// Neoffice — to the account that started it, see publish_intent_update.
 		publish_intent_update(intent, {"intent_name": intent.name, "status": intent.status, **extra})
 	except Exception as exc:  # noqa: BLE001 - a job failure must not retry forever
+		# //// Neoffice — maintenance#2296: what the job wrote before it failed is undone first; the row was saved
+		# //// as « Failed » and committed with it (a status saved with no Payment Event, a booking half made).
+		frappe.db.rollback()
+		log.reload()
 		log.status = "Failed"
 		log.error = str(exc)[:2000]
 		log.processed_at = now_datetime()

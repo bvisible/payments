@@ -384,7 +384,10 @@ def _set_device_status(device: str | None, status: str) -> None:
 # //// Neoffice — not an HTTP entry any more (maintenance#1732): see create_intent.
 def refund_intent(intent_name: str, amount: int | None = None) -> dict[str, Any]:
 	"""Refund a settled Payment Intent. ``amount=None`` means full refund."""
-	intent_doc = frappe.get_doc("Payment Intent", intent_name)
+	# //// Neoffice — maintenance#2296: under lock, before the provider is asked. Two refunds of one intent (a second
+	# //// tab or till, a resend of the till) each read it « succeeded » and each asked the provider, which keys no
+	# //// Payrexx refund: a partial amount went back twice. The second now waits for the first and finds it refunded.
+	intent_doc = frappe.get_doc("Payment Intent", intent_name, for_update=True)
 	if intent_doc.status != "succeeded":
 		frappe.throw(
 			_("Can only refund a Payment Intent in status 'succeeded' (current: {0})").format(

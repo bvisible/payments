@@ -156,16 +156,17 @@ class TestAStripeChargeLeavesAReceipt(FrappeTestCase):
 		self.assertFalse(stripe_receipt.covers(self.request.name))
 
 	def test_the_amount_is_compared_the_way_the_charge_is_made(self):
-		"""`cint(flt(amount) * 100)` truncates: 4.35 becomes 434 on the way to Stripe. The receipt of that charge covers
-		the request of 4.35; a charge of 1 cent more or less does not."""
+		"""The charge of 4.35 is 435 cents (it was truncated to 434, maintenance#2296). The receipt of that charge
+		covers the request of 4.35; a charge of 1 cent more or less does not."""
 		request = a_payment_request(grand_total=4.35)
 		self.charge(
 			stripe_answers(stripe_receipt.stripe_minor_units(4.35)), payment_request_id=request.name
 		)
 		self.assertTrue(stripe_receipt.covers(request.name))
-		other = a_payment_request(grand_total=4.35)
-		self.charge(stripe_answers(436), payment_request_id=other.name)
-		self.assertFalse(stripe_receipt.covers(other.name))
+		for cents in (434, 436):
+			other = a_payment_request(grand_total=4.35)
+			self.charge(stripe_answers(cents), payment_request_id=other.name)
+			self.assertFalse(stripe_receipt.covers(other.name))
 
 	def test_a_request_with_no_receipt_is_not_covered(self):
 		self.assertFalse(stripe_receipt.covers(self.request.name))

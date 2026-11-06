@@ -70,12 +70,10 @@ def _resolve_wallee_provider_name(provider: str | None) -> str:
 	"""Return a Wallee Payment Provider name — explicit, else first enabled."""
 	if provider:
 		return provider
-	name = frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.wallee.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
+	# //// Neoffice — maintenance#2296: by a rule that does not move, not the provider saved last (pick_provider).
+	from payments.drivers.registry import pick_provider
+
+	name = pick_provider("payments.drivers.wallee.%", "wallee_web")
 	if not name:
 		frappe.throw(_("No enabled Wallee Payment Provider found"))
 	return name

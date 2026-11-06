@@ -45,12 +45,10 @@ def _resolve_twint_provider_name(provider: str | None = None) -> str:
 	"""Return a TWINT Payment Provider name — explicit, else first enabled."""
 	if provider:
 		return provider
-	name = frappe.db.get_value(
-		"Payment Provider",
-		{"driver_class": ["like", "payments.drivers.twint.%"], "enabled": 1},
-		"name",
-		order_by="modified desc",
-	)
+	# //// Neoffice — maintenance#2296: by a rule that does not move, not the provider saved last (pick_provider).
+	from payments.drivers.registry import pick_provider
+
+	name = pick_provider("payments.drivers.twint.%", "twint_web")
 	if not name:
 		frappe.throw(_("No enabled TWINT Payment Provider found"))
 	return name
@@ -59,19 +57,25 @@ def _resolve_twint_provider_name(provider: str | None = None) -> str:
 def _resolve_merchant_uuid_for_provider(provider_name: str) -> str | None:
 	"""First Twint Bridge Settings record linked to the given Payment Provider.
 
-	Falls back to the most-recently-modified ``Twint Bridge Settings`` row when
-	no explicit link exists (single-merchant deployments on Osiris).
+	Falls back to any enabled ``Twint Bridge Settings`` row when no explicit link
+	exists (single-merchant deployments on Osiris).
 	"""
-	linked = frappe.db.get_value(
-		"Twint Bridge Settings",
-		{"linked_payment_provider": provider_name},
-		"name",
-		order_by="modified desc",
-	)
-	if linked:
-		return linked
-	# Fallback: any record (typical single-merchant deployment).
-	return frappe.db.get_value("Twint Bridge Settings", {}, "name", order_by="modified desc")
+	# //// Neoffice — maintenance#2296: an enabled merchant only, and by name, not the one saved last: a save of
+	# //// another record sent the shop's next TWINT payments to that merchant, a disabled one included. Several
+	# //// left is a guess, said in the Error Log once an hour.
+	for filters in ({"linked_payment_provider": provider_name, "enabled": 1}, {"enabled": 1}):
+		merchants = frappe.get_all("Twint Bridge Settings", filters=filters, order_by="name asc", pluck="name")
+		if merchants:
+			if len(merchants) > 1:
+				from payments.api.webhook_common import log_once_an_hour
+
+				log_once_an_hour(
+					"TWINT merchant is ambiguous",
+					f"provider={provider_name} merchants={merchants}: {merchants[0]} is used. Link each "
+					"merchant to its provider, or disable the ones the shop must not use.",
+				)
+			return merchants[0]
+	return None
 
 
 # //// Neoffice — POST only (maintenance#1721): it creates (or cancels) a TWINT order through create_intent /
