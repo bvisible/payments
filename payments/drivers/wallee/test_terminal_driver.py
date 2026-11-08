@@ -33,23 +33,32 @@ PROVIDER_NAME = "wallee_test_unit"
 CHANNEL_CODE = "terminal"
 
 
+# //// Neoffice — the mocks are the SDK's own models now (08.11.2026). They were SimpleNamespace objects shaped by the driver's code, with
+# //// an `authorized_amount` the real `Transaction` does not have: the full refund read it, died, and the tests stayed green.
 def _wallee_tx(tx_id: int = 555, state: str = "PENDING", **overrides):
-	"""Mock Wallee Transaction response. SDK returns an Enum with .value for state."""
-	defaults = {
-		"id": tx_id,
-		"state": SimpleNamespace(value=state),
-		"authorized_amount": 12.0,
-	}
-	defaults.update(overrides)
-	obj = SimpleNamespace(**defaults)
-	obj.to_dict = lambda: {"id": tx_id, "state": state, **overrides}
-	return obj
+	"""A real Wallee SDK `Transaction`. Its state is an Enum (`.value`), its amounts are `authorization_amount` and `completed_amount`.
+	An unknown field fails here, as it would against Wallee."""
+	from wallee.models import Transaction
+
+	fields = {"authorization_amount": 12.0, **overrides}
+	return Transaction(id=tx_id, state=state, **fields)
 
 
 def _wallee_refund(refund_id: int = 777, state: str = "SUCCESSFUL"):
-	obj = SimpleNamespace(id=refund_id, state=SimpleNamespace(value=state))
-	obj.to_dict = lambda: {"id": refund_id, "state": state}
-	return obj
+	from wallee.models import Refund, RefundState
+
+	return Refund(id=refund_id, state=RefundState(state))
+
+
+def _wallee_error(status: int, reason: str, message: str, code: str):
+	"""A real `wallee.exceptions.ApiException`, whose text carries `message='…'` and `code='…'` as the SDK's does."""
+	from wallee.exceptions import ApiException
+
+	return ApiException(
+		status=status,
+		reason=reason,
+		body=f"ClientError(id='1', message='{message}', code='{code}')",
+	)
 
 
 def _ensure_fixtures() -> None:
@@ -223,6 +232,71 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		self.assertEqual(result.status, "failed")
 		self.assertEqual(result.error_code, "invalid_id")
 
+	def _confirm_with(self, error: Exception):
+		driver = _build_driver()
+		terminals = MagicMock()
+		terminals.post_payment_terminals_id_perform_transaction.side_effect = error
+		with _patch_services(terminals_mock=terminals):
+			return driver.confirm_intent("12345", reader_id="678")
+
+	def test_a_terminal_that_never_answers_ends_in_a_readable_timeout(self):
+		"""08.11.2026: the debug terminal was off; Wallee waited the 90 s of its long poll and said 543."""
+		result = self._confirm_with(
+			_wallee_error(
+				543,
+				"Request Timeout",
+				"The request timed out. Make another attempt if there is a chance that the request can be completed.",
+				"long_polling_timeout",
+			)
+		)
+
+		self.assertEqual(result.status, "failed")
+		self.assertEqual(result.error_code, "long_polling_timeout")
+		self.assertTrue(result.error_message.startswith("[HTTP 543] The request timed out."))
+		self.assertEqual(result.provider_intent_id, "12345")
+
+	def test_a_terminal_that_is_not_available_says_so_in_words(self):
+		result = self._confirm_with(
+			_wallee_error(
+				422,
+				"Unprocessable Entity",
+				"The terminal is not available for transaction processing. Please make sure that the terminal is running, connected and is not processing any other transaction at the moment.",
+				"terminal_not_available",
+			)
+		)
+
+		self.assertEqual((result.status, result.error_code), ("failed", "terminal_not_available"))
+		self.assertIn("running, connected", result.error_message)
+		self.assertTrue(result.error_message.startswith("[HTTP 422]"))
+
+	def test_a_transaction_cancelled_on_the_terminal_is_a_failure_not_an_exception(self):
+		result = self._confirm_with(
+			_wallee_error(422, "Unprocessable Entity", "Terminal transaction canceled.", "terminal_cancelled")
+		)
+
+		self.assertEqual(result.status, "failed")
+		self.assertIn("canceled", result.error_message)
+
+	def test_whatever_goes_wrong_is_answered_never_raised(self):
+		for error in (RuntimeError("boom"), ConnectionError("no route"), TimeoutError("read timed out")):
+			with self.subTest(error=type(error).__name__):
+				result = self._confirm_with(error)
+
+				self.assertEqual(result.status, "failed")
+				self.assertTrue(result.error_code)
+				self.assertTrue(result.error_message)
+
+	def test_the_message_and_code_are_pulled_out_of_the_sdks_text(self):
+		from payments.drivers.wallee.terminal_driver import _extract_wallee_error
+
+		message, code = _extract_wallee_error(_wallee_error(404, "Not Found", "The requested resource does not exist.", "resource_missing"))
+		self.assertEqual((message, code), ("[HTTP 404] The requested resource does not exist.", "resource_missing"))
+
+		# an error the SDK words in another way is kept, cut short, and has no code
+		message, code = _extract_wallee_error(RuntimeError("x" * 500))
+		self.assertEqual(len(message), 200)
+		self.assertIsNone(code)
+
 	# --------- cancel_intent ---------
 
 	def test_cancel_intent_voids_via_sdk(self):
@@ -246,11 +320,11 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 
 	# --------- refund ---------
 
-	def test_refund_full_uses_authorized_amount(self):
+	def test_refund_full_uses_the_captured_amount(self):
 		driver = _build_driver()
 		tx_service = MagicMock()
 		tx_service.get_payment_transactions_id.return_value = _wallee_tx(
-			tx_id=12345, state="COMPLETED", authorized_amount=12.0
+			tx_id=12345, state="COMPLETED", authorization_amount=15.0, completed_amount=12.0
 		)
 		refunds = MagicMock()
 		refunds.refund.return_value = _wallee_refund(state="SUCCESSFUL")
@@ -264,6 +338,49 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		self.assertEqual(rc.amount, 12.0)
 		self.assertEqual(rc.type, "MERCHANT_INITIATED_ONLINE")
 		self.assertEqual(result.status, "refunded")
+
+	def test_refund_full_falls_back_to_the_authorized_amount(self):
+		driver = _build_driver()
+		tx_service = MagicMock()
+		tx_service.get_payment_transactions_id.return_value = _wallee_tx(
+			tx_id=12345, state="COMPLETED", authorization_amount=9.5
+		)
+		refunds = MagicMock()
+		refunds.refund.return_value = _wallee_refund(state="SUCCESSFUL")
+		with _patch_services(tx_mock=tx_service, refunds_mock=refunds):
+			result = driver.refund("12345")
+
+		self.assertEqual(refunds.refund.call_args.args[1].amount, 9.5)
+		self.assertEqual(result.status, "refunded")
+
+	def test_refund_full_of_a_transaction_that_says_no_amount_is_refused_and_asks_wallee_nothing(self):
+		driver = _build_driver()
+		tx_service = MagicMock()
+		tx_service.get_payment_transactions_id.return_value = _wallee_tx(
+			tx_id=12345, state="COMPLETED", authorization_amount=None
+		)
+		refunds = MagicMock()
+		with _patch_services(tx_mock=tx_service, refunds_mock=refunds):
+			result = driver.refund("12345")
+
+		self.assertEqual((result.status, result.error_code), ("failed", "invalid_amount"))
+		refunds.refund.assert_not_called()
+
+	def test_the_driver_reads_amounts_that_the_sdks_transaction_has(self):
+		"""The contract with the SDK: a field the driver reads must exist on the model, or a mock can invent it and hide the error."""
+		from wallee.models import Transaction
+
+		for field in ("id", "state", "authorization_amount", "completed_amount"):
+			self.assertIn(field, Transaction.model_fields)
+		self.assertNotIn("authorized_amount", Transaction.model_fields)
+
+	def test_refundable_amount_prefers_what_was_captured_then_what_was_authorized_then_nothing(self):
+		from payments.drivers.wallee.terminal_driver import refundable_amount
+
+		self.assertEqual(refundable_amount(_wallee_tx(authorization_amount=15.0, completed_amount=12.0)), 12.0)
+		self.assertEqual(refundable_amount(_wallee_tx(authorization_amount=15.0)), 15.0)
+		self.assertEqual(refundable_amount(_wallee_tx(authorization_amount=None)), 0.0)
+		self.assertEqual(refundable_amount(SimpleNamespace()), 0.0)
 
 	def test_refund_partial_uses_minor_amount(self):
 		driver = _build_driver()
@@ -335,3 +452,55 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		# Refund webhook does not carry a Frappe intent name directly (we'd need
 		# to follow the refund.transaction.id back; left to enrichment step).
 		self.assertIsNone(result.intent_name)
+
+
+class TestWalleeWebDriverRefund(FrappeTestCase):
+	"""The hosted-page driver refunds as the terminal driver does: the same transaction, the same fields."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		if not frappe.db.exists("DocType", "Wallee Settings"):
+			raise cls.skipTest(cls, "Wallee Settings doctype absent: payments not installed on this site")
+		_ensure_fixtures()
+
+	def _driver(self):
+		from payments.drivers.wallee.web_driver import WalleeWebDriver
+
+		provider_doc = frappe.get_doc("Payment Provider", PROVIDER_NAME)
+		return WalleeWebDriver.from_docs(provider_doc, None, None)
+
+	def _refund_with(self, tx, amount=None):
+		from payments.drivers.wallee.web_driver import WalleeWebDriver
+
+		tx_service = MagicMock()
+		tx_service.get_payment_transactions_id.return_value = tx
+		refunds = MagicMock()
+		refunds.refund.return_value = _wallee_refund(state="SUCCESSFUL")
+		with patch.object(WalleeWebDriver, "_services", return_value=(tx_service, refunds)):
+			result = self._driver().refund("12345", amount=amount)
+		return result, refunds
+
+	def test_a_full_refund_gives_back_what_was_captured(self):
+		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED", authorization_amount=15.0, completed_amount=12.0))
+
+		self.assertEqual(result.status, "refunded")
+		self.assertEqual(refunds.refund.call_args.args[1].amount, 12.0)
+
+	def test_a_full_refund_of_an_authorized_transaction_gives_back_what_was_authorized(self):
+		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED", authorization_amount=9.5))
+
+		self.assertEqual(result.status, "refunded")
+		self.assertEqual(refunds.refund.call_args.args[1].amount, 9.5)
+
+	def test_a_transaction_with_no_amount_is_refused_and_nothing_is_asked_of_wallee(self):
+		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED", authorization_amount=None))
+
+		self.assertEqual((result.status, result.error_code), ("failed", "invalid_amount"))
+		refunds.refund.assert_not_called()
+
+	def test_a_partial_refund_names_its_amount_and_reads_nothing(self):
+		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED"), amount=500)
+
+		self.assertEqual(result.status, "refunded")
+		self.assertEqual(refunds.refund.call_args.args[1].amount, 5.0)

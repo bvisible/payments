@@ -290,8 +290,8 @@ class WalleeTerminalDriver(PaymentDriverBase):
 		"""Refund the Wallee transaction. ``amount=None`` → full refund.
 
 		Wallee ``RefundCreate.amount`` is in MAJOR units (decimal). If amount is
-		omitted, we re-read the transaction's ``authorized_amount`` to know the
-		full amount.
+		omitted, we re-read the transaction to know the full amount
+		(:func:`refundable_amount`).
 		"""
 		from wallee.models import RefundCreate
 
@@ -303,8 +303,8 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				tx = tx_service.get_payment_transactions_id(
 					int(provider_intent_id), self._wallee_provider.space_id
 				)
-				# `authorized_amount` is a Decimal in major units already on Wallee.
-				refund_amount = float(tx.authorized_amount or 0)
+				# Major units already on Wallee's side.
+				refund_amount = refundable_amount(tx)
 			else:
 				refund_amount = round(int(amount) / 100, 2)
 
@@ -509,6 +509,17 @@ def _extract_wallee_error(exc: Exception) -> tuple[str, str | None]:
 	if status_match:
 		message = f"[HTTP {status_match.group(1)}] {message}"
 	return message, code
+
+
+# //// Neoffice — a full refund read `tx.authorized_amount`, which the Wallee SDK's `Transaction` does not have (it says
+# //// `authorization_amount` and `completed_amount`): the terminal driver died on an AttributeError that its own `except`
+# //// turned into « wallee_refund_failed », the web driver read a default of 0 and refused « invalid_amount ». A partial
+# //// refund, which names its amount, was the only one that worked. The tests had invented the same field on their mock,
+# //// so they were green; they are built on the SDK's own model now (08.11.2026).
+def refundable_amount(tx: Any) -> float:
+	"""What a Wallee transaction can be refunded for, in MAJOR units: what was captured, else what was authorized (0 when it says neither)."""
+	completed = float(getattr(tx, "completed_amount", None) or 0)
+	return completed or float(getattr(tx, "authorization_amount", None) or 0)
 
 
 def _state_value(state: Any) -> str | None:

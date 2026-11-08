@@ -50,6 +50,7 @@ from payments.drivers.wallee.provider import WalleeProvider
 from payments.drivers.wallee.terminal_driver import (
 	_extract_wallee_error,
 	_state_value,
+	refundable_amount,
 	_TX_PASSTHROUGH,
 	_TX_STATE_TO_STATUS,
 	_REFUND_STATE_TO_STATUS,
@@ -344,7 +345,8 @@ class WalleeWebDriver(PaymentDriverBase):
 				tx = tx_service.get_payment_transactions_id(
 					int(provider_intent_id), self._wallee_provider.space_id
 				)
-				refund_amount = float(getattr(tx, "authorized_amount", 0) or 0)
+				# //// Neoffice — the SDK's field names, see refundable_amount (a full refund read a field that does not exist and refused « invalid_amount »)
+				refund_amount = refundable_amount(tx)
 			else:
 				refund_amount = round(int(amount) / 100, 2)
 
