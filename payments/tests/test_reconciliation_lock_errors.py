@@ -27,7 +27,7 @@ def a_succeeded_intent():
 
 
 class TestALockErrorGoesUp(FrappeTestCase):
-	def test_a_deadlock_reaches_the_caller(self):
+	def test_a_deadlock_reaches_the_caller(self):  # role-check: ok a doc event runs as whoever saved the intent (a webhook or a job), no person at a desk plays this act
 		with (
 			patch.object(
 				reconciliation, "reconcile_payment_intent", side_effect=frappe.QueryDeadlockError("1213")
@@ -37,7 +37,7 @@ class TestALockErrorGoesUp(FrappeTestCase):
 			with self.assertRaises(frappe.QueryDeadlockError):
 				reconciliation.on_payment_intent_after_update(a_succeeded_intent())
 
-	def test_a_lock_wait_timeout_reaches_the_caller(self):
+	def test_a_lock_wait_timeout_reaches_the_caller(self):  # role-check: ok a doc event runs as whoever saved the intent (a webhook or a job), no person at a desk plays this act
 		with (
 			patch.object(
 				reconciliation, "reconcile_payment_intent", side_effect=frappe.QueryTimeoutError("1205")
@@ -47,7 +47,7 @@ class TestALockErrorGoesUp(FrappeTestCase):
 			with self.assertRaises(frappe.QueryTimeoutError):
 				reconciliation.on_payment_intent_after_update(a_succeeded_intent())
 
-	def test_the_savepoint_that_a_deadlock_ended_is_not_left_to_hide_the_error(self):
+	def test_the_savepoint_that_a_deadlock_ended_is_not_left_to_hide_the_error(self):  # role-check: ok a doc event runs as whoever saved the intent (a webhook or a job), no person at a desk plays this act
 		"""`all_or_nothing` finds its savepoint gone after a deadlock and says so; the deadlock still goes up."""
 		with (
 			patch.object(
@@ -62,7 +62,7 @@ class TestALockErrorGoesUp(FrappeTestCase):
 
 
 class TestAnyOtherFailureStillDoesNotBreakTheSave(FrappeTestCase):
-	def test_a_booking_that_fails_is_logged_and_the_save_goes_on(self):
+	def test_a_booking_that_fails_is_logged_and_the_save_goes_on(self):  # role-check: ok a doc event runs as whoever saved the intent (a webhook or a job), no person at a desk plays this act
 		with (
 			patch.object(
 				reconciliation, "reconcile_payment_intent", side_effect=ValueError("frozen books")
@@ -74,7 +74,7 @@ class TestAnyOtherFailureStillDoesNotBreakTheSave(FrappeTestCase):
 		self.assertEqual(log_error.call_args.args[0], "reconcile_payment_intent failed in doc_event")
 		self.assertIn("frozen books", log_error.call_args.args[1])
 
-	def test_an_intent_that_is_not_succeeded_is_not_reconciled(self):
+	def test_an_intent_that_is_not_succeeded_is_not_reconciled(self):  # role-check: ok a doc event runs as whoever saved the intent (a webhook or a job), no person at a desk plays this act
 		intent = frappe._dict(name="PI-TEST-1831", status="processing", docstatus=1)
 		with patch.object(reconciliation, "reconcile_payment_intent") as reconcile:
 			reconciliation.on_payment_intent_after_update(intent)
