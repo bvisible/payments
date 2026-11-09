@@ -2054,9 +2054,9 @@ msgstr ""
 " : formulaire de paiement dans une fenêtre modale. iFrame : formulaire de "
 "paiement intégré sur la page de paiement."
 
-#: payments/public/js/twint_dialog.js:652
-msgid "Redirection vers TWINT"
-msgstr ""
+#: payments/public/js/twint_dialog.js:673
+msgid "Redirecting to TWINT"
+msgstr "Redirection vers TWINT"
 
 #: payments/www/wallee/failed.html:26 payments/www/wallee/success.html:22
 #: payments/www/wallee/success.html:46 payments/www/wallee/success.html:70

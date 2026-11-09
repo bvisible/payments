@@ -667,11 +667,16 @@ frappe.provide('frappe.twint');
                             // Format of the Android deep link
                             const androidDeepLink = `intent://payment#Intent;action=ch.twint.action.TWINT_PAYMENT;scheme=twint;S.code=${pairing_token};S.startingOrigin=EXTERNAL_WEB_BROWSER;S.browser_fallback_url=;end`;
 
+                            //// Neoffice — the msgid was French ("Redirection vers TWINT"), so no
+                            //// catalogue could translate it and an English screen showed French.
+                            //// fr.po carries the French for the English msgid.
+                            const redirectTitle = __('Redirecting to TWINT');
+
                             // Create the content for Android with timer
                             selectorDiv.innerHTML = `
                                 <div style="background: white; padding: 20px; border-radius: 8px; max-width: 90%; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                        <h3 style="margin: 0; font-size: 18px;">${__('Redirection vers TWINT')}</h3>
+                                        <h3 style="margin: 0; font-size: 18px;">${redirectTitle}</h3>
                                         <button id="twint-selector-close" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
                                     </div>
 
@@ -1113,7 +1118,12 @@ frappe.provide('frappe.twint');
                     );
                 } else {
                     // Backend environment
-                    if (confirm(__("Do you really want to cancel this payment?"))) {
+                    //// Neoffice — the shopper's page used the browser's own confirm() and
+                    //// alert(), which freeze the whole tab (and a phone's browser may mute
+                    //// them for the site). frappe.confirm, frappe.show_alert and
+                    //// frappe.msgprint are loaded on website pages too (frappe-web.bundle.js
+                    //// imports ui/messages.js) and are what the desk branch above already uses.
+                    frappe.confirm(__("Do you really want to cancel this payment?"), () => {
                         frappe.call({
                             method: 'payments.integrations.twint.api.cancel_web_transaction',
                             args: {
@@ -1122,18 +1132,25 @@ frappe.provide('frappe.twint');
                             },
                             callback: function(r) {
                                 if (r.message && r.message.success) {
-                                    alert(__('Payment cancelled successfully'));
+                                    frappe.show_alert({
+                                        message: __('Payment cancelled successfully'),
+                                        indicator: 'red'
+                                    });
                                     if (options.onCancel) {
                                         options.onCancel();
                                     }
                                 } else {
-                                    alert(__('Error cancelling payment'));
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        message: __('Error cancelling payment'),
+                                        indicator: 'red'
+                                    });
                                 }
                                 paymentDialog.hide();
                                 stopStatusCheck();
                             }
                         });
-                    }
+                    });
                 }
             });
         } else {

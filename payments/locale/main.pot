@@ -2249,8 +2249,8 @@ msgstr ""
 msgid "Redirect: Customer goes to Wallee payment page. Lightbox: Payment form in overlay modal. iFrame: Embedded payment form on checkout page."
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:671
-msgid "Redirection vers TWINT"
+#: payments/public/js/twint_dialog.js:673
+msgid "Redirecting to TWINT"
 msgstr ""
 
 #: payments/api/mobile_payments.py:633 payments/www/payrexx/success.html:36
