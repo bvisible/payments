@@ -3470,3 +3470,15 @@ msgstr "Clé de signature du webhook"
 #: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:174
 msgid "Webhooks — the signing key"
 msgstr "Webhooks — la clé de signature"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:71
+msgid "In your back office, under API & Plugins: the key of type API. Leave the POS key empty; the « HPOS Device API Key » that Payrexx creates by itself is not needed."
+msgstr "Dans votre back-office, sous API & Plugins, indiquez la clé de type API. Laissez la clé POS vide : la « HPOS Device API Key » que Payrexx crée elle-même n'est pas nécessaire."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:118
+msgid "optional — leave empty, the API secret also drives the terminal"
+msgstr "facultatif — laissez vide, le secret API pilote aussi le terminal"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:113
+msgid "the part before .payrexx.com — the full address is accepted too"
+msgstr "la partie qui précède .payrexx.com — l'adresse complète est aussi acceptée"
