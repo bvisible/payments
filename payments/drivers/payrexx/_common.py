@@ -20,6 +20,7 @@ translates between Payrexx's vocabulary and our unified FSM.
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -117,6 +118,20 @@ def map_status(payrexx_status: str | None) -> str | None:
 	return _STATUS_TO_FSM.get(str(payrexx_status).strip().lower())
 
 
+def instance_name(value: str | None) -> str:
+	"""The bare account name, whatever form the merchant pasted it in.
+
+	A merchant copies what the address bar shows — ``https://shop.payrexx.com/``,
+	``shop.payrexx.com/cadmin/…`` — where Payrexx wants ``shop``. Kept as typed, the
+	client called an address that does not exist, and the setup wizard showed a failed
+	connection with no reason (first live client, 2026-11-09).
+	"""
+	text = (value or "").strip().lower()
+	text = re.sub(r"^[a-z][a-z0-9+.-]*://", "", text)
+	text = text.split("/", 1)[0].split("?", 1)[0]
+	return re.sub(r"\.payrexx\.com$", "", text)
+
+
 def build_client(provider_doc) -> PayrexxClient:  # noqa: ANN001
 	"""Build a :class:`payrexx.PayrexxClient` from a Payment Provider record.
 
@@ -142,7 +157,7 @@ def build_client(provider_doc) -> PayrexxClient:  # noqa: ANN001
 		) from exc
 
 	creds = provider_doc.get_credentials() or {}
-	instance = (creds.get("instance") or "").strip()
+	instance = instance_name(creds.get("instance"))
 	api_secret = (creds.get("api_secret") or "").strip()
 
 	if not instance:

@@ -36,7 +36,7 @@ import frappe
 from frappe import _
 
 from payments.drivers.base import PaymentProviderBase
-from payments.drivers.payrexx._common import build_client
+from payments.drivers.payrexx._common import build_client, instance_name
 
 
 class PayrexxProvider(PaymentProviderBase):
@@ -65,7 +65,7 @@ class PayrexxProvider(PaymentProviderBase):
 	@property
 	def instance(self) -> str:
 		"""Account name — the ``<instance>`` in ``https://<instance>.payrexx.com``."""
-		return str(self.get_credentials()["instance"]).strip()
+		return instance_name(self.get_credentials()["instance"])
 
 	@property
 	def webhook_signing_key(self) -> str | None:

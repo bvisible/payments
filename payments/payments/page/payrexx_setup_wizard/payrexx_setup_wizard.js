@@ -69,7 +69,7 @@ class PayrexxSetup {
 				<div class="card-body">
 					<h5>${__("2. Credentials")}</h5>
 					<p class="text-muted etat">${__(
-						"In your back office, under API & Plugins. The POS key is only needed for a card terminal."
+						"In your back office, under API & Plugins: the key of type API. Leave the POS key empty; the « HPOS Device API Key » that Payrexx creates by itself is not needed."
 					)}</p>
 					<div class="row">
 						<div class="col-sm-5"><div class="frappe-control" data-champ="api_secret"></div></div>
@@ -110,9 +110,12 @@ class PayrexxSetup {
 
 		this.champs = {};
 		const def = [
-			["instance", "Data", __("Instance"), __("the part before .payrexx.com")],
+			["instance", "Data", __("Instance"), __("the part before .payrexx.com — the full address is accepted too")],
 			["api_secret", "Password", __("API secret"), ""],
-			["pos_api_secret", "Password", __("POS API key"), __("terminal only")],
+			//// The POS key is optional even for a terminal: the API secret drives the terminal
+			//// too (both keys carry the same rights, measured 2026-08-03). Said here because a
+			//// merchant read « terminal only » as « needed for the terminal » and looked for it.
+			["pos_api_secret", "Password", __("POS API key"), __("optional — leave empty, the API secret also drives the terminal")],
 			["mode", "Select", __("Mode"), ""],
 			["webhook_signing_key", "Password", __("Webhook signing key"), __("shown only once by Payrexx")],
 			["web", "Check", __("Online payments"), ""],

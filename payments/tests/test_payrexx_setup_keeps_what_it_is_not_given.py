@@ -66,6 +66,47 @@ class TestPayrexxSetupKeepsWhatItIsNotGiven(FrappeTestCase):
 		self.assertEqual(creds["api_secret"], STORED["api_secret"])
 		self.assertEqual(creds["pos_api_secret"], STORED["pos_api_secret"])
 
+	def test_the_address_from_the_address_bar_is_stored_as_the_bare_instance(self):
+		with as_role("head_accountant"):
+			payrexx_setup.save_credentials(instance="  https://_t-shop.payrexx.com/  ", mode="live")
+
+		creds, _mode = self.stored()
+		self.assertEqual(creds["instance"], "_t-shop")
+
+	def test_every_pasted_form_of_the_instance_gives_the_account_name(self):
+		from payments.drivers.payrexx._common import instance_name
+
+		for typed in (
+			"shop",
+			"Shop",
+			"shop.payrexx.com",
+			"https://shop.payrexx.com/",
+			"https://shop.payrexx.com/cadmin/index.php?cmd=checkout&act=integrations",
+			"http://shop.payrexx.com",
+		):
+			self.assertEqual(instance_name(typed), "shop", typed)
+		self.assertEqual(instance_name(None), "")
+
+	def test_a_failed_connection_says_why(self):
+		class _Client:
+			def __enter__(self):
+				return self
+
+			def __exit__(self, *exc):
+				return False
+
+			def health_check(self):
+				return {"ok": False, "instance": "_t-shop", "error": "The API secret is not correct."}
+
+		with (
+			patch("payments.drivers.payrexx._common.build_client", return_value=_Client()),
+			as_role("head_accountant"),
+		):
+			result = payrexx_setup.test_connection()
+
+		self.assertFalse(result["ok"])
+		self.assertEqual(result["error"], "The API secret is not correct.")
+
 	def test_no_api_secret_anywhere_is_still_refused(self):
 		frappe.db.set_value(
 			"Payment Provider",

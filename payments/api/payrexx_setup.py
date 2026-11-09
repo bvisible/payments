@@ -191,6 +191,11 @@ def save_credentials(
 		value = (value or "").strip()
 		if value:
 			creds[key] = value
+	# //// Neoffice — the address bar gives `https://shop.payrexx.com/`, Payrexx wants `shop`: the first
+	# //// live client stored the address and every call went to a host that does not exist (2026-11-09).
+	from payments.drivers.payrexx._common import instance_name
+
+	creds["instance"] = instance_name(creds.get("instance"))
 	if not creds.get("instance") or not creds.get("api_secret"):
 		frappe.throw(_("Instance and API secret are required"))
 
@@ -224,12 +229,15 @@ def test_connection() -> dict[str, Any]:
 	except Exception as exc:  # noqa: BLE001 - the message is the whole point here
 		return {"ok": False, "error": str(exc)[:300]}
 
+	# //// Neoffice — `error` is passed on: the wizard showed « Connection failed » with nothing after
+	# //// it, while Payrexx had said why (a wrong instance, a refused key).
 	return {
 		"ok": bool(health.get("ok")),
 		"instance": health.get("instance"),
 		"mode": provider.mode,
 		"payment_methods": health.get("active_payment_methods") or [],
 		"providers": health.get("providers") or [],
+		"error": None if health.get("ok") else str(health.get("error") or "")[:300] or None,
 	}
 
 
