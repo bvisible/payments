@@ -100,6 +100,7 @@ def get_current_setup() -> dict[str, Any]:
 			# every browser cache and screenshot.
 			"has_api_secret": bool(creds.get("api_secret")),
 			"has_pos_secret": bool(creds.get("pos_api_secret")),
+			"has_webhook_key": bool(creds.get("webhook_signing_key")),
 		}
 
 	channels = frappe.get_all(
@@ -114,15 +115,25 @@ def get_current_setup() -> dict[str, Any]:
 		if not account or not frappe.db.exists("Payment Gateway Account", account):
 			continue
 		row = _webshop_row(account)
-		tiles.append({
-			"key": key,
-			"account": account,
-			"in_shop": bool(row),
-			"methods": (row or {}).get("restrict_payment_methods") or "",
-			"inline": bool((row or {}).get("render_inline")),
-		})
+		tiles.append(
+			{
+				"key": key,
+				"account": account,
+				"in_shop": bool(row),
+				"methods": (row or {}).get("restrict_payment_methods") or "",
+				"inline": bool((row or {}).get("render_inline")),
+			}
+		)
 
-	return {"provider": provider, "channels": channels, "tiles": tiles}
+	# //// Neoffice — the address to declare under Webhooks in the Payrexx back office. Shown by the
+	# //// wizard because nothing else tells the merchant where Payrexx must post: without a webhook
+	# //// a till payment is only learnt by the five-minute sweep, so the cashier waits that long.
+	return {
+		"provider": provider,
+		"channels": channels,
+		"tiles": tiles,
+		"webhook_url": frappe.utils.get_url("/api/method/payments.api.webhook_payrexx.handle"),
+	}
 
 
 # ---------------------------------------------------------------------------
@@ -135,20 +146,26 @@ def get_current_setup() -> dict[str, Any]:
 # //// with frappe.call (POST); reading the setup and testing the connection stay open.
 @frappe.whitelist(methods=["POST"])
 def save_credentials(
-	instance: str, api_secret: str, pos_api_secret: str | None = None, mode: str = "test"
+	instance: str,
+	api_secret: str | None = None,
+	pos_api_secret: str | None = None,
+	mode: str = "test",
+	webhook_signing_key: str | None = None,
 ) -> dict[str, Any]:
 	"""Create or update the Payment Provider.
 
+	Every secret field left empty keeps the value already stored — the wizard
+	never sends a secret back to the browser, so a field shown empty means
+	"unchanged", not "erase". A wizard reopened to change the mode must not
+	silently unpair the till nor stop the webhooks.
+
 	``pos_api_secret`` is only needed for the card terminal; a shop that sells
-	online alone can leave it empty, and an empty value must not wipe one that is
-	already stored — a wizard reopened to change the mode should not silently
-	unpair the till.
+	online alone can leave it empty. ``webhook_signing_key`` is generated under
+	Webhooks in the back office: without it every delivery is refused.
 	"""
 	frappe.only_for(("System Manager", "Accounts Manager"))
 	if mode not in ("test", "live"):
 		frappe.throw(_("Mode must be 'test' or 'live'"))
-	if not instance or not api_secret:
-		frappe.throw(_("Instance and API secret are required"))
 
 	if frappe.db.exists("Payment Provider", PROVIDER):
 		doc = frappe.get_doc("Payment Provider", PROVIDER)
@@ -158,12 +175,25 @@ def save_credentials(
 		doc.display_label = "Payrexx"
 		doc.driver_class = "payments.drivers.payrexx.provider.PayrexxProvider"
 
-	existing = _read_credentials(doc)
-	creds = {
-		"instance": instance.strip(),
-		"api_secret": api_secret.strip(),
-		"pos_api_secret": (pos_api_secret or "").strip() or existing.get("pos_api_secret"),
+	# //// Neoffice — the stored credentials are the starting point, and only what was typed
+	# //// replaces them. Rebuilding the dict from the three form fields dropped every other key —
+	# //// the webhook signing key first, set outside the wizard — so reopening the wizard to switch
+	# //// to live turned the webhooks off without a word. And the API secret was required again
+	# //// although the form said « already stored — leave empty to keep it ».
+	creds = dict(_read_credentials(doc))
+	typed = {
+		"instance": instance,
+		"api_secret": api_secret,
+		"pos_api_secret": pos_api_secret,
+		"webhook_signing_key": webhook_signing_key,
 	}
+	for key, value in typed.items():
+		value = (value or "").strip()
+		if value:
+			creds[key] = value
+	if not creds.get("instance") or not creds.get("api_secret"):
+		frappe.throw(_("Instance and API secret are required"))
+
 	doc.credentials_json = json.dumps({k: v for k, v in creds.items() if v}, indent=1)
 	doc.mode = mode
 	doc.enabled = 1
@@ -225,13 +255,19 @@ def setup_channels(web: bool = True, terminal: bool = False) -> dict[str, Any]:
 	}
 	wanted = [c for c, on in (("payrexx_web", web), ("terminal", terminal)) if on]
 
+	# //// Neoffice — a site installed before the channel registry (7a0f7ca, 2026-09-03) never got
+	# //// the `terminal` channel: neither a patch nor `after_install` created it there, and the
+	# //// wizard stopped on « Payment Channel terminal does not exist » the day a shop wanted its
+	# //// card terminal. The registry is idempotent, so the wizard asks it for what it needs.
+	from payments.setup.payment_channels import provision_payment_channels
+
+	provision_payment_channels(codes=wanted)
+
 	fait = []
 	for channel in wanted:
 		if not frappe.db.exists("Payment Channel", channel):
 			frappe.throw(_("Payment Channel {0} does not exist").format(channel))
-		name = frappe.db.exists(
-			"Provider Channel Settings", {"provider": PROVIDER, "channel": channel}
-		)
+		name = frappe.db.exists("Provider Channel Settings", {"provider": PROVIDER, "channel": channel})
 		doc = (
 			frappe.get_doc("Provider Channel Settings", name)
 			if name
@@ -343,9 +379,7 @@ def _account_name(suffix: str) -> str | None:
 	Looked up rather than guessed: ERPNext appends the currency and sometimes the
 	company abbreviation, and the exact shape differs between deployments.
 	"""
-	return frappe.db.exists(
-		"Payment Gateway Account", {"payment_gateway": _gateway_name(suffix)}
-	)
+	return frappe.db.exists("Payment Gateway Account", {"payment_gateway": _gateway_name(suffix)})
 
 
 def _template_account(currency: str):  # noqa: ANN202

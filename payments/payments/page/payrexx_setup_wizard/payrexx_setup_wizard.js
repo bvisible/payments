@@ -76,6 +76,10 @@ class PayrexxSetup {
 						<div class="col-sm-5"><div class="frappe-control" data-champ="pos_api_secret"></div></div>
 						<div class="col-sm-2"><div class="frappe-control" data-champ="mode"></div></div>
 					</div>
+					<div class="row">
+						<div class="col-sm-5"><div class="frappe-control" data-champ="webhook_signing_key"></div></div>
+						<div class="col-sm-7 etat pt-4" data-zone="webhook"></div>
+					</div>
 					<button class="btn btn-primary btn-sm" data-action="enregistrer">${__("Save and test")}</button>
 					<div class="etat mt-3" data-zone="connexion"></div>
 				</div>
@@ -110,6 +114,7 @@ class PayrexxSetup {
 			["api_secret", "Password", __("API secret"), ""],
 			["pos_api_secret", "Password", __("POS API key"), __("terminal only")],
 			["mode", "Select", __("Mode"), ""],
+			["webhook_signing_key", "Password", __("Webhook signing key"), __("shown only once by Payrexx")],
 			["web", "Check", __("Online payments"), ""],
 			["terminal", "Check", __("Card terminal"), ""],
 		];
@@ -161,8 +166,12 @@ class PayrexxSetup {
 			return;
 		}
 		const base = `https://${encodeURIComponent(espace)}.payrexx.com/cadmin/index.php`;
+		//// Payrexx names its pages the other way round from what one expects: API & Plugins (the
+		//// secrets) is `act=integrations`, and `act=api` is the Webhooks page. Seen in the back
+		//// office on 2026-08-11; the first link used to open the webhooks instead of the secrets.
 		const liens = [
-			[`${base}?cmd=checkout&act=api`, __("API & Plugins — the secrets")],
+			[`${base}?cmd=checkout&act=integrations`, __("API & Plugins — the secrets")],
+			[`${base}?cmd=checkout&act=api`, __("Webhooks — the signing key")],
 			[`${base}?cmd=checkout&act=softpos`, __("Tap to Pay")],
 			[`${base}?cmd=checkout&act=api&tpl=webhookLogs`, __("Webhook logs")],
 			[`https://${encodeURIComponent(espace)}.payrexx.com/cadmin/`, __("Back office")],
@@ -183,6 +192,7 @@ class PayrexxSetup {
 			method: "payments.api.payrexx_setup.get_current_setup",
 		});
 		if (!message) return;
+		this.rendre_webhook(message.webhook_url);
 		const p = message.provider;
 		if (p) {
 			this.champs.instance.set_value(p.instance || "");
@@ -194,6 +204,7 @@ class PayrexxSetup {
 			for (const [champ, present] of [
 				["api_secret", p.has_api_secret],
 				["pos_api_secret", p.has_pos_secret],
+				["webhook_signing_key", p.has_webhook_key],
 			]) {
 				if (present) {
 					this.champs[champ].df.description = __("Already stored — leave empty to keep it");
@@ -207,6 +218,17 @@ class PayrexxSetup {
 
 		this.rendre_tuiles(message.tiles || []);
 		if (p && p.enabled) this.enregistrer(true);
+	}
+
+	//// The address Payrexx must post to. Without a webhook and its signing key a till
+	//// payment is learnt only by the five-minute sweep: the cashier waits that long.
+	rendre_webhook(url) {
+		if (!url) return;
+		this.$body.find('[data-zone="webhook"]').html(
+			`<span class="text-muted">${__(
+				"Under Webhooks in your back office: add this address, content type JSON, event Transaction, then generate the signing key and paste it here."
+			)}</span><br><code>${frappe.utils.escape_html(url)}</code>`
+		);
 	}
 
 	rendre_tuiles(existantes) {
@@ -242,6 +264,7 @@ class PayrexxSetup {
 				api_secret: secret,
 				pos_api_secret: this.champs.pos_api_secret.get_value(),
 				mode: this.champs.mode.get_value(),
+				webhook_signing_key: this.champs.webhook_signing_key.get_value(),
 			});
 			if (!r.message) return;
 		}
