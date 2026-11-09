@@ -7,41 +7,42 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Payments VERSION\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
-"POT-Creation-Date: 2026-10-19 21:26+0000\n"
-"PO-Revision-Date: 2026-10-19 21:26+0000\n"
+"POT-Creation-Date: 2026-11-09 17:34+0000\n"
+"PO-Revision-Date: 2026-11-09 17:34+0000\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: hello@frappe.io\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.13.1\n"
+"Generated-By: Babel 2.18.0\n"
 
 #. Label of a Password field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:65
 msgid " Online PassKey"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:175
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:216
+#, python-brace-format
 msgid "(expires {0})"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:180
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:184
 msgid "+ New location"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:41
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:53
 msgid "1. Your Payrexx space"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:43
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:70
 msgid "2. Credentials"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:45
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:90
 msgid "3. What Payrexx is used for"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:45
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:100
 msgid "4. What the shop offers"
 msgstr ""
 
@@ -52,63 +53,64 @@ msgid "<div class='alert alert-info' style='margin-bottom:10px'><b>Setting up TW
 msgstr ""
 
 #: payments/payments/doctype/provider_channel_settings/provider_channel_settings.py:40
+#, python-brace-format
 msgid "A Provider Channel Settings already exists for {0} × {1}: {2}"
 msgstr ""
 
-#: payments/api/mobile_payments.py:212
+#: payments/api/mobile_payments.py:220
 msgid "A document to pay for needs both its type and its name"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:165
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:173
 msgid "API & Plugins — the secrets"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:67
 msgid "API Credentials"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:99
 msgid "API Host"
 msgstr ""
 
 #. Label of a Data field in DocType 'Razorpay Settings'
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json:26
 msgid "API Key"
 msgstr ""
 
 #. Label of a Password field in DocType 'PayPal Settings'
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:54
 msgid "API Password"
 msgstr ""
 
 #. Label of a Password field in DocType 'Razorpay Settings'
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json:54
 msgid "API Secret"
 msgstr ""
 
 #. Label of a Data field in DocType 'PayPal Settings'
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:26
 msgid "API Username"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:110
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:114
 msgid "API secret"
 msgstr ""
 
 #. Label of a Data field in DocType 'GoCardless Settings'
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json:33
 msgid "Access Token"
 msgstr ""
 
 #. Label of a Long Text field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:82
 msgid "Account Balance"
 msgstr ""
 
 #. Label of a Int field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:105
 msgid "Account ID"
 msgstr ""
 
@@ -117,23 +119,23 @@ msgid "Account Type"
 msgstr ""
 
 #. Name of a role
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
-#: payments/payments/doctype/wallee_location/wallee_location.json
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:133
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:92
+#: payments/payments/doctype/wallee_location/wallee_location.json:143
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:110
 msgid "Accounts Manager"
 msgstr ""
 
 #. Name of a role
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
-#: payments/payments/doctype/payment_event/payment_event.json
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:145
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:78
+#: payments/payments/doctype/payment_event/payment_event.json:91
+#: payments/payments/doctype/payment_intent/payment_intent.json:223
 msgid "Accounts User"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:65
 msgid "Address"
 msgstr ""
 
@@ -142,25 +144,25 @@ msgid "Address line 1"
 msgstr ""
 
 #. Name of a role
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:161
 msgid "Admin"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:248
 msgid "Advanced Settings"
 msgstr ""
 
 #: payments/api/payrexx_setup.py:75
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:217
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:239
 msgid "All methods"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:199
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:210
 msgid "Already stored — leave empty to keep it"
 msgstr ""
 
-#: payments/api/mobile_payments.py:625 payments/www/payrexx/success.html:60
+#: payments/api/mobile_payments.py:651 payments/www/payrexx/success.html:60
 #: payments/www/payrexx/success.html:104 payments/www/payrexx/success.html:133
 #: payments/www/wallee/failed.html:36 payments/www/wallee/success.html:55
 #: payments/www/wallee/success.html:78
@@ -168,13 +170,13 @@ msgid "Amount"
 msgstr ""
 
 #. Label of a Int field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:61
 msgid "Amount (smallest unit)"
 msgstr ""
 
 #. Description of the 'Amount (smallest unit)' (Int) field in DocType 'Payment
 #. Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:63
 msgid "Amount in smallest currency unit (cents for USD/EUR, rappen for CHF)"
 msgstr ""
 
@@ -186,55 +188,56 @@ msgstr ""
 msgid "Amount must be greater than 0."
 msgstr ""
 
-#: payments/templates/pages/stripe_checkout.html:52
+#: payments/templates/pages/stripe_checkout.html:56
 msgid "Amount to pay"
 msgstr ""
 
-#: payments/templates/pages/stripe_checkout.html:90
+#: payments/templates/pages/stripe_checkout.html:96
 msgid "An error occured during the payment process. Please contact us."
 msgstr ""
 
-#: payments/api/mobile_payments.py:640
+#: payments/api/mobile_payments.py:666
 msgid "Application"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:45
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:93
 msgid "Apply"
 msgstr ""
 
-#: payments/api/mobile_payments.py:626
+#: payments/api/mobile_payments.py:652
 msgid "Approved"
 msgstr ""
 
 #. Label of a Password field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:79
 msgid "Authentication Key"
 msgstr ""
 
 #. Description of the 'POS Authentication Key' (Password) field in DocType
 #. 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:194
 msgid "Authentication key for POS user"
 msgstr ""
 
 #. Description of the 'Webshop Authentication Key' (Password) field in DocType
 #. 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:143
 msgid "Authentication key for webshop user"
 msgstr ""
 
-#: payments/api/mobile_payments.py:642 payments/api/terminal_receipt.py:91
+#: payments/api/mobile_payments.py:668 payments/api/terminal_receipt.py:91
 msgid "Authorisation"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:212
 msgid "Auto Capture"
 msgstr ""
 
 #. Description of the 'Webhook Endpoint' (Data) field in DocType 'Provider
 #. Channel Settings'
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:57
+#, python-brace-format
 msgid "Auto-computed: /api/method/payments.api.webhook_{provider}.handle"
 msgstr ""
 
@@ -245,7 +248,7 @@ msgid "Auto-filled from the certificate file name when you attach the .p12 below
 msgstr ""
 
 #. Description of the 'Auto Capture' (Check) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:213
 msgid "Automatically capture authorized transactions"
 msgstr ""
 
@@ -253,7 +256,7 @@ msgstr ""
 msgid "Available Balance"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:168
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:177
 msgid "Back office"
 msgstr ""
 
@@ -261,29 +264,30 @@ msgstr ""
 msgid "Balance Details"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:465
 msgid "Bind to a POS Profile"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:473
 msgid "Bind to profile"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:788
+#: payments/integrations/wallee/api.py:889
 msgid "Bluetooth + Wi-Fi, cylindrical black touchscreen. The most common model."
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:519
+#, python-brace-format
 msgid "Bound to {0}"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:240
 msgid "Braintree Settings"
 msgstr ""
 
 #. Label of a Data field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:94
 msgid "Business Shortcode"
 msgstr ""
 
@@ -291,7 +295,8 @@ msgstr ""
 msgid "Calling Stripe…"
 msgstr ""
 
-#: payments/api/intent.py:383
+#: payments/api/intent.py:393
+#, python-brace-format
 msgid "Can only refund a Payment Intent in status 'succeeded' (current: {0})"
 msgstr ""
 
@@ -300,16 +305,17 @@ msgid "Cancel"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:55
 msgid "Capabilities"
 msgstr ""
 
 #. Label of a Code field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:60
 msgid "Capabilities (JSON)"
 msgstr ""
 
 #: payments/payments/doctype/payment_channel/payment_channel.py:43
+#, python-brace-format
 msgid "Capabilities JSON is invalid: {0}"
 msgstr ""
 
@@ -317,17 +323,17 @@ msgstr ""
 msgid "Capabilities JSON must be a JSON object (dict)"
 msgstr ""
 
-#: payments/api/mobile_payments.py:637 payments/api/payrexx_setup.py:63
+#: payments/api/mobile_payments.py:663 payments/api/payrexx_setup.py:63
 #: payments/api/terminal_receipt.py:89
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:215
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:237
 msgid "Card"
 msgstr ""
 
-#: payments/api/mobile_payments.py:628
+#: payments/api/mobile_payments.py:654
 msgid "Card (Tap to Pay)"
 msgstr ""
 
-#: payments/templates/pages/stripe_checkout.html:72
+#: payments/templates/pages/stripe_checkout.html:78
 msgid "Card Details"
 msgstr ""
 
@@ -335,46 +341,48 @@ msgstr ""
 msgid "Card payment"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:114
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:119
 msgid "Card terminal"
 msgstr ""
 
 #. Label of a Data field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:70
 msgid "Cash Register ID"
 msgstr ""
 
 #. Label of a Check field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:104
 msgid "Certificate Deployed"
 msgstr ""
 
 #. Label of a Date field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:117
 msgid "Certificate Expires On"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:173
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:214
 msgid "Certificate deployed to neoservice ✓"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:145
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:184
+#, python-brace-format
 msgid "Certificate upload failed: {0}"
 msgstr ""
 
 #. Label of a Link field in DocType 'Payment Intent'
 #. Label of a Link field in DocType 'Provider Channel Settings'
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:92
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:31
 msgid "Channel"
 msgstr ""
 
-#: payments/payments/doctype/payment_device/payment_device.py:63
+#: payments/payments/doctype/payment_device/payment_device.py:64
+#, python-brace-format
 msgid "Channel '{0}' is not typically used with physical devices. This is allowed but may indicate a configuration mistake."
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:22
 msgid "Channel Code"
 msgstr ""
 
@@ -383,41 +391,42 @@ msgid "Channel Code is required"
 msgstr ""
 
 #: payments/payments/doctype/payment_channel/payment_channel.py:33
+#, python-brace-format
 msgid "Channel Code must be lowercase alphanumeric with optional underscores (got: {0})"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Provider Channel Settings'
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:62
 msgid "Channel-specific configuration"
 msgstr ""
 
 #. Description of the 'Config (JSON)' (Code) field in DocType 'Provider Channel
 #. Settings'
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:69
 msgid "Channel-specific configuration: terminal_default_location_id, webhook_secret, twint_merchant_uuid, etc."
 msgstr ""
 
 #. Description of the 'Use Sandbox' (Check) field in DocType 'PayPal Settings'
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:102
 msgid "Check this if you are testing your payment using the Sandbox API"
 msgstr ""
 
 #. Description of the 'Certificate Deployed' (Check) field in DocType 'Twint
 #. Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:106
 msgid "Checked automatically once the P12 has been stored on neoservice."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:124
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:125
 msgid "Choose a payment provider"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:811
+#: payments/public/js/twint_dialog.js:819
 msgid "Choose your TWINT application"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:75
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:232
 msgid "City"
 msgstr ""
@@ -431,25 +440,26 @@ msgid "Click here"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:160
 msgid "Client Secret"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:222
+#: payments/public/js/twint_dialog.js:241
 msgid "Code valid for:"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:200
 msgid "Completed At"
 msgstr ""
 
 #. Label of a Code field in DocType 'Provider Channel Settings'
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:67
 msgid "Config (JSON)"
 msgstr ""
 
 #: payments/payments/doctype/provider_channel_settings/provider_channel_settings.py:51
+#, python-brace-format
 msgid "Config JSON is invalid: {0}"
 msgstr ""
 
@@ -457,27 +467,28 @@ msgstr ""
 msgid "Config JSON must be a JSON object (dict)"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:252
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:262
 msgid "Configuration"
 msgstr ""
 
 #. Description of the 'Wallee Configuration ID' (Data) field in DocType 'Wallee
 #. Terminal Configuration'
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:43
 msgid "Configuration ID from Wallee portal"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:24
 msgid "Configuration Name"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:49
 msgid "Configuration Version ID"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:411
+#: payments/integrations/wallee/api.py:440
+#, python-brace-format
 msgid "Configuration {0} has no Wallee configuration id — sync first"
 msgstr ""
 
@@ -485,21 +496,22 @@ msgstr ""
 msgid "Confirming Payment"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:253
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:276
+#, python-brace-format
 msgid "Connected to {0}"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:259
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:282
 msgid "Connection failed"
 msgstr ""
 
 #. Label of a Data field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:35
 msgid "Consumer Key"
 msgstr ""
 
 #. Label of a Password field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:42
 msgid "Consumer Secret"
 msgstr ""
 
@@ -508,35 +520,36 @@ msgstr ""
 msgid "Contact Support"
 msgstr ""
 
-#: payments/templates/pages/payment-cancel.html:13
-#: payments/templates/pages/payment-failed.html:13
-#: payments/templates/pages/payment-success.html:17
+#: payments/templates/pages/payment-cancel.html:17
+#: payments/templates/pages/payment-failed.html:17
+#: payments/templates/pages/payment-success.html:23
 #: payments/www/payrexx/success.html:137 payments/www/wallee/success.html:82
 msgid "Continue"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:633
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:678
 msgid "Controller method get_razorpay_order missing"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:634
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:679
 msgid "Could not create Razorpay order. Please contact Administrator"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:411
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:431
 msgid "Could not create razorpay order"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:136
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:175
+#, python-brace-format
 msgid "Could not reach the certificate service on neoservice: {0}"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:96
+#: payments/integrations/payrexx/api.py:112
 msgid "Could not start the Payrexx payment. Please try again."
 msgstr ""
 
 #. Label of a Link field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:96
 msgid "Country"
 msgstr ""
 
@@ -548,7 +561,7 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:410
 msgid "Create + link"
 msgstr ""
 
@@ -556,16 +569,16 @@ msgstr ""
 msgid "Create Stripe Location"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:402
 msgid "Create the terminal in Wallee with the chosen configuration and location, then pair the physical device by its serial number."
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:47
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:105
 msgid "Create the tiles"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:194
 msgid "Created At"
 msgstr ""
 
@@ -583,17 +596,18 @@ msgstr ""
 
 #. Label of a Section Break field in DocType 'Twint Bridge Settings'
 #. Label of a Section Break field in DocType 'Payment Provider'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:85
+#: payments/payments/doctype/payment_provider/payment_provider.json:68
 msgid "Credentials"
 msgstr ""
 
 #. Label of a Code field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:73
 msgid "Credentials (JSON, encrypted)"
 msgstr ""
 
 #: payments/payments/doctype/payment_provider/payment_provider.py:49
+#, python-brace-format
 msgid "Credentials JSON is invalid: {0}"
 msgstr ""
 
@@ -602,7 +616,7 @@ msgid "Credentials JSON must be a JSON object (dict)"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:69
 msgid "Currency"
 msgstr ""
 
@@ -611,6 +625,7 @@ msgid "Currency is required"
 msgstr ""
 
 #: payments/payments/doctype/payment_intent/payment_intent.py:76
+#, python-brace-format
 msgid "Currency must be an ISO 4217 3-letter code (got: {0})"
 msgstr ""
 
@@ -619,12 +634,12 @@ msgid "Current Balance"
 msgstr ""
 
 #. Label of a Link field in DocType 'Customer Payment Link'
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:22
 msgid "Customer"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:65
 msgid "Customer Payment Link"
 msgstr ""
 
@@ -633,125 +648,126 @@ msgid "Customer copy"
 msgstr ""
 
 #: payments/payments/doctype/customer_payment_link/customer_payment_link.py:39
+#, python-brace-format
 msgid "Customer {0} already has a default payment method for provider {1}: {2}"
 msgstr ""
 
-#: payments/api/mobile_payments.py:627 payments/api/terminal_receipt.py:85
+#: payments/api/mobile_payments.py:653 payments/api/terminal_receipt.py:85
 msgid "Date"
 msgstr ""
 
-#: payments/api/mobile_payments.py:626
+#: payments/api/mobile_payments.py:652
 msgid "Declined"
 msgstr ""
 
 #. Description of the 'POS User ID' (Int) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:186
 msgid "Dedicated Application User for POS terminal transactions (auto-created)"
 msgstr ""
 
 #. Description of the 'Webshop User ID' (Int) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:135
 msgid "Dedicated Application User for webshop transactions (auto-created)"
 msgstr ""
 
 #. Label of a Link field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:199
 msgid "Default Terminal"
 msgstr ""
 
 #. Label of a Link field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:224
 msgid "Default Terminal Configuration"
 msgstr ""
 
 #. Label of a Link field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:231
 msgid "Default Terminal Location"
 msgstr ""
 
 #. Description of the 'Default Terminal' (Link) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:202
 msgid "Default Wallee Payment Device used when none is explicitly picked"
 msgstr ""
 
 #. Description of the 'Default Terminal Configuration' (Link) field in DocType
 #. 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:226
 msgid "Default configuration for new terminals"
 msgstr ""
 
 #. Description of the 'Default Terminal Location' (Link) field in DocType
 #. 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:233
 msgid "Default location for new terminals"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:111
 msgid "Deployed On"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Payment Provider'
 #. Label of a Small Text field in DocType 'Wallee Terminal Configuration'
-#: payments/api/mobile_payments.py:631
-#: payments/payments/doctype/payment_provider/payment_provider.json
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/api/mobile_payments.py:657
+#: payments/payments/doctype/payment_provider/payment_provider.json:85
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:61
 msgid "Description"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:56
 msgid "Details"
 msgstr ""
 
 #. Label of a Link field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:109
 msgid "Device"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:36
 msgid "Device Label"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:111
 msgid "Device SW Version"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:62
 msgid "Device Type"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:408
 msgid "Device serial number"
 msgstr ""
 
 #. Label of a Check field in DocType 'GoCardless Mandate'
-#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json:18
 msgid "Disabled"
 msgstr ""
 
 #. Label of a Data field in DocType 'Twint Bridge Settings'
 #. Label of a Data field in DocType 'Payment Channel'
 #. Label of a Data field in DocType 'Payment Provider'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
-#: payments/payments/doctype/payment_channel/payment_channel.json
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:46
+#: payments/payments/doctype/payment_channel/payment_channel.json:31
+#: payments/payments/doctype/payment_provider/payment_provider.json:35
 msgid "Display Label"
 msgstr ""
 
 #: payments/public/js/twint_dialog.js:366
-#: payments/public/js/twint_dialog.js:1086
-#: payments/public/js/twint_dialog.js:1116
+#: payments/public/js/twint_dialog.js:1091
+#: payments/public/js/twint_dialog.js:1126
 msgid "Do you really want to cancel this payment?"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:90
 msgid "Documentation URL"
 msgstr ""
 
@@ -760,42 +776,43 @@ msgid "Done"
 msgstr ""
 
 #. Label of a Data field in DocType 'Provider Channel Settings'
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:49
 msgid "Driver Class (override)"
 msgstr ""
 
 #: payments/payments/doctype/payment_provider/payment_provider.py:59
+#, python-brace-format
 msgid "Driver Class path is invalid: {0}"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:62
 msgid "Driver Provider Class"
 msgstr ""
 
-#: payments/api/mobile_payments.py:444 payments/api/twint.py:405
+#: payments/api/mobile_payments.py:470 payments/api/twint.py:408
 msgid "E2E simulators not enabled on this site"
 msgstr ""
 
 #. Label of a Data field in DocType 'Customer Payment Link'
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
-#: payments/templates/pages/stripe_checkout.html:64
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:50
+#: payments/templates/pages/stripe_checkout.html:69
 msgid "Email"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:170
 msgid "Enable POS Terminal"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:118
 msgid "Enable Webshop Payments"
 msgstr ""
 
 #. Description of the 'Log API Calls' (Check) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:262
 msgid "Enable detailed API logging for debugging"
 msgstr ""
 
@@ -804,52 +821,53 @@ msgstr ""
 #. Label of a Check field in DocType 'Payment Provider'
 #. Label of a Check field in DocType 'Provider Channel Settings'
 #. Label of a Check field in DocType 'Wallee Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
-#: payments/payments/doctype/payment_device/payment_device.json
-#: payments/payments/doctype/payment_provider/payment_provider.json
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:54
+#: payments/payments/doctype/payment_device/payment_device.json:45
+#: payments/payments/doctype/payment_provider/payment_provider.json:44
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:40
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:61
 msgid "Enabled"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:157
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:162
 msgid "Enter your space above and the links to your own back office appear here."
 msgstr ""
 
 #. Label of a Select field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:78
 msgid "Environment"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Intent'
 #. Label of a Section Break field in DocType 'Webhook Event Log'
 #. Label of a Small Text field in DocType 'Webhook Event Log'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:295
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:305
+#: payments/payments/doctype/payment_intent/payment_intent.json:166
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:116
 #: payments/public/js/twint_dialog.js:383
-#: payments/public/js/twint_dialog.js:1051
-#: payments/public/js/twint_dialog.js:1103 payments/www/payrexx/success.html:26
+#: payments/public/js/twint_dialog.js:1056
+#: payments/public/js/twint_dialog.js:1108
+#: payments/public/js/twint_dialog.js:1144 payments/www/payrexx/success.html:26
 msgid "Error"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:172
 msgid "Error Code"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:177
 msgid "Error Message"
 msgstr ""
 
 #: payments/public/js/twint_dialog.js:384
-#: payments/public/js/twint_dialog.js:1104
-#: payments/public/js/twint_dialog.js:1130
+#: payments/public/js/twint_dialog.js:1109
+#: payments/public/js/twint_dialog.js:1145
 msgid "Error cancelling payment"
 msgstr ""
 
-#: payments/www/payrexx/success.py:188 payments/www/wallee/success.py:193
+#: payments/www/payrexx/success.py:202 payments/www/wallee/success.py:206
 msgid "Error creating order. Please contact support."
 msgstr ""
 
@@ -857,212 +875,215 @@ msgstr ""
 msgid "Error creating payment request"
 msgstr ""
 
-#: payments/www/payrexx/success.py:180 payments/www/wallee/success.py:183
+#: payments/www/payrexx/success.py:194 payments/www/wallee/success.py:197
 msgid "Error finalising order"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:30
 msgid "Event ID"
 msgstr ""
 
 #. Label of a Select field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:49
 msgid "Event Source"
 msgstr ""
 
 #. Label of a Data field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:49
 msgid "Event Type"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:41
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:54
 msgid "Everything else follows from this. It is the part before .payrexx.com in the address of your back office — sign in and read the address bar."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:62
 msgid "Excerpt"
 msgstr ""
 
-#: payments/utils/utils.py:10
+#: payments/utils/utils.py:59
 msgid "Expired Token"
 msgstr ""
 
 #. Description of the 'Provider Customer ID' (Data) field in DocType 'Customer
 #. Payment Link'
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:41
 msgid "External customer id (e.g. 'cus_xxx' for Stripe)"
 msgstr ""
 
 #. Description of the 'Provider Intent ID' (Data) field in DocType 'Payment
 #. Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:117
 msgid "External transaction id (e.g. 'pi_xxx' from Stripe, transaction_id from TWINT)"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:63
 msgid "Failed"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:154
 msgid "Failed URL"
 msgstr ""
 
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:473
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:503
 msgid "Failed while amending subscription"
 msgstr ""
 
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:201
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:214
+#, python-brace-format
 msgid "For currency {0}, the minimum transaction amount should be {1}"
 msgstr ""
 
 #: payments/payment_gateways/doctype/paytm_settings/paytm_settings.js:6
+#, python-brace-format
 msgid "For more information, {0}."
 msgstr ""
 
 #. Description of the 'Location Reference' (Data) field in DocType 'Payment
 #. Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:87
 msgid "Free-form, e.g. Stripe Terminal Location ID 'tml_xxx' or branch code"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:362
 msgid "Friendly label"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:406
 msgid "Friendly label (Payment Device)"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:31
 msgid "From Status"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Gateway'
-#: payments/payments/doctype/payment_gateway/payment_gateway.json
+#: payments/payments/doctype/payment_gateway/payment_gateway.json:18
 msgid "Gateway"
 msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'Payment Gateway'
-#: payments/payments/doctype/payment_gateway/payment_gateway.json
+#: payments/payments/doctype/payment_gateway/payment_gateway.json:31
 msgid "Gateway Controller"
 msgstr ""
 
 #. Label of a Link field in DocType 'Payment Gateway'
-#: payments/payments/doctype/payment_gateway/payment_gateway.json
+#: payments/payments/doctype/payment_gateway/payment_gateway.json:25
 msgid "Gateway Settings"
 msgstr ""
 
 #. Description of the 'P12 Certificate' (Attach) field in DocType 'Twint Bridge
 #. Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:98
 msgid "Generate / download this .p12 on the TWINT merchant portal, then upload it here. On save it is kept encrypted on this instance for its TWINT connection and sent to neoservice as a fallback; the attached file itself is removed. Re-upload to rotate it."
 msgstr ""
 
 #. Label of a Button field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:88
 msgid "Get Account Balance"
 msgstr ""
 
 #. Label of a Data field in DocType 'GoCardless Mandate'
-#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json:32
 msgid "GoCardless Customer"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json:41
 msgid "GoCardless Mandate"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json:57
 msgid "GoCardless Settings"
 msgstr ""
 
 #. Label of a Attach Image field in DocType 'Braintree Settings'
 #. Label of a Attach Image field in DocType 'GoCardless Settings'
 #. Label of a Attach Image field in DocType 'Stripe Settings'
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:211
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json:50
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json:190
 msgid "Header Image"
 msgstr ""
 
 #. Description of the 'UI Kind' (Select) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:50
 msgid "How the frontend should render a payment of this channel"
 msgstr ""
 
 #. Description of the 'Device Label' (Data) field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:38
 msgid "Human-readable label, e.g. 'Caisse 1', 'Comptoir mobile'"
 msgstr ""
 
 #. Description of the 'Display Label' (Data) field in DocType 'Payment
 #. Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:37
 msgid "Human-readable name shown in UI, e.g. 'Stripe', 'TWINT'"
 msgstr ""
 
 #. Description of the 'Provider Device ID' (Data) field in DocType 'Payment
 #. Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:57
 msgid "ID at the provider (e.g. 'tmr_xxx' for Stripe Terminal Reader)"
 msgstr ""
 
 #. Description of the 'Currency' (Data) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:72
 msgid "ISO 4217 uppercase, e.g. CHF, EUR, USD"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:37
 msgid "Icon"
 msgstr ""
 
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:517
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:552
 msgid "In Valid Request"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:43
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:71
 msgid "In your back office, under API & Plugins. The POS key is only needed for a card terminal."
 msgstr ""
 
 #. Label of a Data field in DocType 'Paytm Settings'
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json:61
 msgid "Industry Type ID"
 msgstr ""
 
 #. Label of a Data field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:71
 msgid "Initiator Name"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:109
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:113
 msgid "Instance"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:151
+#: payments/api/payrexx_setup.py:195
 msgid "Instance and API secret are required"
 msgstr ""
 
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:191
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:198
 msgid "Invalid Checkout Request ID"
 msgstr ""
 
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:305
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:317
 msgid "Invalid Conversation ID"
 msgstr ""
 
 #: payments/payments/doctype/payment_intent/payment_intent.py:138
+#, python-brace-format
 msgid "Invalid FSM transition for Payment Intent {0}: {1} -> {2}"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:733
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:793
 msgid "Invalid Subscription"
 msgstr ""
 
@@ -1071,96 +1092,97 @@ msgstr ""
 msgid "Invalid Token"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:620
+#: payments/integrations/wallee/api.py:676
+#, python-brace-format
 msgid "Invalid Wallee mode: {0}"
 msgstr ""
 
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:187
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:194
 msgid "Invalid payment gateway credentials"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:38
 msgid "Is Active"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Location'
 #. Label of a Check field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_location/wallee_location.json
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:44
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:33
 msgid "Is Default"
 msgstr ""
 
 #. Label of a Check field in DocType 'Customer Payment Link'
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:57
 msgid "Is Default Payment Method"
 msgstr ""
 
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:174
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:177
 msgid "Issue detected with Mpesa configuration, check the error logs for more details"
 msgstr ""
 
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:227
-#: payments/payment_gateways/stripe_integration.py:29
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:241
+#: payments/payment_gateways/stripe_integration.py:30
 msgid "It seems that there is an issue with the server's stripe configuration. In case of failure, the amount will get refunded to your account."
 msgstr ""
 
 #. Description of the 'Capabilities (JSON)' (Code) field in DocType 'Payment
 #. Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:62
 msgid "JSON object: supports_refund, supports_tip, supports_partial_capture, async, max_amount, ..."
 msgstr ""
 
-#: payments/api/mobile_payments.py:661
+#: payments/api/mobile_payments.py:687
 msgid "Keep this receipt for your records."
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:105
 msgid "Last Seen At"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Wallee Location'
 #. Label of a Datetime field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_location/wallee_location.json
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:111
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:78
 msgid "Last Sync"
 msgstr ""
 
 #. Option for the 'Payment Mode' (Select) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:124
 msgid "Lightbox"
 msgstr ""
 
 #. Label of a Link field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:137
 msgid "Linked Company"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:74
 msgid "Linked Intent"
 msgstr ""
 
 #. Label of a Link field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:130
 msgid "Linked Payment Provider"
 msgstr ""
 
 #. Description of the 'Payment Intent' (Link) field in DocType 'Webhook Event
 #. Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:82
 msgid "Linked after processing if applicable"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:124
 msgid "Links"
 msgstr ""
 
 #. Description of the 'Payment Connectors' (Small Text) field in DocType
 #. 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:67
 msgid "List of enabled payment connectors (for reference)"
 msgstr ""
 
@@ -1175,28 +1197,28 @@ msgstr ""
 msgid "Loading…"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:252
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:257
 msgid "Location"
 msgstr ""
 
 #. Description of the 'Wallee Location ID' (Data) field in DocType 'Wallee
 #. Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:54
 msgid "Location ID from Wallee portal"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:29
 msgid "Location Name"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:86
 msgid "Location Reference"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:59
 msgid "Location Version ID"
 msgstr ""
 
@@ -1204,53 +1226,59 @@ msgstr ""
 msgid "Location created"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:413
+#: payments/integrations/wallee/api.py:442
+#, python-brace-format
 msgid "Location {0} has no Wallee location id — sync first"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:261
 msgid "Log API Calls"
 msgstr ""
 
-#: payments/templates/pages/braintree_checkout.py:50
-#: payments/templates/pages/gocardless_checkout.py:48
+#: payments/templates/pages/braintree_checkout.py:57
+#: payments/templates/pages/gocardless_checkout.py:51
 #: payments/templates/pages/gocardless_confirmation.py:28
-#: payments/templates/pages/stripe_checkout.py:76
+#: payments/templates/pages/stripe_checkout.py:81
 msgid "Looks like someone sent you to an incomplete URL. Please ask them to look into it."
 msgstr ""
 
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:231
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:240
 msgid "Looks like something is wrong with this site's Paypal configuration."
 msgstr ""
 
-#: payments/utils/utils.py:39
+#: payments/utils/utils.py:99
 msgid "Looks like something is wrong with this site's payment gateway configuration. No payment has been made."
 msgstr ""
 
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:295
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:322
+#, python-brace-format
 msgid "Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}."
 msgstr ""
 
 #. Description of the 'Provider Name' (Data) field in DocType 'Payment
 #. Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:29
 msgid "Lowercase identifier, e.g. 'stripe', 'twint', 'worldline'"
 msgstr ""
 
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:359
+msgid "M-Pesa is not configured on this site"
+msgstr ""
+
 #. Label of a Data field in DocType 'GoCardless Mandate'
-#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json:23
 msgid "Mandate"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:472
 msgid "Mark as default"
 msgstr ""
 
 #. Description of the 'Redirect To' (Data) field in DocType 'PayPal Settings'
 #. Description of the 'Redirect To' (Data) field in DocType 'Razorpay Settings'
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:131
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json:74
 msgid "Mention transaction completion page URL"
 msgstr ""
 
@@ -1260,18 +1288,18 @@ msgstr ""
 
 #. Label of a Data field in DocType 'Braintree Settings'
 #. Label of a Data field in DocType 'Paytm Settings'
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:91
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json:20
 msgid "Merchant ID"
 msgstr ""
 
 #. Label of a Password field in DocType 'Paytm Settings'
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json:29
 msgid "Merchant Key"
 msgstr ""
 
 #. Label of a Data field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:37
 msgid "Merchant UUID"
 msgstr ""
 
@@ -1284,6 +1312,7 @@ msgid "Merchant UUID is required"
 msgstr ""
 
 #: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:59
+#, python-brace-format
 msgid "Merchant UUID must not contain path separators (got: {0})"
 msgstr ""
 
@@ -1293,17 +1322,18 @@ msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Intent'
 #. Label of a Section Break field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:182
+#: payments/payments/doctype/payment_provider/payment_provider.json:80
 msgid "Metadata"
 msgstr ""
 
 #. Label of a Code field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:188
 msgid "Metadata (JSON)"
 msgstr ""
 
 #: payments/payments/doctype/payment_intent/payment_intent.py:85
+#, python-brace-format
 msgid "Metadata JSON is invalid: {0}"
 msgstr ""
 
@@ -1315,7 +1345,7 @@ msgstr ""
 msgid "Method"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:254
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:278
 msgid "Methods on this account"
 msgstr ""
 
@@ -1323,124 +1353,135 @@ msgstr ""
 msgid "Missing 'e2e_test_user_password' in site_config"
 msgstr ""
 
-#: payments/utils/utils.py:216
+#: payments/utils/utils.py:275
 msgid "Missing ERPNext App"
 msgstr ""
 
-#: payments/www/payrexx/success.py:116 payments/www/wallee/failed.py:36
-#: payments/www/wallee/success.py:121
+#: payments/www/payrexx/success.py:125 payments/www/wallee/failed.py:36
+#: payments/www/wallee/success.py:129
 msgid "Missing payment reference"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:74
 msgid "Mobile Payment Settings"
 msgstr ""
 
 #. Label of a Select field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:112
+#: payments/payments/doctype/payment_provider/payment_provider.json:51
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:116
 msgid "Mode"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:149
+#: payments/api/payrexx_setup.py:168
 msgid "Mode must be 'test' or 'live'"
 msgstr ""
 
 #. Label of a Link field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:175
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:470
 msgid "Mode of Payment"
 msgstr ""
 
 #. Description of the 'Mode of Payment' (Link) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:178
 msgid "Mode of Payment used when recording Wallee terminal payments by default"
 msgstr ""
 
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:175
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:178
 msgid "Mpesa Express Error"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:109
 msgid "Mpesa Settings"
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:230
-#: payments/templates/pages/stripe_checkout.html:58
+#: payments/templates/pages/stripe_checkout.html:62
 msgid "Name"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Device'
 #. Label of a Data field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_device/payment_device.json
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_device/payment_device.json:30
+#: payments/payments/doctype/payment_intent/payment_intent.json:42
 msgid "Naming Series"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:71
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:78
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:111
 msgid "Next"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:140
 msgid "Next Action (frontend hint)"
 msgstr ""
 
 #. Label of a Code field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:154
 msgid "Next Action Payload (JSON)"
 msgstr ""
 
 #: payments/payments/doctype/payment_intent/payment_intent.py:95
+#, python-brace-format
 msgid "Next Action Payload JSON is invalid: {0}"
 msgstr ""
 
 #. Label of a Select field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:147
 msgid "Next Action Type"
 msgstr ""
 
-#: payments/api/terminal_receipt.py:167
+#: payments/api/terminal_receipt.py:168
+#: payments/tests/test_receipt_finds_its_printer.py:98
 msgid "No CloudPRNT printer given and no default configured"
 msgstr ""
 
 #: payments/tests/e2e/fixtures.py:698
+#, python-brace-format
 msgid "No Customer found for {0} after {1}s ({2} attempts)"
 msgstr ""
 
 #: payments/tests/e2e/fixtures.py:717 payments/tests/e2e/fixtures.py:764
+#, python-brace-format
 msgid "No Customer linked to user {0}"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:291
+#: payments/api/payrexx_setup.py:328
+#, python-brace-format
 msgid "No Payment Gateway Account to copy from. Create one for Payrexx in {0} first, then run this again."
 msgstr ""
 
 #: payments/drivers/payrexx/web_driver.py:233
+#, python-brace-format
 msgid "No Payrexx transaction found for reference {0}"
 msgstr ""
 
-#: payments/drivers/payrexx/terminal_driver.py:571
+#: payments/drivers/payrexx/terminal_driver.py:572
+#, python-brace-format
 msgid "No Payrexx transaction found for terminal payment {0}"
 msgstr ""
 
 #: payments/drivers/payrexx/tap_to_pay_driver.py:255
+#, python-brace-format
 msgid "No Payrexx transaction found for {0}"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:80
+#: payments/integrations/wallee/api.py:91
+#, python-brace-format
 msgid "No Provider Channel Settings for {0} × terminal — create the binding first"
 msgstr ""
 
 #: payments/drivers/registry.py:82
+#, python-brace-format
 msgid "No Provider Channel Settings found for {0} × {1}"
 msgstr ""
 
 #: payments/api/terminal.py:61
+#, python-brace-format
 msgid "No Provider Channel Settings found for {0} × {1}. Create one first."
 msgstr ""
 
@@ -1448,23 +1489,27 @@ msgstr ""
 msgid "No Stripe Locations found — create one below."
 msgstr ""
 
-#: payments/integrations/twint/api.py:101
+#: payments/integrations/twint/api.py:121
+#, python-brace-format
 msgid "No Twint Bridge Settings configured for provider {0}"
 msgstr ""
 
 #: payments/drivers/wallee/provider.py:64
+#, python-brace-format
 msgid "No Wallee Settings row found for Payment Provider {0}. Create one at /app/wallee-settings/new?provider={0}."
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:43
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:61
 msgid "No account yet — create one"
 msgstr ""
 
 #: payments/tests/e2e/fixtures.py:778
+#, python-brace-format
 msgid "No cart Quotation found for {0}"
 msgstr ""
 
 #: payments/drivers/registry.py:96
+#, python-brace-format
 msgid "No driver class configured for {0} × {1}"
 msgstr ""
 
@@ -1472,35 +1517,24 @@ msgstr ""
 msgid "No enabled Payment Provider found. Create one in /app/payment-provider first."
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:72
+#: payments/integrations/payrexx/api.py:88
 msgid "No enabled Payrexx Payment Provider is configured"
 msgstr ""
 
-#: payments/api/webhook_stripe.py:144 payments/api/webhook_wallee.py:206
-msgid "No enabled Provider Channel Settings for {0}"
-msgstr ""
-
-#: payments/api/webhook_stripe.py:133
-msgid "No enabled Stripe Payment Provider found"
-msgstr ""
-
-#: payments/integrations/twint/api.py:45
+#: payments/integrations/twint/api.py:53
 msgid "No enabled TWINT Payment Provider found"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:94
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:134
 msgid "No enabled TWINT Payment Provider found. Create the TWINT Payment Provider first so the certificate can be pushed to neoservice."
 msgstr ""
 
-#: payments/integrations/wallee/api.py:67
+#: payments/integrations/wallee/api.py:78
 msgid "No enabled Wallee Payment Provider found"
 msgstr ""
 
-#: payments/api/webhook_wallee.py:195
-msgid "No enabled Wallee provider found"
-msgstr ""
-
-#: payments/api/webhook_payrexx.py:358
+#: payments/api/webhook_payrexx.py:381
+#, python-brace-format
 msgid "No matching Payment Intent for reference {0}"
 msgstr ""
 
@@ -1508,21 +1542,29 @@ msgstr ""
 msgid "No published, addable Website Item with positive price found on this site"
 msgstr ""
 
-#: payments/api/mobile_payments.py:682 payments/api/mobile_payments.py:732
+#: payments/api/mobile_payments.py:709 payments/api/mobile_payments.py:759
 msgid "Not an on-site payment"
 msgstr ""
 
 #: payments/api/intent_access.py:49 payments/api/intent_http.py:30
-#: payments/api/intent_http.py:36 payments/api/mobile_payments.py:361
-#: payments/api/mobile_payments.py:520
+#: payments/api/intent_http.py:36 payments/api/mobile_payments.py:375
+#: payments/api/mobile_payments.py:546 payments/integrations/web_checkout.py:52
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:366
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:378
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:273
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:834
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:845
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:368
+#: payments/templates/pages/braintree_checkout.py:68 payments/utils/utils.py:21
 msgid "Not permitted"
 msgstr ""
 
-#: payments/api/mobile_payments.py:254
+#: payments/api/mobile_payments.py:260
 msgid "Not permitted to collect a payment"
 msgstr ""
 
-#: payments/api/mobile_payments.py:223
+#: payments/api/mobile_payments.py:231
+#, python-brace-format
 msgid "Not permitted to collect a payment for {0} {1}"
 msgstr ""
 
@@ -1534,92 +1576,92 @@ msgstr ""
 msgid "Nothing yet — sync first."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:357
 msgid "On the BBPOS WisePOS E: swipe from the LEFT edge → Settings → admin code 07139 → 'Generate pairing code'. You'll get three dash-separated words (valid ~10 minutes)."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:21
 msgid "On-site collection"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:45
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:101
 msgid "One tile per payment method reads better than a single tile that asks the shopper to choose again on Payrexx's page."
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:113
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:118
 msgid "Online payments"
 msgstr ""
 
 #. Label of a Button field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:242
 msgid "Open Terminal Wizard"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:671
+#: payments/public/js/twint_dialog.js:688
 msgid "Open now"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:222
+#: payments/public/js/twint_dialog.js:261
 msgid "Open the TWINT app on your smartphone."
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:299
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:323
 msgid "Open the shop's payment step to see them."
 msgstr ""
 
 #. Description of the 'Open Terminal Wizard' (Button) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:243
 msgid "Open the unified Payment Terminal Wizard"
 msgstr ""
 
 #. Description of the 'Cash Register ID' (Data) field in DocType 'Twint Bridge
 #. Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:71
 msgid "Optional cash register identifier (PrefixedCashRegisterId)"
 msgstr ""
 
 #. Description of the 'Icon' (Data) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:38
 msgid "Optional emoji or icon hint for UI"
 msgstr ""
 
 #. Description of the 'Driver Class (override)' (Data) field in DocType
 #. 'Provider Channel Settings'
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:50
 msgid "Optional override of the Provider.driver_class for this specific channel, e.g. 'payments.drivers.stripe.terminal_driver.StripeTerminalDriver'"
 msgstr ""
 
 #. Description of the 'Client Secret' (Data) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:161
 msgid "Optional secret for SDK client (used by Stripe Web)"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:771
+#: payments/public/js/twint_dialog.js:776
 msgid "Other applications"
 msgstr ""
 
 #. Label of a Attach field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:97
 msgid "P12 Certificate"
 msgstr ""
 
 #. Label of a Password field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:90
 msgid "P12 Password"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:111
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:115
 msgid "POS API key"
 msgstr ""
 
 #. Label of a Password field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:191
 msgid "POS Authentication Key"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:468
 msgid "POS Profile"
 msgstr ""
 
@@ -1628,12 +1670,12 @@ msgid "POS Terminal"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:164
 msgid "POS Terminal Settings"
 msgstr ""
 
 #. Label of a Int field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:183
 msgid "POS User ID"
 msgstr ""
 
@@ -1641,32 +1683,37 @@ msgstr ""
 msgid "Pairing"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:360
 msgid "Pairing code"
 msgstr ""
 
 #. Description of the 'P12 Password' (Password) field in DocType 'Twint Bridge
 #. Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:92
 msgid "Password protecting the P12 certificate file stored on neoservice"
 msgstr ""
 
-#: payments/templates/pages/braintree_checkout.html:31
-#: payments/templates/pages/stripe_checkout.html:84
+#: payments/templates/pages/braintree_checkout.html:34
+#: payments/templates/pages/stripe_checkout.html:90
 msgid "Pay"
 msgstr ""
 
-#: payments/templates/pages/gocardless_checkout.py:89
+#: payments/templates/pages/gocardless_checkout.py:116
+#, python-brace-format
 msgid "Pay {0} {1}"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:169
 msgid "PayPal Settings"
 msgstr ""
 
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:267
+msgid "PayPal is not configured on this site"
+msgstr ""
+
 #. Label of a Small Text field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:68
 msgid "Payload Excerpt"
 msgstr ""
 
@@ -1675,26 +1722,28 @@ msgstr ""
 #: payments/templates/pages/gocardless_confirmation.html:5
 #: payments/templates/pages/paytm_checkout.html:5
 #: payments/templates/pages/razorpay_checkout.html:5
-#: payments/templates/pages/stripe_checkout.html:18
-#: payments/templates/pages/stripe_checkout.py:59
+#: payments/templates/pages/stripe_checkout.html:21
+#: payments/templates/pages/stripe_checkout.py:64
 msgid "Payment"
 msgstr ""
 
-#: payments/templates/pages/payment-cancel.html:3
-#: payments/templates/pages/payment-cancel.html:9
+#: payments/templates/pages/payment-cancel.html:6
+#: payments/templates/pages/payment-cancel.html:12
 msgid "Payment Cancelled"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:69
 msgid "Payment Channel"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:231
+#: payments/api/payrexx_setup.py:269
+#, python-brace-format
 msgid "Payment Channel {0} does not exist"
 msgstr ""
 
 #: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.py:110
+#, python-brace-format
 msgid "Payment Channel {0} is missing — run bench migrate"
 msgstr ""
 
@@ -1703,41 +1752,43 @@ msgid "Payment Confirmation"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:66
 msgid "Payment Connectors"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:119
 msgid "Payment Device"
 msgstr ""
 
-#: payments/api/terminal.py:430 payments/integrations/wallee/api.py:466
+#: payments/api/terminal.py:430 payments/integrations/wallee/api.py:498
+#, python-brace-format
 msgid "Payment Device {0} has no provider_device_id"
 msgstr ""
 
-#: payments/drivers/payrexx/terminal_driver.py:204
+#: payments/drivers/payrexx/terminal_driver.py:205
+#, python-brace-format
 msgid "Payment Device {0} is a simulator but Payment Provider {1} is in '{2}' mode. Simulated terminals are only allowed in test mode."
 msgstr ""
 
-#: payments/www/payrexx/success.html:31 payments/www/payrexx/success.py:212
-#: payments/www/payrexx/success.py:216 payments/www/wallee/success.html:24
+#: payments/www/payrexx/success.html:31 payments/www/payrexx/success.py:226
+#: payments/www/payrexx/success.py:230 payments/www/wallee/success.html:24
 msgid "Payment Error"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:78
 msgid "Payment Event"
 msgstr ""
 
-#: payments/templates/pages/payment-failed.html:3
-#: payments/templates/pages/payment-failed.html:9
+#: payments/templates/pages/payment-failed.html:6
+#: payments/templates/pages/payment-failed.html:12
 #: payments/www/wallee/failed.html:21
 msgid "Payment Failed"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/payment_gateway/payment_gateway.json
+#: payments/payments/doctype/payment_gateway/payment_gateway.json:39
 msgid "Payment Gateway"
 msgstr ""
 
@@ -1745,52 +1796,55 @@ msgstr ""
 #. Label of a Data field in DocType 'GoCardless Settings'
 #. Label of a Data field in DocType 'Mpesa Settings'
 #. Label of a Data field in DocType 'Stripe Settings'
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:31
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json:21
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:27
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json:32
 msgid "Payment Gateway Name"
 msgstr ""
 
 #. Label of a Link field in DocType 'Payment Event'
 #. Name of a DocType
 #. Label of a Link field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/payment_event/payment_event.json
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/payment_event/payment_event.json:23
+#: payments/payments/doctype/payment_intent/payment_intent.json:210
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:80
 msgid "Payment Intent"
 msgstr ""
 
-#: payments/api/intent.py:388
+#: payments/api/intent.py:398
 msgid "Payment Intent has no provider_intent_id; cannot refund"
 msgstr ""
 
 #: payments/api/terminal_receipt.py:132
+#, python-brace-format
 msgid "Payment Intent {0} has no provider payment to read"
 msgstr ""
 
 #: payments/api/terminal.py:426
+#, python-brace-format
 msgid "Payment Intent {0} has no provider_intent_id yet"
 msgstr ""
 
 #: payments/api/terminal.py:421
+#, python-brace-format
 msgid "Payment Intent {0} is in status {1}; cannot attach to reader"
 msgstr ""
 
 #. Label of a Select field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:123
 msgid "Payment Mode"
 msgstr ""
 
-#: payments/www/payrexx/success.html:53 payments/www/payrexx/success.py:214
+#: payments/www/payrexx/success.html:53 payments/www/payrexx/success.py:228
 #: payments/www/wallee/success.html:48
 msgid "Payment Processing"
 msgstr ""
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'Wallee Settings'
-#: payments/payments/doctype/payment_provider/payment_provider.json
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:98
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:51
 msgid "Payment Provider"
 msgstr ""
 
@@ -1800,39 +1854,37 @@ msgstr ""
 
 #. Description of the 'Linked Payment Provider' (Link) field in DocType 'Twint
 #. Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:132
 msgid "Payment Provider record that uses this Twint Settings as credentials source"
 msgstr ""
 
 #: payments/api/terminal.py:45
 #: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.py:85
+#, python-brace-format
 msgid "Payment Provider {0} does not exist"
 msgstr ""
 
 #: payments/api/terminal.py:48
 #: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.py:87
+#, python-brace-format
 msgid "Payment Provider {0} is disabled"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:49
+#: payments/integrations/wallee/api.py:62
+#, python-brace-format
 msgid "Payment Provider {0} is not a Wallee provider (driver_class={1})"
 msgstr ""
 
 #: payments/drivers/registry.py:68
+#, python-brace-format
 msgid "Payment Provider {0} is not enabled"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:66
-#: payments/integrations/twint/api.py:94
-#: payments/integrations/wallee/api.py:624
-msgid "Payment Request {0} is not Inward"
-msgstr ""
-
-#: payments/templates/pages/payment-success.html:3
+#: payments/templates/pages/payment-success.html:8
 msgid "Payment Success"
 msgstr ""
 
-#: payments/www/payrexx/success.html:127 payments/www/payrexx/success.py:211
+#: payments/www/payrexx/success.html:127 payments/www/payrexx/success.py:225
 #: payments/www/wallee/success.html:72
 msgid "Payment Successful"
 msgstr ""
@@ -1842,46 +1894,47 @@ msgid "Payment Terminal Wizard"
 msgstr ""
 
 #: payments/public/js/twint_dialog.js:377
-#: payments/public/js/twint_dialog.js:1097
-#: payments/public/js/twint_dialog.js:1125
+#: payments/public/js/twint_dialog.js:1102
+#: payments/public/js/twint_dialog.js:1136
 msgid "Payment cancelled successfully"
 msgstr ""
 
-#: payments/api/mobile_payments.py:655 payments/api/mobile_payments.py:753
+#: payments/api/mobile_payments.py:681 payments/api/mobile_payments.py:780
 msgid "Payment declined"
 msgstr ""
 
-#: payments/api/mobile_payments.py:689
+#: payments/api/mobile_payments.py:716
+#, python-brace-format
 msgid "Payment declined — {0}"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:1029
+#: payments/public/js/twint_dialog.js:1034
 msgid "Payment failed or was cancelled"
 msgstr ""
 
-#: payments/templates/pages/stripe_checkout.html:87
+#: payments/templates/pages/stripe_checkout.html:93
 msgid "Payment handled by Stripe. Your card details never pass through our servers."
 msgstr ""
 
-#: payments/api/mobile_payments.py:628
+#: payments/api/mobile_payments.py:654
 msgid "Payment method"
 msgstr ""
 
-#: payments/www/payrexx/success.html:98 payments/www/payrexx/success.py:213
+#: payments/www/payrexx/success.html:98 payments/www/payrexx/success.py:227
 msgid "Payment not received"
 msgstr ""
 
-#: payments/www/payrexx/success.py:129 payments/www/wallee/failed.py:50
-#: payments/www/wallee/success.py:135
+#: payments/www/payrexx/success.py:138 payments/www/wallee/failed.py:50
+#: payments/www/wallee/success.py:143
 msgid "Payment reference not found"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:1008
-#: payments/public/js/twint_dialog.js:1018
+#: payments/public/js/twint_dialog.js:1013
+#: payments/public/js/twint_dialog.js:1023
 msgid "Payment successful"
 msgstr ""
 
-#: payments/www/payrexx/success.py:191 payments/www/wallee/success.py:196
+#: payments/www/payrexx/success.py:205 payments/www/wallee/success.py:209
 msgid "Payment was declined"
 msgstr ""
 
@@ -1889,11 +1942,12 @@ msgstr ""
 msgid "Payment was declined or cancelled"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:1002
+#: payments/public/js/twint_dialog.js:1007
 msgid "Payment was successful"
 msgstr ""
 
 #: payments/drivers/payrexx/web_driver.py:132
+#, python-brace-format
 msgid "Payment {0}"
 msgstr ""
 
@@ -1902,14 +1956,17 @@ msgid "Payments"
 msgstr ""
 
 #: payments/drivers/payrexx/_common.py:156
+#, python-brace-format
 msgid "Payrexx Payment Provider {0} is missing 'api_secret' in credentials_json"
 msgstr ""
 
 #: payments/drivers/payrexx/_common.py:150
+#, python-brace-format
 msgid "Payrexx Payment Provider {0} is missing 'instance' in credentials_json"
 msgstr ""
 
 #: payments/drivers/payrexx/provider.py:59
+#, python-brace-format
 msgid "Payrexx Payment Provider {0} is missing {1} in credentials_json"
 msgstr ""
 
@@ -1922,6 +1979,7 @@ msgid "Payrexx Tap to Pay"
 msgstr ""
 
 #: payments/drivers/payrexx/tap_to_pay_driver.py:144
+#, python-brace-format
 msgid "Payrexx Tap to Pay accepts CARD or TWINT, got {0}"
 msgstr ""
 
@@ -1929,15 +1987,16 @@ msgstr ""
 msgid "Payrexx Web Checkout"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:330
+#: payments/api/payrexx_setup.py:366
+#, python-brace-format
 msgid "Payrexx connection failed, nothing was created: {0}"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:112
+#: payments/integrations/payrexx/api.py:129
 msgid "Payrexx did not return a payment page URL"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:188
+#: payments/api/payrexx_setup.py:218
 msgid "Payrexx is not configured yet"
 msgstr ""
 
@@ -1945,40 +2004,40 @@ msgstr ""
 msgid "Payrexx terminal payments require a Payment Device (terminal serial number)"
 msgstr ""
 
-#: payments/integrations/payrexx/api.py:103
+#: payments/integrations/payrexx/api.py:120
 msgid "Payrexx transaction creation failed"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json:72
 msgid "Paytm Settings"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:252
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:254
 msgid "Pick a Wallee Location and Terminal Configuration. Use 'Sync from Wallee' if your local list is empty."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:180
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:182
 msgid "Pick an existing Stripe Terminal Location or create a new one."
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:292
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:315
 msgid "Pick at least one tile"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:124
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:126
 msgid "Pick the PSP whose terminal you want to enroll."
 msgstr ""
 
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:295
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:305
 msgid "Please check your configuration and try again"
 msgstr ""
 
-#: payments/templates/pages/paytm_checkout.html:24
+#: payments/templates/pages/paytm_checkout.html:27
 msgid "Please do not refresh this page..."
 msgstr ""
 
-#: payments/api/mobile_payments.py:679
+#: payments/api/mobile_payments.py:706
 msgid "Please enter a valid email address"
 msgstr ""
 
@@ -1986,28 +2045,34 @@ msgstr ""
 msgid "Please select a Amount Field."
 msgstr ""
 
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:96
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:100
+#, python-brace-format
 msgid "Please select another payment method. Go Cardless does not support transactions in currency '{0}'"
 msgstr ""
 
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:42
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:44
+#, python-brace-format
 msgid "Please select another payment method. Mpesa does not support transactions in currency '{0}'"
 msgstr ""
 
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:145
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:153
+#, python-brace-format
 msgid "Please select another payment method. PayPal does not support transactions in currency '{0}'"
 msgstr ""
 
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.py:52
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.py:55
+#, python-brace-format
 msgid "Please select another payment method. Paytm does not support transactions in currency '{0}'"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:262
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:277
+#, python-brace-format
 msgid "Please select another payment method. Razorpay does not support transactions in currency '{0}'"
 msgstr ""
 
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:199
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:192
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:202
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:206
+#, python-brace-format
 msgid "Please select another payment method. Stripe does not support transactions in currency '{0}'"
 msgstr ""
 
@@ -2015,12 +2080,12 @@ msgstr ""
 msgid "Please set the initiator name and the security credential"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:222
+#: payments/public/js/twint_dialog.js:269
 msgid "Point your smartphone's camera at the QR code. Or select 'Code' and enter the numeric code."
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:86
 msgid "Postal Code"
 msgstr ""
 
@@ -2028,30 +2093,31 @@ msgstr ""
 msgid "Postal code"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:222
+#: payments/public/js/twint_dialog.js:265
 msgid "Press the QR button at the bottom of the screen."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:71
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:77
 msgid "Previous"
 msgstr ""
 
-#: payments/api/terminal_receipt.py:175
+#: payments/api/terminal_receipt.py:176
+#, python-brace-format
 msgid "Printer {0} not found"
 msgstr ""
 
 #. Label of a Password field in DocType 'Braintree Settings'
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:151
 msgid "Private Key"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:63
 msgid "Processed"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:98
 msgid "Processed At"
 msgstr ""
 
@@ -2067,54 +2133,55 @@ msgstr ""
 #. Label of a Link field in DocType 'Payment Intent'
 #. Label of a Link field in DocType 'Provider Channel Settings'
 #. Label of a Link field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:31
+#: payments/payments/doctype/payment_intent/payment_intent.json:84
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:23
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:40
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:61
 msgid "Provider"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:77
 msgid "Provider / Channel"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:73
 msgid "Provider / Channel binding"
 msgstr ""
 
 #. Label of a Link field in DocType 'Payment Device'
 #. Label of a Link field in DocType 'Payment Intent'
 #. Name of a DocType
-#: payments/payments/doctype/payment_device/payment_device.json
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/payment_device/payment_device.json:79
+#: payments/payments/doctype/payment_intent/payment_intent.json:99
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:77
 msgid "Provider Channel Settings"
 msgstr ""
 
 #: payments/drivers/registry.py:87
+#, python-brace-format
 msgid "Provider Channel Settings {0} is disabled"
 msgstr ""
 
 #. Label of a Data field in DocType 'Customer Payment Link'
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:39
 msgid "Provider Customer ID"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:55
 msgid "Provider Device ID"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:115
 msgid "Provider Intent ID"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:26
 msgid "Provider Name"
 msgstr ""
 
@@ -2123,11 +2190,12 @@ msgid "Provider Name is required"
 msgstr ""
 
 #: payments/payments/doctype/payment_provider/payment_provider.py:38
+#, python-brace-format
 msgid "Provider Name must be lowercase alphanumeric with optional underscores (got: {0})"
 msgstr ""
 
 #. Description of the 'Event Type' (Data) field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:50
 msgid "Provider event type, e.g. 'payment_intent.succeeded'"
 msgstr ""
 
@@ -2140,62 +2208,67 @@ msgid "Provider kind not supported."
 msgstr ""
 
 #. Description of the 'Event ID' (Data) field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:33
 msgid "Provider-supplied event id (e.g. 'evt_xxx' for Stripe). Used for deduplication."
 msgstr ""
 
 #. Label of a Data field in DocType 'Braintree Settings'
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:121
 msgid "Public Key"
 msgstr ""
 
 #. Label of a Data field in DocType 'Stripe Settings'
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json:64
 msgid "Publishable Key"
 msgstr ""
 
 #. Description of the 'Driver Provider Class' (Data) field in DocType 'Payment
 #. Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:63
 msgid "Python class path, e.g. 'payments.drivers.stripe.provider.StripeProvider'"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:63
 msgid "Queued"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:104
 msgid "Raw Payload"
 msgstr ""
 
 #. Label of a Code field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:110
 msgid "Raw Payload (JSON)"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json:112
 msgid "Razorpay Settings"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:557
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:596
 msgid "Razorpay Signature Verification Failed"
+msgstr ""
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:822
+msgid "Razorpay is not configured on this site"
 msgstr ""
 
 #. Description of the 'Certificate Expires On' (Date) field in DocType 'Twint
 #. Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:119
 msgid "Read automatically from the certificate. A reminder email is sent and a POS warning shows in the 45 days before this date."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:363
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:407
 msgid "Reader counter 1"
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:391
+#, python-brace-format
 msgid "Reader registered: {0}"
 msgstr ""
 
@@ -2203,49 +2276,50 @@ msgstr ""
 msgid "Reason"
 msgstr ""
 
-#: payments/api/mobile_payments.py:655
+#: payments/api/mobile_payments.py:681
 msgid "Receipt"
 msgstr ""
 
-#: payments/api/mobile_payments.py:687
+#: payments/api/mobile_payments.py:714
+#, python-brace-format
 msgid "Receipt {0} — {1}"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:92
 msgid "Received At"
 msgstr ""
 
 #. Option for the 'Payment Mode' (Select) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:124
 msgid "Redirect"
 msgstr ""
 
 #. Label of a Data field in DocType 'PayPal Settings'
 #. Label of a Data field in DocType 'Razorpay Settings'
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:140
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json:83
 msgid "Redirect To"
 msgstr ""
 
 #. Label of a Data field in DocType 'Stripe Settings'
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json:253
 msgid "Redirect URL"
 msgstr ""
 
 #. Description of the 'Failed URL' (Data) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:155
 msgid "Redirect URL after failed payment"
 msgstr ""
 
 #. Description of the 'Success URL' (Data) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:149
 msgid "Redirect URL after successful payment"
 msgstr ""
 
 #. Description of the 'Payment Mode' (Select) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:127
 msgid "Redirect: Customer goes to Wallee payment page. Lightbox: Payment form in overlay modal. iFrame: Embedded payment form on checkout page."
 msgstr ""
 
@@ -2253,7 +2327,7 @@ msgstr ""
 msgid "Redirecting to TWINT"
 msgstr ""
 
-#: payments/api/mobile_payments.py:633 payments/www/payrexx/success.html:36
+#: payments/api/mobile_payments.py:659 payments/www/payrexx/success.html:36
 #: payments/www/payrexx/success.html:58 payments/www/payrexx/success.html:103
 #: payments/www/payrexx/success.html:132 payments/www/wallee/failed.html:33
 #: payments/www/wallee/success.html:29 payments/www/wallee/success.html:53
@@ -2262,21 +2336,21 @@ msgid "Reference"
 msgstr ""
 
 #. Label of a Link field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:127
 msgid "Reference DocType"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:122
 msgid "Reference Document"
 msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:134
 msgid "Reference Name"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:364
 msgid "Register reader"
 msgstr ""
 
@@ -2292,11 +2366,11 @@ msgstr ""
 msgid "Reserved Balance"
 msgstr ""
 
-#: payments/api/mobile_payments.py:643
+#: payments/api/mobile_payments.py:669
 msgid "Response"
 msgstr ""
 
-#: payments/api/mobile_payments.py:626
+#: payments/api/mobile_payments.py:652
 msgid "Result"
 msgstr ""
 
@@ -2306,43 +2380,43 @@ msgid "Return to Cart"
 msgstr ""
 
 #. Label of a Check field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:56
 msgid "Sandbox"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:45
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:83
 msgid "Save and test"
 msgstr ""
 
 #. Label of a Password field in DocType 'Stripe Settings'
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json:127
 msgid "Secret Key"
 msgstr ""
 
 #. Description of the 'Webhook Secret' (Password) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:255
 msgid "Secret key for webhook signature verification (HMAC-SHA256)"
 msgstr ""
 
-#: payments/templates/pages/stripe_checkout.html:45
+#: payments/templates/pages/stripe_checkout.html:48
 msgid "Secure payment"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:76
 msgid "Security Credential"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:257
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:271
 msgid "Seems API Key or API Secret is wrong !!!"
 msgstr ""
 
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:187
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:200
 msgid "Seems Publishable Key or Secret Key is wrong !!!"
 msgstr ""
 
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:428
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:460
 msgid "Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account."
 msgstr ""
 
@@ -2351,53 +2425,53 @@ msgstr ""
 msgid "Seems token you are using is invalid!"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:222
+#: payments/public/js/twint_dialog.js:228
 msgid "Select your TWINT application"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:279
 msgid "Send Invoice to Customer"
 msgstr ""
 
 #. Description of the 'Credentials (JSON, encrypted)' (Code) field in DocType
 #. 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:75
 msgid "Sensitive credentials in JSON format. Stored encrypted via Frappe Password field semantics."
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:68
 msgid "Serial Number"
 msgstr ""
 
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:220
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:115
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:427
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:226
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:222
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:118
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:458
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.py:239
 #: payments/payment_gateways/stripe_integration.py:28
 msgid "Server Error"
 msgstr ""
 
 #. Description of the 'Completed At' (Datetime) field in DocType 'Payment
 #. Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:202
 msgid "Set when status becomes succeeded, failed, canceled or refunded"
 msgstr ""
 
 #. Description of the 'Payload Excerpt' (Small Text) field in DocType 'Payment
 #. Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:69
 msgid "Short excerpt of the payload that triggered this transition (max 140 chars)"
 msgstr ""
 
 #. Label of a Data field in DocType 'PayPal Settings'
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:82
 msgid "Signature"
 msgstr ""
 
 #. Label of a Check field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:69
 msgid "Signature Valid"
 msgstr ""
 
@@ -2405,44 +2479,44 @@ msgstr ""
 msgid "Simulating…"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:474
 msgid "Skip — finish wizard"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:63
 msgid "Skipped"
 msgstr ""
 
-#: payments/templates/pages/braintree_checkout.py:49
-#: payments/templates/pages/gocardless_checkout.py:47
+#: payments/templates/pages/braintree_checkout.py:56
+#: payments/templates/pages/gocardless_checkout.py:50
 #: payments/templates/pages/gocardless_confirmation.py:27
-#: payments/templates/pages/stripe_checkout.py:75
+#: payments/templates/pages/stripe_checkout.py:80
 msgid "Some information is missing"
 msgstr ""
 
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:294
-#: payments/utils/utils.py:38
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:320
+#: payments/utils/utils.py:97
 msgid "Something went wrong"
 msgstr ""
 
 #. Label of a Int field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:90
 msgid "Space ID"
 msgstr ""
 
 #. Description of the 'Channel Code' (Data) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:25
 msgid "Stable identifier, e.g. 'web', 'terminal', 'qr_bridge', 'billing'"
 msgstr ""
 
 #. Label of a Check field in DocType 'Paytm Settings'
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json:38
 msgid "Staging"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:91
 msgid "State/Canton"
 msgstr ""
 
@@ -2450,16 +2524,17 @@ msgstr ""
 #. Label of a Select field in DocType 'Payment Device'
 #. Label of a Select field in DocType 'Payment Intent'
 #. Label of a Select field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/payment_device/payment_device.json
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/payment_device/payment_device.json:92
+#: payments/payments/doctype/payment_intent/payment_intent.json:49
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:62
 #: payments/www/payrexx/success.html:37 payments/www/payrexx/success.html:59
 #: payments/www/wallee/failed.html:35 payments/www/wallee/success.html:31
 #: payments/www/wallee/success.html:54
 msgid "Status"
 msgstr ""
 
-#: payments/api/webhook_payrexx.py:381
+#: payments/api/webhook_payrexx.py:414
+#, python-brace-format
 msgid "Status {0} recorded without an FSM transition"
 msgstr ""
 
@@ -2470,93 +2545,97 @@ msgid "Store UUID provided by TWINT. Find it in the TWINT merchant portal → me
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:70
 msgid "Street"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:180
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:181
 msgid "Stripe Location"
 msgstr ""
 
 #: payments/drivers/stripe/provider.py:64
+#, python-brace-format
 msgid "Stripe Payment Provider {0} is missing credentials: {1}"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:354
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:355
 msgid "Stripe Reader pairing"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json:283
 msgid "Stripe Settings"
 msgstr ""
 
 #. Label of a Data field in DocType 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:44
 msgid "Stripe Terminal Location"
 msgstr ""
 
 #. Label of a Link field in DocType 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:35
 msgid "Stripe account"
 msgstr ""
 
-#: payments/templates/pages/payment-success.html:9
+#: payments/templates/pages/payment-success.html:14
 #: payments/www/payrexx/success.html:122
 msgid "Success"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:148
 msgid "Success URL"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:796
+#: payments/integrations/wallee/api.py:896
 msgid "Successor to the WisePOS, with a wider screen."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Location'
 #. Label of a Section Break field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_location/wallee_location.json
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:105
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:72
 msgid "Sync Info"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:252
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:259
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:264
 msgid "Sync from Wallee"
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:305
+#, python-brace-format
 msgid "Synced {0} configurations"
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:297
+#, python-brace-format
 msgid "Synced {0} locations"
 msgstr ""
 
 #. Name of a role
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
-#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
-#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json
-#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
-#: payments/payments/doctype/customer_payment_link/customer_payment_link.json
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
-#: payments/payments/doctype/payment_channel/payment_channel.json
-#: payments/payments/doctype/payment_device/payment_device.json
-#: payments/payments/doctype/payment_event/payment_event.json
-#: payments/payments/doctype/payment_gateway/payment_gateway.json
-#: payments/payments/doctype/payment_intent/payment_intent.json
-#: payments/payments/doctype/payment_provider/payment_provider.json
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
-#: payments/payments/doctype/wallee_location/wallee_location.json
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:258
+#: payments/payment_gateways/doctype/gocardless_mandate/gocardless_mandate.json:53
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json:69
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:121
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:188
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json:81
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.json:131
+#: payments/payment_gateways/doctype/stripe_settings/stripe_settings.json:300
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:154
+#: payments/payments/doctype/customer_payment_link/customer_payment_link.json:73
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:83
+#: payments/payments/doctype/payment_channel/payment_channel.json:77
+#: payments/payments/doctype/payment_device/payment_device.json:127
+#: payments/payments/doctype/payment_event/payment_event.json:86
+#: payments/payments/doctype/payment_gateway/payment_gateway.json:47
+#: payments/payments/doctype/payment_intent/payment_intent.json:218
+#: payments/payments/doctype/payment_provider/payment_provider.json:106
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:85
+#: payments/payments/doctype/wallee_location/wallee_location.json:132
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:298
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:99
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:139
 msgid "System Manager"
 msgstr ""
 
@@ -2564,12 +2643,13 @@ msgstr ""
 msgid "TOTAL"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:279
+#: payments/public/js/twint_dialog.js:283
 #: payments/public/js/twint_dialog.js:348
 msgid "TWINT Payment"
 msgstr ""
 
-#: payments/drivers/twint/provider.py:60
+#: payments/drivers/twint/provider.py:61
+#, python-brace-format
 msgid "TWINT Payment Provider {0} is missing 'service_url' in credentials_json and no 'twint_service_url' is set in site_config.json"
 msgstr ""
 
@@ -2578,7 +2658,7 @@ msgid "TWINT QR Bridge"
 msgstr ""
 
 #. Label of a Data field in DocType 'Twint Bridge Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:63
 msgid "TWINT Store UUID"
 msgstr ""
 
@@ -2587,11 +2667,12 @@ msgid "TWINT Web (QR consumer)"
 msgstr ""
 
 #. Label of a Link field in DocType 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:63
 msgid "TWINT account"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:302
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:343
+#, python-brace-format
 msgid "TWINT certificate expires in {0} day(s) — {1}"
 msgstr ""
 
@@ -2604,7 +2685,7 @@ msgid "TWINT merchant portal"
 msgstr ""
 
 #. Label of a Check field in DocType 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:56
 msgid "TWINT on the phone"
 msgstr ""
 
@@ -2612,7 +2693,7 @@ msgstr ""
 msgid "TWINT on the phone needs a TWINT Payment Provider"
 msgstr ""
 
-#: payments/integrations/twint/api.py:124
+#: payments/integrations/twint/api.py:145
 msgid "TWINT transaction creation failed"
 msgstr ""
 
@@ -2624,17 +2705,17 @@ msgstr ""
 msgid "Talking to Payrexx…"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:166
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:175
 #: payments/setup/payment_channels.py:116
 msgid "Tap to Pay"
 msgstr ""
 
 #. Label of a Check field in DocType 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:28
 msgid "Tap to Pay (card) on the phone"
 msgstr ""
 
-#: payments/api/mobile_payments.py:158
+#: payments/api/mobile_payments.py:162
 msgid "Tap to Pay is not set up on this site"
 msgstr ""
 
@@ -2647,24 +2728,26 @@ msgid "Terminal"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:218
 msgid "Terminal Defaults"
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:439
+#, python-brace-format
 msgid "Terminal created. Linking serial {0}…"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:404
 msgid "Terminal name (Wallee dashboard)"
 msgstr ""
 
 #: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:450
+#, python-brace-format
 msgid "Terminal {0} linked to device serial {1}"
 msgstr ""
 
 #. Label of a Check field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:272
 msgid "Test Mode"
 msgstr ""
 
@@ -2676,29 +2759,29 @@ msgstr ""
 msgid "Thank you. Your payment has been processed."
 msgstr ""
 
-#: payments/drivers/payrexx/_common.py:137
+#: payments/drivers/payrexx/_common.py:138
 msgid "The 'payrexx' Python library is not installed on this bench. Install it with: bench pip install git+https://github.com/neoserviceai/payrexx-python.git"
 msgstr ""
 
 #. Description of the 'Authentication Key' (Password) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:81
 msgid "The BASE64 key shown when creating an Application User (shown only once!)"
 msgstr ""
 
 #. Description of the 'Payment Provider' (Link) field in DocType 'Wallee
 #. Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:55
 msgid "The Payment Provider this Wallee configuration belongs to (one record per Wallee account, e.g. wallee_test or wallee_live)."
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:958
+#: payments/public/js/twint_dialog.js:965
 msgid "The QR code has expired. Please refresh the page to generate a new code."
 msgstr ""
 
 #. Description of the 'Stripe account' (Link) field in DocType 'Mobile Payment
 #. Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:32
 msgid "The Stripe Payment Provider whose account collects the money."
 msgstr ""
 
@@ -2708,33 +2791,35 @@ msgstr ""
 
 #. Description of the 'Stripe Terminal Location' (Data) field in DocType
 #. 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:41
 msgid "The Stripe Terminal Location the phones attach to (tml_...). Create one from the Stripe dashboard, or with payments.api.terminal.create_stripe_location."
 msgstr ""
 
 #. Description of the 'TWINT account' (Link) field in DocType 'Mobile Payment
 #. Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:60
 msgid "The TWINT Payment Provider (direct merchant contract, through the PHP bridge)."
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:297
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:339
+#, python-brace-format
 msgid "The TWINT certificate for <b>{0}</b> expired on {1}. TWINT payments are DOWN until a renewed .p12 is uploaded on the Twint Bridge Settings form."
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:303
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:345
+#, python-brace-format
 msgid "The TWINT certificate for <b>{0}</b> expires on {1} (in {2} day(s)).<br><br>Renew it with TWINT (they issue a new .p12) and upload it via the <b>P12 Certificate</b> field on the Twint Bridge Settings form — it replaces the current one automatically."
 msgstr ""
 
 #. Description of the 'Tap to Pay (card) on the phone' (Check) field in DocType
 #. 'Mobile Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:25
 msgid "The card is tapped on the technician's own phone, inside the Neoffice app (Stripe Terminal, Tap to Pay). Payments land in the Payment Intent list on the Tap to Pay channel."
 msgstr ""
 
 #. Description of the 'TWINT on the phone' (Check) field in DocType 'Mobile
 #. Payment Settings'
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:53
 msgid "The customer scans a QR shown on the technician's phone with their TWINT app. Payments land on the TWINT on-site channel."
 msgstr ""
 
@@ -2742,49 +2827,56 @@ msgstr ""
 msgid "The end-to-end helpers are off on this site."
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:239
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:107
+msgid "The expiry date of the certificate could not be read: check its password. No reminder will be sent before it expires."
+msgstr ""
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:261
 msgid "The instance is required"
 msgstr ""
 
 #. Description of the 'Space ID' (Int) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:92
 msgid "The number shown next to your company name in Wallee (e.g., #12345)"
 msgstr ""
 
 #. Description of a DocType
-#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json
+#: payments/payments/doctype/mobile_payment_settings/mobile_payment_settings.json:4
 msgid "The one place that decides whether an intervention can be paid for on site, from the mobile app, and with which accounts."
 msgstr ""
 
-#: payments/api/mobile_payments.py:684
+#: payments/api/mobile_payments.py:711
 msgid "The payment is not settled yet"
 msgstr ""
 
-#: payments/api/intent.py:406
+#: payments/api/intent.py:416
+#, python-brace-format
 msgid "The provider did not perform the refund: {0}"
 msgstr ""
 
 #: payments/api/terminal_receipt.py:140
+#, python-brace-format
 msgid "The terminal returned no receipt data for {0}"
 msgstr ""
 
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:116
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.py:120
 msgid "There seems to be an issue with the server's GoCardless configuration. Don't worry, in case of failure, the amount will get refunded to your account."
 msgstr ""
 
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:221
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.py:224
 msgid "There seems to be an issue with the server's braintree configuration. Don't worry, in case of failure, the amount will get refunded to your account."
 msgstr ""
 
-#: payments/drivers/payrexx/tap_to_pay_driver.py:233
+#: payments/drivers/payrexx/tap_to_pay_driver.py:234
+#, python-brace-format
 msgid "This Tap to Pay payment already exists at Payrexx (transaction {0}). Refund it, or void it from the Payrexx Tap to Pay app — a void cannot be done from the server."
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:268
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:291
 msgid "This account is live. Payments taken from now on are real."
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:466
 msgid "This adds your new Payment Device to the profile's Active Payment Methods & Terminals table. Optional — you can skip this step and configure it later from POS Profile directly."
 msgstr ""
 
@@ -2792,21 +2884,25 @@ msgstr ""
 msgid "This page will refresh automatically."
 msgstr ""
 
-#: payments/api/mobile_payments.py:199
+#: payments/api/mobile_payments.py:207
 msgid "This payment method is not set up on this site"
 msgstr ""
 
-#: payments/api/mobile_payments.py:713
+#: payments/integrations/web_checkout.py:119
+msgid "This payment request is closed."
+msgstr ""
+
+#: payments/api/mobile_payments.py:741
 msgid "This site cannot send email at the moment. Ask an administrator to check the outgoing email account."
 msgstr ""
 
 #. Label of a Data field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:49
 msgid "Till Number"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Webhook Event Log'
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:87
 msgid "Timing"
 msgstr ""
 
@@ -2815,21 +2911,25 @@ msgid "Tip"
 msgstr ""
 
 #. Label of a Data field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:37
 msgid "To Status"
 msgstr ""
 
-#: payments/api/mobile_payments.py:649 payments/api/terminal_receipt.py:95
+#: payments/integrations/web_checkout.py:131
+msgid "Too many payment attempts. Please try again later."
+msgstr ""
+
+#: payments/api/mobile_payments.py:675 payments/api/terminal_receipt.py:95
 #: payments/www/wallee/failed.html:34 payments/www/wallee/success.html:30
 msgid "Transaction"
 msgstr ""
 
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:135
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:138
 msgid "Transaction Error"
 msgstr ""
 
 #. Label of a Float field in DocType 'Mpesa Settings'
-#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.json:101
 msgid "Transaction Limit"
 msgstr ""
 
@@ -2842,16 +2942,17 @@ msgid "Try paying again"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:146
 msgid "Twint Bridge Settings"
 msgstr ""
 
 #: payments/drivers/twint/php_bridge_driver.py:129
+#, python-brace-format
 msgid "Twint Bridge Settings record not found for merchant_uuid {0}"
 msgstr ""
 
 #. Label of a Select field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:47
 msgid "UI Kind"
 msgstr ""
 
@@ -2859,34 +2960,40 @@ msgstr ""
 msgid "Uncleared Balance"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:302
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:228
+msgid "Under Webhooks in your back office: add this address, content type JSON, event Transaction, then generate the signing key and paste it here."
+msgstr ""
+
+#: payments/integrations/wallee/api.py:322
 msgid "Unknown"
 msgstr ""
 
-#: payments/api/mobile_payments.py:194
+#: payments/api/mobile_payments.py:202
+#, python-brace-format
 msgid "Unknown payment method {0}"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:273
+#: payments/api/payrexx_setup.py:309
+#, python-brace-format
 msgid "Unknown tiles: {0}"
 msgstr ""
 
 #. Label of a Check field in DocType 'Braintree Settings'
 #. Label of a Check field in DocType 'GoCardless Settings'
 #. Label of a Check field in DocType 'PayPal Settings'
-#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
-#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json
+#: payments/payment_gateways/doctype/braintree_settings/braintree_settings.json:181
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json:45
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.json:111
 msgid "Use Sandbox"
 msgstr ""
 
 #. Description of the 'Test Mode' (Check) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:273
 msgid "Use sandbox/test environment"
 msgstr ""
 
 #. Label of a Int field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:72
 msgid "User ID"
 msgstr ""
 
@@ -2894,67 +3001,69 @@ msgstr ""
 #. Location'
 #. Description of the 'Configuration Version ID' (Data) field in DocType
 #. 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_location/wallee_location.json
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:60
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:50
 msgid "Version ID used when creating terminals via API"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:215
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:237
 msgid "Visa and Mastercard, entered inside the checkout"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:969
+#: payments/public/js/twint_dialog.js:978
 msgid "Waiting for payment..."
 msgstr ""
 
 #. Description of the 'API Host' (Data) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:100
 msgid "Wallee API endpoint URL"
 msgstr ""
 
 #. Description of the 'Account ID' (Int) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:107
 msgid "Wallee Account ID (auto-detected)"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Terminal Configuration'
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:42
 msgid "Wallee Configuration ID"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:120
 msgid "Wallee Location"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:252
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:253
 msgid "Wallee Location & Configuration"
 msgstr ""
 
 #. Label of a Data field in DocType 'Wallee Location'
-#: payments/payments/doctype/wallee_location/wallee_location.json
+#: payments/payments/doctype/wallee_location/wallee_location.json:53
 msgid "Wallee Location ID"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:288
 msgid "Wallee Settings"
 msgstr ""
 
 #: payments/drivers/wallee/provider.py:89
+#, python-brace-format
 msgid "Wallee Settings is missing credentials: {0}"
 msgstr ""
 
 #: payments/drivers/wallee/provider.py:79
+#, python-brace-format
 msgid "Wallee Settings is not enabled — Wallee provider {0} cannot operate"
 msgstr ""
 
 #. Name of a DocType
-#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json
+#: payments/payments/doctype/wallee_terminal_configuration/wallee_terminal_configuration.json:87
 msgid "Wallee Terminal Configuration"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:400
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:401
 msgid "Wallee Terminal — create + link"
 msgstr ""
 
@@ -2962,15 +3071,16 @@ msgstr ""
 msgid "Wallee Web (hosted checkout)"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:428
+#: payments/integrations/wallee/api.py:457
+#, python-brace-format
 msgid "Wallee did not create the terminal: {0}"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:142
+#: payments/integrations/wallee/api.py:154
 msgid "Wallee lists locations and configurations only through the terminals of the space. Create the first terminal in the Wallee portal, then sync again."
 msgstr ""
 
-#: payments/integrations/wallee/api.py:671
+#: payments/integrations/wallee/api.py:739
 msgid "Wallee transaction creation failed"
 msgstr ""
 
@@ -2983,72 +3093,72 @@ msgid "We're sorry, but your payment could not be processed. Please try again or
 msgstr ""
 
 #. Label of a Data field in DocType 'Provider Channel Settings'
-#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json
+#: payments/payments/doctype/provider_channel_settings/provider_channel_settings.json:55
 msgid "Webhook Endpoint"
 msgstr ""
 
 #. Label of a Link field in DocType 'Payment Event'
 #. Name of a DocType
-#: payments/payments/doctype/payment_event/payment_event.json
-#: payments/payments/doctype/webhook_event_log/webhook_event_log.json
+#: payments/payments/doctype/payment_event/payment_event.json:56
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:131
 msgid "Webhook Event Log"
 msgstr ""
 
 #. Label of a Password field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:254
 msgid "Webhook Secret"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:167
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:176
 msgid "Webhook logs"
 msgstr ""
 
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:117
+msgid "Webhook signing key"
+msgstr ""
+
 #. Label of a Data field in DocType 'GoCardless Settings'
-#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json
+#: payments/payment_gateways/doctype/gocardless_settings/gocardless_settings.json:39
 msgid "Webhooks Secret"
 msgstr ""
 
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:174
+msgid "Webhooks — the signing key"
+msgstr ""
+
 #. Label of a Password field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:140
 msgid "Webshop Authentication Key"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:112
 msgid "Webshop Settings"
 msgstr ""
 
 #. Label of a Int field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:132
 msgid "Webshop User ID"
 msgstr ""
 
 #. Label of a Data field in DocType 'Paytm Settings'
-#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json
+#: payments/payment_gateways/doctype/paytm_settings/paytm_settings.json:46
 msgid "Website"
 msgstr ""
 
 #. Description of the 'Next Action Type' (Select) field in DocType 'Payment
 #. Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:149
 msgid "What the caller must do next. native_app_handoff means another app on the device initiates the payment (Payrexx Tap to Pay), not us — the payload carries what to hand over."
 msgstr ""
 
 #. Description of the 'Send Invoice to Customer' (Check) field in DocType
 #. 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:280
 msgid "When enabled, Wallee will send invoice PDFs to customers via email after transaction completion."
 msgstr ""
 
-#: payments/overrides/payment_webform.py:71
-msgid "You are not allowed to update this Web Form Document"
-msgstr ""
-
-#: payments/overrides/payment_webform.py:115
-msgid "You must login to submit this form"
-msgstr ""
-
-#: payments/public/js/twint_dialog.js:671
+#: payments/public/js/twint_dialog.js:684
 msgid "You will be redirected to the TWINT app in"
 msgstr ""
 
@@ -3057,11 +3167,11 @@ msgstr ""
 msgid "Your Wallee Application User ID. Go to Wallee → Account → Users → Application Users"
 msgstr ""
 
-#: payments/templates/pages/stripe_checkout.html:91
+#: payments/templates/pages/stripe_checkout.html:97
 msgid "Your payment has been successfully registered."
 msgstr ""
 
-#: payments/templates/pages/payment-failed.html:11
+#: payments/templates/pages/payment-failed.html:14
 msgid "Your payment has failed."
 msgstr ""
 
@@ -3069,11 +3179,11 @@ msgstr ""
 msgid "Your payment is being processed. Please wait..."
 msgstr ""
 
-#: payments/templates/pages/payment-cancel.html:11
+#: payments/templates/pages/payment-cancel.html:14
 msgid "Your payment is cancelled."
 msgstr ""
 
-#: payments/templates/pages/payment-success.html:11
+#: payments/templates/pages/payment-success.html:16
 msgid "Your payment was successfully accepted"
 msgstr ""
 
@@ -3081,83 +3191,85 @@ msgstr ""
 msgid "[DEV] Simulate TWINT success"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:224
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:246
 msgid "already there"
 msgstr ""
 
-#: payments/api/intent.py:86 payments/api/mobile_payments.py:203
+#: payments/api/intent.py:86 payments/api/mobile_payments.py:211
 msgid "amount must be > 0"
 msgstr ""
 
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:50
 msgid "api"
 msgstr ""
 
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:49
 msgid "background"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:50
 msgid "canceled"
 msgstr ""
 
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:49
 msgid "card_present_modal"
 msgstr ""
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:148
 msgid "display_card_present_modal"
 msgstr ""
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:148
 msgid "display_qr_payload"
 msgstr ""
 
 #. Description of the 'Device Type' (Data) field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:63
 msgid "e.g. 'bbpos_wisepos_e', 'stripe_s700', 'stripe_s710', 'worldline_t630'"
 msgstr ""
 
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:49
 msgid "embedded_form"
 msgstr ""
 
-#: payments/utils/utils.py:210
+#: payments/utils/utils.py:269
+#, python-brace-format
 msgid "erpnext app is not installed. Please install it from {} or {}"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:50
 msgid "failed"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:216
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:238
 msgid "goes straight to TWINT, no second choice"
 msgstr ""
 
 #. Option for the 'Payment Mode' (Select) field in DocType 'Wallee Settings'
-#: payments/payments/doctype/wallee_settings/wallee_settings.json
+#: payments/payments/doctype/wallee_settings/wallee_settings.json:124
 msgid "iFrame"
 msgstr ""
 
 #. Option for the 'Mode' (Select) field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:52
 msgid "live"
 msgstr ""
 
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:50
 msgid "manual"
 msgstr ""
 
 #: payments/api/intent.py:93
+#, python-brace-format
 msgid "metadata is not valid JSON: {0}"
 msgstr ""
 
@@ -3165,36 +3277,36 @@ msgstr ""
 msgid "metadata must be a JSON object"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:254
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:277
 msgid "mode"
 msgstr ""
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:148
 msgid "native_app_handoff"
 msgstr ""
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:148
 msgid "none"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:100
 msgid "offline"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:217
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:239
 msgid "one tile, the shopper chooses on Payrexx's page"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:100
 msgid "online"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:222
-#: payments/public/js/twint_dialog.js:811
+#: payments/public/js/twint_dialog.js:232
+#: payments/public/js/twint_dialog.js:829
 msgid "or"
 msgstr ""
 
@@ -3203,94 +3315,100 @@ msgid "payment_device, pos_profile and mode_of_payment are required"
 msgstr ""
 
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:50
 msgid "poll"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:50
 msgid "processing"
 msgstr ""
 
 #. Option for the 'Environment' (Select) field in DocType 'Twint Bridge
 #. Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:79
 msgid "production"
 msgstr ""
 
-#: payments/integrations/wallee/api.py:44
+#: payments/integrations/wallee/api.py:57
 msgid "provider is required"
 msgstr ""
 
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#: payments/payments/doctype/payment_channel/payment_channel.json:49
 msgid "qr_display"
 msgstr ""
 
 #. Option for the 'UI Kind' (Select) field in DocType 'Payment Channel'
-#: payments/payments/doctype/payment_channel/payment_channel.json
+#. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
+#: payments/payments/doctype/payment_channel/payment_channel.json:49
+#: payments/payments/doctype/payment_event/payment_event.json:50
 msgid "redirect"
 msgstr ""
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:148
 msgid "redirect_to_url"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:50
 msgid "refunded"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:50
 msgid "requires_action"
 msgstr ""
 
 #. Option for the 'Next Action Type' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:148
 msgid "requires_confirmation"
 msgstr ""
 
 #. Option for the 'Environment' (Select) field in DocType 'Twint Bridge
 #. Settings'
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.json:79
 msgid "sandbox"
 msgstr ""
 
-#: payments/public/js/twint_dialog.js:671
+#: payments/public/js/twint_dialog.js:684
 msgid "seconds"
 msgstr ""
 
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:117
+msgid "shown only once by Payrexx"
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'Payment Intent'
-#: payments/payments/doctype/payment_intent/payment_intent.json
+#: payments/payments/doctype/payment_intent/payment_intent.json:50
 msgid "succeeded"
 msgstr ""
 
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:50
 msgid "system"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:111
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:115
 msgid "terminal only"
 msgstr ""
 
 #. Option for the 'Mode' (Select) field in DocType 'Payment Provider'
-#: payments/payments/doctype/payment_provider/payment_provider.json
+#: payments/payments/doctype/payment_provider/payment_provider.json:52
 msgid "test"
 msgstr ""
 
-#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:109
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:113
 msgid "the part before .payrexx.com"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Payment Device'
-#: payments/payments/doctype/payment_device/payment_device.json
+#: payments/payments/doctype/payment_device/payment_device.json:100
 msgid "unknown"
 msgstr ""
 
-#: payments/api/payrexx_setup.py:331
+#: payments/api/payrexx_setup.py:367
 msgid "unknown error"
 msgstr ""
 
@@ -3299,23 +3417,27 @@ msgid "user_id, authentication_key and space_id are mandatory when Wallee Settin
 msgstr ""
 
 #. Option for the 'Event Source' (Select) field in DocType 'Payment Event'
-#: payments/payments/doctype/payment_event/payment_event.json
+#: payments/payments/doctype/payment_event/payment_event.json:50
 msgid "webhook"
 msgstr ""
 
-#: payments/utils/utils.py:20 payments/utils/utils.py:25
+#: payments/utils/utils.py:69 payments/utils/utils.py:74
+#, python-brace-format
 msgid "{0} Settings not found"
 msgstr ""
 
-#: payments/api/mobile_payments.py:450
+#: payments/api/mobile_payments.py:476
+#, python-brace-format
 msgid "{0} is not an on-site payment"
 msgstr ""
 
-#: payments/api/mobile_payments.py:216
+#: payments/api/mobile_payments.py:224
+#, python-brace-format
 msgid "{0} {1} does not exist"
 msgstr ""
 
-#: payments/api/mobile_payments.py:754
+#: payments/api/mobile_payments.py:781
+#, python-brace-format
 msgid "{0}: the card was not accepted. {1}"
 msgstr ""
 
@@ -3323,23 +3445,26 @@ msgstr ""
 msgid "— Choose a Mode of Payment —"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:469
 msgid "— Choose a profile —"
 msgstr ""
 
-#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:464
+#: payments/payments/page/payment_terminal_wizard/payment_terminal_wizard.js:471
 msgid "— Pick a profile first —"
 msgstr ""
 
-#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:296
+#: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:337
+#, python-brace-format
 msgid "⚠️ TWINT certificate EXPIRED — {0}"
 msgstr ""
 
 #: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.js:26
+#, python-brace-format
 msgid "⚠️ The TWINT certificate EXPIRED on {0} — TWINT payments are down until you upload a renewed .p12 in the field above."
 msgstr ""
 
 #: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.js:34
+#, python-brace-format
 msgid "⚠️ The TWINT certificate expires on {0} (in {1} days). Renew it with TWINT and upload the new .p12 in the field above — it replaces the current one automatically."
 msgstr ""
 

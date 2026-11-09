@@ -3434,3 +3434,39 @@ msgstr "Wallee n'a pas créé le terminal : {0}"
 #: payments/payment_gateways/doctype/twint_bridge_settings/twint_bridge_settings.py:106
 msgid "The expiry date of the certificate could not be read: check its password. No reminder will be sent before it expires."
 msgstr "Impossible de lire la date d'expiration du certificat : vérifiez son mot de passe. Aucun rappel ne sera envoyé avant son expiration."
+
+#: payments/payment_gateways/doctype/mpesa_settings/mpesa_settings.py:359
+msgid "M-Pesa is not configured on this site"
+msgstr "M-Pesa n'est pas configuré sur ce site"
+
+#: payments/payment_gateways/doctype/paypal_settings/paypal_settings.py:267
+msgid "PayPal is not configured on this site"
+msgstr "PayPal n'est pas configuré sur ce site"
+
+#: payments/payment_gateways/doctype/razorpay_settings/razorpay_settings.py:822
+msgid "Razorpay is not configured on this site"
+msgstr "Razorpay n'est pas configuré sur ce site"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:117
+msgid "shown only once by Payrexx"
+msgstr "affichée une seule fois par Payrexx"
+
+#: payments/integrations/web_checkout.py:119
+msgid "This payment request is closed."
+msgstr "Cette demande de paiement est clôturée."
+
+#: payments/integrations/web_checkout.py:131
+msgid "Too many payment attempts. Please try again later."
+msgstr "Trop de tentatives de paiement. Veuillez réessayer plus tard."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:228
+msgid "Under Webhooks in your back office: add this address, content type JSON, event Transaction, then generate the signing key and paste it here."
+msgstr "Sous Webhooks dans votre back-office : ajoutez cette adresse, avec le type de contenu JSON et l'événement Transaction, puis générez la clé de signature et collez-la ici."
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:117
+msgid "Webhook signing key"
+msgstr "Clé de signature du webhook"
+
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:174
+msgid "Webhooks — the signing key"
+msgstr "Webhooks — la clé de signature"
