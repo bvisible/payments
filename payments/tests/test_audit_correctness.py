@@ -430,7 +430,7 @@ class TestARefundReadsItsIntentUnderLock(FrappeTestCase):
 			return real(*args, **kwargs)
 
 		# The till's manager refunds at the till; a site with no till, its accountant from the desk.
-		who = "till_manager" if frappe.db.exists("Role", "Nexus POS Manager") else "head_accountant"
+		who = "till_manager" if frappe.db.exists("Role", "POSNext Manager") else "head_accountant"
 		with as_role(who), patch.object(frappe, "get_doc", side_effect=get_doc):
 			intent_api.refund_intent(self.intent, amount=400)
 		self.assertTrue(locked and locked[0], "the intent was read with no lock before the provider was asked")
