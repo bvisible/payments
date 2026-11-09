@@ -330,6 +330,13 @@ def on_payment_intent_after_update(doc, method=None):  # noqa: ANN001 — Frappe
 		# //// It is undone now: the invoice stays to pay, the intent stays unstamped, and its next save tries again.
 		with all_or_nothing(f"reconcile {doc.name}"):
 			reconcile_payment_intent(doc.name, commit=False)
+	# //// Neoffice — maintenance#1831: a deadlock (1213) makes InnoDB roll the WHOLE transaction back, the write
+	# //// of the intent's status that triggered this doc_event included. Catching it below turned that rollback
+	# //// into a silent success: the request answered normally, the intent was still not paid and nothing said so
+	# //// to the caller. A lock error is transient and says "do it again": it goes up, the request fails visibly,
+	# //// and the caller (the webhook the provider resends, the poller's next pass, the till) tries again.
+	except (frappe.QueryDeadlockError, frappe.QueryTimeoutError):
+		raise
 	except Exception as exc:  # noqa: BLE001 — never break the save
 		# The traceback matters more than the message here: this runs inside a
 		# doc_event, so the failing write is usually several frames away from the
