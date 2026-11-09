@@ -22,8 +22,13 @@ Sources (each read only when its table is there):
   in the intent's metadata, and a reversal makes the intent ``refunded``;
 * ``tabTwint Transaction`` (``twint_integration``, the TWINT QR of the shop): one intent per row,
   channel ``twint_web``, ``order_uuid`` as ``provider_intent_id``, ``reference_doctype`` /
-  ``reference_docname`` as reference. Empty on every server measured on 09.11.2026 (one shop lost it
-  to the drop of v15_04 on 06.07); here for a site restored from an older image.
+  ``reference_docname`` as reference. Empty on every server measured on 09.11.2026; here for a site
+  restored from an older image;
+* the rows of ``Twint Transaction`` a site lost (the drop of v15_04 took a shop's table on 06.07.2026,
+  #2399) are rebuilt from ``tabVersion``: every status change of a row saved a Version whose
+  ``data_twint`` carries the whole payment (amount, currency, paid document, payer, the TWINT uuid). The
+  last change of each uuid gives its row; a row whose status never changed left no Version and stays
+  lost. The provider's tokens and QR code are never copied.
 
 Every copied intent says where it comes from (``metadata.legacy``, ``metadata.legacy_key``), carries
 the customer and the consolidated invoice of its ticket, and is stamped ``reconciled_at``: the till
@@ -153,6 +158,45 @@ def twint_web_status(row: dict) -> tuple[str, str | None]:
 	if legacy == "FAILURE":
 		return "failed", None
 	return "failed", UNFINISHED  # PENDING, IN_PROGRESS: the shop never saw it end
+
+
+def rows_from_versions(versions: Iterable[dict]) -> list[dict]:
+	"""The ``Twint Transaction`` rows that the Versions of a lost table describe, one per uuid, from its last
+	change (each item: ``name``, ``docname``, ``creation``, ``data`` of a ``tabVersion`` row). The tokens,
+	the QR code and the checkout address of the provider are left out."""
+	rows = {}
+	for version in sorted(versions, key=lambda v: (str(v.get("creation")), v.get("name") or "")):
+		try:
+			changed = {
+				change[0]: change for change in json.loads(version.get("data") or "{}").get("changed") or []
+			}
+			twint = json.loads(changed["data_twint"][2] or "{}")
+		except (ValueError, TypeError, KeyError, IndexError):
+			continue
+		details = twint.get("payment_details") or {}
+		if details.get("amount") is None:
+			continue
+		uuid = version.get("docname") or twint.get("order_uuid")
+		row = rows.setdefault(uuid, {"name": uuid, "order_uuid": uuid, "rebuilt_from": []})
+		row["rebuilt_from"].append(version.get("name"))
+		status = changed.get("status", [None, None, None])[2] or twint.get("status")
+		row.update(
+			{
+				"amount": details.get("amount"),
+				"currency": details.get("currency") or "CHF",
+				"status": status,
+				"title": details.get("title"),
+				"description": details.get("description"),
+				"payer_name": details.get("payer_name"),
+				"payer_email": details.get("payer_email"),
+				"reference_doctype": details.get("reference_doctype"),
+				"reference_docname": details.get("reference_docname"),
+				"created_at": get_datetime(twint.get("created_at")) if twint.get("created_at") else None,
+				"modified": get_datetime(version.get("creation")),
+			}
+		)
+		row.setdefault("creation", row["created_at"] or get_datetime(version.get("creation")))
+	return list(rows.values())
 
 
 def legacy_key(doctype: str, name: str) -> str:
@@ -301,6 +345,11 @@ def twint_web_intent(row: dict, customer: str | None = None) -> dict | None:
 				"title": row.get("title"),
 				"payer_name": row.get("payer_name"),
 				"payer_email": row.get("payer_email"),
+				"payment_request": row.get("payment_request"),
+				"sales_order": row.get("sales_order"),
+				# The table was lost; these Versions are where the row was read back from (#2399).
+				"rebuilt_from": "Version" if row.get("rebuilt_from") else None,
+				"versions": row.get("rebuilt_from"),
 			},
 			get_datetime(row.get("modified")),
 		),
@@ -318,7 +367,9 @@ def _metadata(doctype: str, row: dict, ticket: dict | None, legacy: dict, comple
 		"migrated_by": MIGRATED_BY,
 		# The till booked these at the time (or never did): the reconciliation of payments must not.
 		"reconciled_at": _text(completed or row.get("modified") or row.get("creation")),
-		"reconciliation": "booked by the till at the time" if ticket else "never booked (no ticket)",
+		"reconciliation": "booked at the time by the app that took it"
+		if ticket
+		else "never booked (no document)",
 	}
 	if ticket:
 		if ticket.get("customer"):
@@ -439,6 +490,60 @@ def _stripe_devices() -> dict:
 		for name, reader in frappe.db.sql("select name, stripe_terminal_id from `tabStripe Terminal`")
 		if reader in devices
 	}
+
+
+def _customer_of(doctype: str | None, name: str | None) -> str | None:
+	"""The customer of the paid document: its ``customer``, or the ``party_name`` of a Quotation to a customer."""
+	if not (doctype and name and table_exists(doctype)):
+		return None
+	if has_column(doctype, "customer"):
+		return frappe.db.get_value(doctype, name, "customer")
+	if doctype == "Quotation":
+		to, party = frappe.db.get_value("Quotation", name, ["quotation_to", "party_name"]) or (
+			None,
+			None,
+		)
+		return party if to == "Customer" else None
+	return None
+
+
+def _twint_payment_requests() -> dict:
+	"""{(reference doctype, reference name): [(Payment Request, amount in rappen)]} of the TWINT gateway."""
+	if not table_exists("Payment Request"):
+		return {}
+	requests = {}
+	for name, doctype, reference, total in frappe.db.sql(
+		"select name, reference_doctype, reference_name, grand_total from `tabPayment Request` "
+		"where payment_gateway like %s and docstatus < 2 order by creation",
+		("%wint%",),
+	):
+		requests.setdefault((doctype, reference), []).append((name, to_minor(total)))
+	return requests
+
+
+def _orders_of(doctype: str | None, name: str | None) -> list[str]:
+	"""The Sales Orders made from a Quotation (the shop's cart): where its Payment Request points."""
+	if doctype != "Quotation" or not name or not table_exists("Sales Order Item"):
+		return []
+	return [
+		order
+		for (order,) in frappe.db.sql(
+			"select distinct parent from `tabSales Order Item` where prevdoc_docname = %s and docstatus < 2 "
+			"order by parent",
+			(name,),
+		)
+	]
+
+
+def _lost_twint_web_rows(present: set) -> list[dict]:
+	"""The rows of ``Twint Transaction`` the site lost, rebuilt from ``tabVersion`` (those still in the table
+	are read from it)."""
+	versions = frappe.db.sql(
+		"select name, docname, creation, data from tabVersion where ref_doctype = %s",
+		(TWINT_WEB,),
+		as_dict=True,
+	)
+	return [row for row in rows_from_versions(versions) if row["name"] not in present]
 
 
 def _twint_reference(row: dict, by_payment_row: dict) -> tuple | None:
@@ -607,30 +712,39 @@ def copy_legacy_payment_records(dry_run: int = 0) -> dict:
 			report["sources"][TWINT_REQUEST]["provider"] = provider
 			report["kept_unmatched_settlement"] = [line.name for line in lines if line.name not in used]
 
-	if table_exists(TWINT_WEB):
-		rows = _rows(TWINT_WEB)
-		if rows:
-			if not dry_run:
-				provision_payment_channels(codes=("twint_web",))
-			provider = _provider("twint", dry_run)
-			items = []
-			for row in rows:
-				customer = None
-				doctype, name = row.get("reference_doctype"), row.get("reference_docname")
-				if doctype and name and table_exists(doctype) and has_column(doctype, "customer"):
-					customer = frappe.db.get_value(doctype, name, "customer")
-				items.append((row, twint_web_intent(row, customer)))
-			_copy(
-				TWINT_WEB,
-				items,
-				provider,
-				"twint_web",
-				_channel_settings(provider, "twint_web"),
-				known,
-				dry_run,
-				report,
-			)
-			report["sources"][TWINT_WEB]["provider"] = provider
+	rows = _rows(TWINT_WEB) if table_exists(TWINT_WEB) else []
+	rebuilt = _lost_twint_web_rows({row.name for row in rows})
+	if rebuilt:
+		report["rebuilt_from_versions"] = len(rebuilt)
+	rows = rows + rebuilt
+	if rows:
+		if not dry_run:
+			provision_payment_channels(codes=("twint_web",))
+		provider = _provider("twint", dry_run)
+		requests = _twint_payment_requests()
+		items = []
+		for row in rows:
+			doctype, name = row.get("reference_doctype"), row.get("reference_docname")
+			amount = to_minor(row.get("amount"))
+			# The shop paid a cart (Quotation); its Payment Request points at the order made from it.
+			orders = _orders_of(doctype, name)
+			row["sales_order"] = orders[0] if orders else None
+			candidates = requests.get((doctype, name), []) + [
+				request for order in orders for request in requests.get(("Sales Order", order), [])
+			]
+			row["payment_request"] = next((pr for pr, total in candidates if total == amount), None)
+			items.append((row, twint_web_intent(row, _customer_of(doctype, name))))
+		_copy(
+			TWINT_WEB,
+			items,
+			provider,
+			"twint_web",
+			_channel_settings(provider, "twint_web"),
+			known,
+			dry_run,
+			report,
+		)
+		report["sources"][TWINT_WEB]["provider"] = provider
 
 	if not dry_run:
 		frappe.db.commit()

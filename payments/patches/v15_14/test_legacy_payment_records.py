@@ -162,6 +162,83 @@ class TestTheShopTwintOfTwintIntegration(FrappeTestCase):
 		self.assertEqual(legacy.twint_web_status({"status": "FAILURE"}), ("failed", None))
 
 
+def _version(name, uuid, at, old_status, new_status, amount=76.1):
+	details = {
+		"amount": amount,
+		"currency": "CHF",
+		"reference_doctype": "Quotation",
+		"reference_docname": "QTN-TEST-0001",
+		"payer_name": "A buyer",
+		"payer_email": "buyer@example.com",
+		"title": "Order",
+	}
+	new = {
+		"order_uuid": uuid,
+		"status": new_status,
+		"created_at": "2025-07-01 10:00:00.000000",
+		"token": "secret-token",
+		"pairing_token": "secret-pairing",
+		"qr_code": "secret-qr",
+		"checkout_url": "https://example.com/checkout",
+		"payment_details": details,
+	}
+	data = {"changed": [["status", old_status, new_status], ["data_twint", "{}", json.dumps(new)]]}
+	return {"name": name, "docname": uuid, "creation": at, "data": json.dumps(data)}
+
+
+class TestALostShopTwintTableIsRebuiltFromItsVersions(FrappeTestCase):
+	"""A shop lost its Twint Transaction table to the drop of v15_04; every status change of a row had saved a
+	Version whose data_twint carries the whole payment (#2399)."""
+
+	def test_the_last_change_of_each_transaction_gives_its_row(self):
+		versions = [
+			_version("v1", "uuid-1", "2025-07-01 10:00:05", "PENDING", "IN_PROGRESS"),
+			_version("v2", "uuid-1", "2025-07-01 10:00:40", "IN_PROGRESS", "SUCCESS"),
+			_version("v3", "uuid-2", "2025-07-02 09:00:00", "PENDING", "FAILURE", amount=12),
+			{"name": "v4", "docname": "uuid-3", "creation": "2025-07-03", "data": "not json"},
+		]
+		rows = {row["name"]: row for row in legacy.rows_from_versions(versions)}
+		self.assertEqual(sorted(rows), ["uuid-1", "uuid-2"])
+		paid = rows["uuid-1"]
+		self.assertEqual(paid["status"], "SUCCESS")
+		self.assertEqual(paid["amount"], 76.1)
+		self.assertEqual(
+			(paid["reference_doctype"], paid["reference_docname"]), ("Quotation", "QTN-TEST-0001")
+		)
+		self.assertEqual(str(paid["modified"]), "2025-07-01 10:00:40")
+		self.assertEqual(str(paid["created_at"]), "2025-07-01 10:00:00")
+		self.assertEqual(paid["rebuilt_from"], ["v1", "v2"])
+		self.assertEqual(rows["uuid-2"]["status"], "FAILURE")
+
+	def test_a_rebuilt_row_carries_no_token_of_the_provider(self):
+		(row,) = legacy.rows_from_versions(
+			[_version("v1", "uuid-1", "2025-07-01 10:00:05", "PENDING", "SUCCESS")]
+		)
+		self.assertNotIn("secret", json.dumps(row, default=str))
+		values = legacy.twint_web_intent(row, customer="CUST-1")
+		self.assertEqual(values["status"], "succeeded")
+		self.assertEqual(values["amount"], 7610)
+		self.assertEqual(values["metadata"]["legacy"]["rebuilt_from"], "Version")
+		self.assertEqual(values["metadata"]["legacy"]["versions"], ["v1"])
+		self.assertNotIn("secret", json.dumps(values["metadata"], default=str))
+
+
+class TestTheOrderOfAShopCart(FrappeTestCase):
+	def test_a_cart_leads_to_the_orders_made_from_it(self):
+		from unittest import mock
+
+		with (
+			mock.patch.object(legacy, "table_exists", return_value=True),
+			mock.patch.object(frappe.db, "sql", return_value=[("SO-TEST-0001",)]) as sql,
+		):
+			self.assertEqual(legacy._orders_of("Quotation", "QTN-TEST-0001"), ["SO-TEST-0001"])
+		self.assertIn("prevdoc_docname", sql.call_args.args[0])
+
+	def test_only_a_cart_has_orders_to_follow(self):
+		self.assertEqual(legacy._orders_of("Sales Order", "SO-TEST-0001"), [])
+		self.assertEqual(legacy._orders_of("Quotation", None), [])
+
+
 class TestACopyIsMadeOnce(FrappeTestCase):
 	def test_a_row_already_copied_or_known_by_its_provider_id_is_left_alone(self):
 		first = legacy.stripe_intent(CAPTURED, TICKET, None)
