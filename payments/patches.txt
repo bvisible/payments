@@ -42,3 +42,7 @@ payments.patches.v15_12.repair_migrated_webhook_endpoints
 # //// Neoffice — v15_13 (2026-11-03): the Payment Gateway "Twint" of the image names the legacy `Twint Settings` DocType, gone from
 # //// `payments`; v15_04 repoints it only where `twint_integration` is installed, so a new client could not load its TWINT settings.
 payments.patches.v15_13.repoint_the_twint_gateway_to_the_bridge_settings
+# //// Neoffice — v15_14 (2026-11-09, neoffice-maintenance#2390): the payment records of the retired apps
+# //// (Stripe terminal of neopay_integration, the first till TWINT) are copied into Payment Intent, so a
+# //// refund, the reconciliation and a customer's history read them; the old tables stay.
+payments.patches.v15_14.copy_legacy_payment_records_into_intents

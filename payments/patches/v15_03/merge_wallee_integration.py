@@ -2,10 +2,11 @@
 # //// `patches.txt` and has never had a patch; every entry in ours is one of these.
 # //// This one absorbs the retired `wallee_integration` app (ADR-005): it promotes the
 # //// legacy `Wallee Settings` single into a per-provider row, turns each `Wallee Payment
-# //// Terminal` into a `Payment Device`, then drops the legacy state tables (Wallee
-# //// Transaction / Transaction Item / Webhook Log) and the legacy POS Profile and
-# //// Payment Gateway Account custom fields — after which `bench uninstall-app
-# //// wallee_integration` is safe. Idempotent.
+# //// Terminal` into a `Payment Device`, and removes the legacy POS Profile and
+# //// Payment Gateway Account custom fields (their columns stay). Idempotent.
+# //// It dropped the legacy state tables (Wallee Transaction / Transaction Item /
+# //// Webhook Log) until neoffice-maintenance#2390 (09.11.2026): the data of a retired
+# //// app stays in the database, payment records first; the tables are kept now.
 # //// Commits: 99e929c 2026-05-19 "feat(payments): merge wallee_integration into payments — ADR-005"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
@@ -22,18 +23,16 @@ Idempotent. Safe to run multiple times. Steps (in order):
    (provider_device_id=terminal_id, device_type=wallee_terminal, etc.).
    Skipped if a Payment Device already exists with the same
    provider_device_id (idempotency).
-4. Drop the legacy state tables:
-   - tabWallee Transaction
-   - tabWallee Transaction Item
-   - tabWallee Webhook Log
-   (the audit lives in api.wallee.com + Webhook Event Log unified).
-5. Drop legacy Custom Fields:
+4. KEEP the legacy state tables (tabWallee Transaction, tabWallee Transaction
+   Item, tabWallee Webhook Log): they were dropped here until #2390, and the
+   data of a retired app stays in the database.
+5. Drop legacy Custom Fields (Frappe keeps their columns, and their values):
    - POS Profile: wallee_terminal_payment_mode, enable_wallee_terminal,
                   wallee_payment_terminal
    - Payment Gateway Account: wallee_payment_method_id
 
-After this patch, ``bench uninstall-app wallee_integration`` is safe — all
-data the operator cares about has been promoted into ``payments``.
+After this patch the app leaves a site by ``bench remove-from-installed-apps``,
+never ``bench uninstall-app``, which drops every table of the app.
 """
 
 from __future__ import annotations
@@ -49,7 +48,9 @@ LEGACY_CUSTOM_FIELDS = [
 	("Payment Gateway Account", "wallee_payment_method_id"),
 ]
 
-LEGACY_TABLES_TO_DROP = [
+# //// Neoffice — #2390: these tables were dropped by this patch; they are kept now. The name stays for
+# //// whoever reads the history of this patch.
+LEGACY_TABLES_KEPT = [
 	"tabWallee Transaction",
 	"tabWallee Transaction Item",
 	"tabWallee Webhook Log",
@@ -71,7 +72,9 @@ def execute() -> None:
 	_drop_legacy_custom_fields()
 
 	frappe.db.commit()
-	print("[v15_03] merger complete. You can now `bench uninstall-app wallee_integration`.")
+	print(
+		"[v15_03] merger complete; wallee_integration leaves the site by remove-from-installed-apps."
+	)
 
 
 # ---------------------------------------------------------------------------
@@ -177,9 +180,7 @@ def _migrate_settings(provider_name: str) -> None:
 			"enable_pos_terminal": getattr(legacy, "enable_pos_terminal", 0) or 0,
 			"pos_mode_of_payment": getattr(legacy, "pos_mode_of_payment", None),
 			"pos_user_id": getattr(legacy, "pos_user_id", None),
-			"pos_authentication_key": legacy.get_password(
-				"pos_authentication_key", raise_exception=False
-			)
+			"pos_authentication_key": legacy.get_password("pos_authentication_key", raise_exception=False)
 			if getattr(legacy, "pos_authentication_key", None)
 			else None,
 			"auto_capture": getattr(legacy, "auto_capture", 1),
@@ -219,9 +220,7 @@ def _migrate_terminals(provider_name: str) -> None:
 		if not row.terminal_id:
 			continue
 		# Skip if a Payment Device already exists for this terminal_id.
-		if frappe.db.exists(
-			"Payment Device", {"provider_device_id": str(row.terminal_id)}
-		):
+		if frappe.db.exists("Payment Device", {"provider_device_id": str(row.terminal_id)}):
 			continue
 		try:
 			frappe.get_doc(
@@ -243,14 +242,13 @@ def _migrate_terminals(provider_name: str) -> None:
 	print(f"[v15_03] migrated {migrated} Wallee Payment Terminal(s) → Payment Device")
 
 
+# //// Neoffice — #2390 (09.11.2026): this dropped the legacy tables; a site where wallee_integration was still
+# //// installed when payments migrated lost its Wallee transactions with no backup left. The data of a
+# //// retired app stays in the database; the name of the function is kept so the step order reads the same.
 def _drop_legacy_tables() -> None:
-	"""Drop transient state tables. Audit lives elsewhere now."""
-	for table in LEGACY_TABLES_TO_DROP:
-		try:
-			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{table}`")
-			print(f"[v15_03] dropped {table}")
-		except Exception as exc:  # noqa: BLE001
-			print(f"[v15_03] could not drop {table}: {exc!r}")
+	"""Say that the legacy state tables stay."""
+	for table in LEGACY_TABLES_KEPT:
+		print(f"[v15_03] kept {table} (the data of a retired app stays, #2390)")
 
 
 def _drop_legacy_custom_fields() -> None:

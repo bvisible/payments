@@ -3,9 +3,11 @@
 # //// it creates the `twint_web` Payment Channel, a Payment Provider and the
 # //// (provider, twint_web) binding on the TWINT web driver, re-points the existing
 # //// "Twint" Payment Gateway at `Twint Bridge Settings` instead of the legacy `Twint
-# //// Settings` single so the webshop payment handler can find it, and drops
-# //// `tabTwint Transaction`. The webshop QR now runs on the same neoservice bridge as
-# //// the POS (ADR-002), not on a local PHP service. Idempotent.
+# //// Settings` single so the webshop payment handler can find it. The webshop QR now
+# //// runs on the same neoservice bridge as the POS (ADR-002), not on a local PHP
+# //// service. Idempotent. It dropped `tabTwint Transaction` until
+# //// neoffice-maintenance#2390 (09.11.2026): the table is kept now, the data of a
+# //// retired app stays in the database.
 # //// Commits: ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
 # ////          bab9fec 2026-07-06 "fix(twint-merge): Payment Provider needs provider_name + display_label + valid mode"
 # Copyright (c) 2026, Neoffice and contributors
@@ -33,13 +35,12 @@ Idempotent. Safe to run multiple times. Steps (in order):
    ``Twint Bridge Settings`` (not the legacy ``Twint Settings`` singleton)
    so the generic ``webshop.controllers.payment_handler.create_payment_request``
    can find it. Create a ``Payment Gateway Account`` if missing.
-6. Drop legacy tables: ``tabTwint Transaction`` (the audit lives in TWINT API
-   + Webhook Event Log unified).
-7. (Optional) Drop the legacy ``Twint Settings`` singleton record IF empty —
-   we keep its DocType for now to avoid bricking the uninstall sequence,
-   ``bench uninstall-app twint_integration`` will remove it cleanly.
+6. KEEP ``tabTwint Transaction``: it was dropped here until #2390, and a shop
+   whose twint_integration was still installed lost a year of TWINT web
+   transactions with no backup left. The data of a retired app stays.
 
-After this patch, ``bench uninstall-app twint_integration`` is safe.
+After this patch the app leaves a site by ``bench remove-from-installed-apps``,
+never ``bench uninstall-app``, which drops every table of the app.
 """
 
 from __future__ import annotations
@@ -50,7 +51,8 @@ import frappe
 from frappe.utils import now_datetime
 
 
-LEGACY_TABLES_TO_DROP = [
+# //// Neoffice — #2390: dropped by this patch until 09.11.2026, kept now.
+LEGACY_TABLES_KEPT = [
 	"tabTwint Transaction",
 ]
 
@@ -69,7 +71,9 @@ def execute() -> None:
 	_drop_legacy_tables()
 
 	frappe.db.commit()
-	print("[v15_04] merger complete. You can now `bench uninstall-app twint_integration`.")
+	print(
+		"[v15_04] merger complete; twint_integration leaves the site by remove-from-installed-apps."
+	)
 
 
 # ---------------------------------------------------------------------------
@@ -226,19 +230,10 @@ def _ensure_payment_gateway() -> None:
 		print("[v15_04] created Payment Gateway Account for Twint")
 
 
+# //// Neoffice — #2390 (09.11.2026): this dropped the legacy tables; the data of a retired app stays in the database;
+# //// its rows are copied into Payment Intent by v15_14. The name of the function is kept so the step
+# //// order reads the same.
 def _drop_legacy_tables() -> None:
-	"""Drop the per-payment Twint Transaction history table.
-
-	The Payment Intent FSM is the new source of truth for state. Audit data
-	is in the TWINT merchant dashboard via api.twint.com.
-	"""
-	for table in LEGACY_TABLES_TO_DROP:
-		exists = frappe.db.sql(
-			"""SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = %s""",
-			(table,),
-		)
-		if exists:
-			frappe.db.sql(f"DROP TABLE `{table}`")
-			print(f"[v15_04] dropped {table}")
-		else:
-			print(f"[v15_04] {table} already absent")
+	"""Say that the Twint Transaction history table stays."""
+	for table in LEGACY_TABLES_KEPT:
+		print(f"[v15_04] kept {table} (the data of a retired app stays, #2390)")
