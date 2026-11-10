@@ -4224,3 +4224,11 @@ msgstr "{0} n'est pas un mode de prestataire de paiement : modifiez-le directeme
 #, python-brace-format
 msgid "{0} — nothing was changed."
 msgstr "{0} — rien n'a été modifié."
+
+#: payments/payments/page/payment_settings/payment_settings.js:181
+msgid "+ Add to a till"
+msgstr "+ Ajouter à une caisse"
+
+#: payments/payments/page/payment_settings/payment_settings.js:174
+msgid "Take it off this till"
+msgstr "Retirer de cette caisse"

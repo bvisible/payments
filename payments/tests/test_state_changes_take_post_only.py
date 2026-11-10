@@ -86,7 +86,12 @@ POST_ONLY = {
 		"send_receipt",
 	},
 	"payments.api.payment_settings": {"set_shop_method", "set_till_mode"},
-	"payments.api.terminals": {"move_terminal", "remove_terminal", "add_wallee_terminal"},
+	"payments.api.terminals": {
+		"attach_terminal",
+		"detach_terminal",
+		"remove_terminal",
+		"add_wallee_terminal",
+	},
 	"payments.api.payrexx_setup": {
 		"save_credentials",
 		"setup_channels",

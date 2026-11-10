@@ -42,20 +42,30 @@ class TestTerminalsOneList(FrappeTestCase):
 			self.prepared = payrexx_setup._prepare_erp()
 		self.device = payrexx_setup._ensure_device("_T-N860")
 
-	def test_a_moved_terminal_leaves_the_first_till(self):
+	def test_a_terminal_can_be_shared_by_two_tills_and_taken_off_one(self):
 		first, second = self.tills
 		with as_role("head_accountant"):
-			terminals.move_terminal(device=self.device, pos_profile=first)
-			self.assertEqual(provider_setup.terminal_tills(self.device), [first])
-			page = terminals.move_terminal(device=self.device, pos_profile=second)
-		self.assertEqual(provider_setup.terminal_tills(self.device), [second])
+			terminals.attach_terminal(device=self.device, pos_profile=first)
+			page = terminals.attach_terminal(device=self.device, pos_profile=second)
+		self.assertEqual(provider_setup.terminal_tills(self.device), sorted([first, second]))
 		row = next(d for d in page["terminals"]["devices"] if d["name"] == self.device)
-		self.assertEqual(row["tills"], [second])
 		self.assertEqual(row["provider"], payrexx_setup.PROVIDER)
+		with as_role("head_accountant"):
+			terminals.detach_terminal(device=self.device, pos_profile=first)
+		self.assertEqual(provider_setup.terminal_tills(self.device), [second])
+
+	def test_a_terminal_keeps_the_mode_it_was_set_up_with(self):
+		with as_role("head_accountant"):
+			terminals.attach_terminal(device=self.device, pos_profile=self.tills[0])
+		self.assertEqual(provider_setup.terminal_mode(self.device), self.prepared["till_mode"])
+		with patch.object(payrexx_setup, "_status", return_value={"till_mode": "_T Another mode"}):
+			self.assertEqual(
+				terminals._till_mode_of(payrexx_setup.PROVIDER, self.device), self.prepared["till_mode"]
+			)
 
 	def test_a_removed_terminal_leaves_every_till_and_the_list(self):
 		with as_role("head_accountant"):
-			terminals.move_terminal(device=self.device, pos_profile=self.tills[0])
+			terminals.attach_terminal(device=self.device, pos_profile=self.tills[0])
 			page = terminals.remove_terminal(device=self.device)
 		self.assertEqual(provider_setup.terminal_tills(self.device), [])
 		self.assertFalse(frappe.db.get_value("Payment Device", self.device, "enabled"))
@@ -65,8 +75,8 @@ class TestTerminalsOneList(FrappeTestCase):
 		till = self.tills[0]
 		other = payrexx_setup._ensure_device("_T-N600")
 		with as_role("head_accountant"):
-			terminals.move_terminal(device=self.device, pos_profile=till)
-			terminals.move_terminal(device=other, pos_profile=till)
+			terminals.attach_terminal(device=self.device, pos_profile=till)
+			terminals.attach_terminal(device=other, pos_profile=till)
 		profile = frappe.get_doc("POS Profile", till)
 		if not profile.meta.get_field("custom_active_payment_devices"):
 			self.skipTest("no active devices on tills here")

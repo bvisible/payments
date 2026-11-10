@@ -331,8 +331,8 @@ def wire_terminal(pos_profile: str, mode: str, device: str, provider: str) -> No
 	profile.save()
 
 
-def unwire_terminal(device: str, keep: str | None = None) -> list[str]:
-	"""Take ``device`` off every till but ``keep``; returns the tills it left.
+def unwire_terminal(device: str, only: str | None = None) -> list[str]:
+	"""Take ``device`` off the till ``only``, or off every till; returns the tills it left.
 
 	A mapping whose default device it was keeps its mode but no device: the till then
 	asks which terminal, or takes the mode as a terminal used on its own.
@@ -345,16 +345,16 @@ def unwire_terminal(device: str, keep: str | None = None) -> list[str]:
 			fields=["name", "pos_profile"],
 			as_list=True,
 		):
-			if till == keep:
+			if only and till != only:
 				continue
 			frappe.db.set_value("POS Payment Driver Mapping", name, "default_device", None)
 			left.append(till)
-	if frappe.get_meta("POS Profile").get_field("custom_active_payment_devices"):
-		child = frappe.get_meta("POS Profile").get_field("custom_active_payment_devices").options
+	field = frappe.get_meta("POS Profile").get_field("custom_active_payment_devices")
+	if field:
 		for till in frappe.get_all(
-			child, filters={"payment_device": device}, pluck="parent", distinct=True
+			field.options, filters={"payment_device": device}, pluck="parent", distinct=True
 		):
-			if till == keep:
+			if only and till != only:
 				continue
 			profile = frappe.get_doc("POS Profile", till)
 			profile.set(
@@ -365,6 +365,20 @@ def unwire_terminal(device: str, keep: str | None = None) -> list[str]:
 			profile.save()
 			left.append(till)
 	return sorted(set(left))
+
+
+def terminal_mode(device: str) -> str | None:
+	"""The till mode a terminal is already driven by, at any till."""
+	if frappe.db.exists("DocType", "POS Payment Driver Mapping"):
+		mode = frappe.db.get_value(
+			"POS Payment Driver Mapping", {"default_device": device}, "mode_of_payment"
+		)
+		if mode:
+			return mode
+	field = frappe.get_meta("POS Profile").get_field("custom_active_payment_devices")
+	if field:
+		return frappe.db.get_value(field.options, {"payment_device": device}, "mode_of_payment")
+	return None
 
 
 def terminal_tills(device: str) -> list[str]:

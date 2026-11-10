@@ -16,6 +16,7 @@ from frappe import _
 
 from payments.setup.provider_setup import (
 	offer_mode_on,
+	terminal_mode,
 	terminal_tills,
 	unwire_terminal,
 	wire_terminal,
@@ -87,13 +88,20 @@ def _device_doc(device: str):  # noqa: ANN202
 	return frappe.get_doc("Payment Device", device)
 
 
-def _till_mode_of(provider: str) -> str:
-	"""The till mode a provider's setup page made for its terminals."""
+def _till_mode_of(provider: str, device: str | None = None) -> str:
+	"""The till mode that drives a terminal: the one it already has, else its provider's.
+
+	The provider's is the mode its setup page made (Payrexx, Wallee); a terminal of
+	another provider (Stripe) keeps the mode it was set up with in the terminal wizard.
+	"""
 	from payments.api import payrexx_setup, wallee_setup
 
-	if provider == payrexx_setup.PROVIDER:
+	mode = terminal_mode(device) if device else None
+	if not mode and provider == payrexx_setup.PROVIDER:
 		mode = payrexx_setup._status().get("till_mode")
-	else:
+	elif not mode and (
+		frappe.db.get_value("Payment Provider", provider, "driver_class") or ""
+	).startswith("payments.drivers.wallee."):
 		mode = wallee_setup._status().get("till_mode")
 	if not mode:
 		frappe.throw(
@@ -105,25 +113,35 @@ def _till_mode_of(provider: str) -> str:
 def _wire(device: str, provider: str, pos_profile: str) -> None:
 	if not frappe.db.exists("POS Profile", pos_profile):
 		frappe.throw(_("Till {0} does not exist").format(pos_profile))
-	mode = _till_mode_of(provider)
+	mode = _till_mode_of(provider, device)
 	if not offer_mode_on(pos_profile, mode):
 		frappe.throw(
 			_("Till {0} cannot offer {1}: no account for its company.").format(pos_profile, mode)
 		)
-	unwire_terminal(device, keep=pos_profile)
 	wire_terminal(pos_profile, mode, device, provider)
 
 
 # //// Neoffice — POST only (maintenance#1721): it changes which terminal a till drives.
 @frappe.whitelist(methods=["POST"])
-def move_terminal(device: str, pos_profile: str) -> dict[str, Any]:
-	"""Wire the terminal to ``pos_profile`` and take it off every other till."""
+def attach_terminal(device: str, pos_profile: str) -> dict[str, Any]:
+	"""The terminal at one more till; the tills it is at already keep it (a counter may share one)."""
 	frappe.only_for(ROLES)
 	doc = _device_doc(device)
 	provider = _provider_of(doc.as_dict())
 	if not provider:
 		frappe.throw(_("Terminal {0} has no provider").format(device))
 	_wire(device, provider, pos_profile)
+	frappe.db.commit()
+	return _page()
+
+
+# //// Neoffice — POST only (maintenance#1721): it changes which terminal a till drives.
+@frappe.whitelist(methods=["POST"])
+def detach_terminal(device: str, pos_profile: str) -> dict[str, Any]:
+	"""The terminal off one till; the others keep it."""
+	frappe.only_for(ROLES)
+	_device_doc(device)
+	unwire_terminal(device, only=pos_profile)
 	frappe.db.commit()
 	return _page()
 

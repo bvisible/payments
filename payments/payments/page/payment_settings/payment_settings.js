@@ -14,7 +14,11 @@ class PaymentSettings {
 		this.$body = $(`<div class="ps-setup"></div>`).appendTo(this.page.main);
 		this.$body.on("change", "select[data-method]", (e) => this.set_shop($(e.currentTarget)));
 		this.$body.on("click", "[data-till-mode]", (e) => this.toggle_till($(e.currentTarget)));
-		this.$body.on("change", "select[data-move]", (e) => this.move_terminal($(e.currentTarget)));
+		this.$body.on("change", "select[data-attach]", (e) => this.attach_terminal($(e.currentTarget)));
+		this.$body.on("click", "[data-detach]", (e) => {
+			e.preventDefault();
+			this.detach_terminal($(e.currentTarget));
+		});
 		this.$body.on("click", "[data-remove]", (e) => this.remove_terminal($(e.currentTarget).data("remove")));
 		this.$body.on("click", "[data-add]", (e) => this.add_terminal($(e.currentTarget).data("add")));
 		this.load();
@@ -58,13 +62,19 @@ class PaymentSettings {
 		else frappe.show_alert({ message: __("Saved: the tills take it at their next load"), indicator: "green" });
 	}
 
-	async move_terminal($select) {
-		const device = $select.data("move");
+	async attach_terminal($select) {
+		const device = $select.data("attach");
 		const till = $select.val();
-		const done = till
-			? await this.call("payments.api.terminals.move_terminal", { device, pos_profile: till })
-			: await this.call("payments.api.terminals.remove_terminal", { device });
-		if (done) frappe.show_alert({ message: __("Saved: the till takes it at its next load"), indicator: "green" });
+		if (!till) return;
+		if (await this.call("payments.api.terminals.attach_terminal", { device, pos_profile: till }))
+			frappe.show_alert({ message: __("Saved: the till takes it at its next load"), indicator: "green" });
+	}
+
+	async detach_terminal($chip) {
+		const device = $chip.data("detach");
+		const till = $chip.data("till");
+		if (await this.call("payments.api.terminals.detach_terminal", { device, pos_profile: till }))
+			frappe.show_alert({ message: __("Saved: the till takes it at its next load"), indicator: "green" });
 	}
 
 	remove_terminal(device) {
@@ -158,15 +168,24 @@ class PaymentSettings {
 		const rows = (t.devices || [])
 			.map((d) => {
 				const [state, text] = status[d.status] || status.unknown;
-				const select = `<select class="form-control" data-move="${esc(d.name)}">
-					<option value="">${esc(__("No till"))}</option>
-					${tills.map((x) => `<option value="${esc(x)}" ${d.tills[0] === x ? "selected" : ""}>${esc(x)}</option>`).join("")}
-				</select>${d.tills.length > 1 ? `<div class="ps-detail" style="font-size:12.5px">${esc(__("also at {0}", [d.tills.slice(1).join(", ")]))}</div>` : ""}`;
-				return `<div class="ps-row" style="grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto auto">
+				const chips = d.tills
+					.map(
+						(x) => `<span class="ps-pill muted" style="margin:0 6px 6px 0">${esc(x)}
+							<a href="#" data-detach="${esc(d.name)}" data-till="${esc(x)}" title="${esc(__("Take it off this till"))}"
+								style="margin-left:4px;color:inherit;text-decoration:none">×</a></span>`
+					)
+					.join("");
+				const free = tills.filter((x) => !d.tills.includes(x));
+				const add = free.length
+					? `<select class="form-control input-xs" data-attach="${esc(d.name)}" style="max-width:220px">
+						<option value="">${esc(__("+ Add to a till"))}</option>
+						${free.map((x) => `<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select>`
+					: "";
+				return `<div class="ps-row" style="grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr) 150px 100px">
 					<div><b>${esc(d.label)}</b><div class="ps-detail">${esc([d.provider_label || d.provider, d.serial].filter(Boolean).join(" · "))}</div></div>
-					<div>${select}</div>
-					${payments.setup.pill(state, text)}
-					<button class="btn btn-xs btn-default" data-remove="${esc(d.name)}">${esc(__("Remove"))}</button></div>`;
+					<div>${chips || `<span class="text-muted">${esc(__("No till"))}</span>`}${add}</div>
+					<div>${payments.setup.pill(state, text)}</div>
+					<div style="text-align:right"><button class="btn btn-xs btn-default" data-remove="${esc(d.name)}">${esc(__("Remove"))}</button></div></div>`;
 			})
 			.join("");
 		const labels = { payrexx: __("Add a Payrexx terminal"), wallee: __("Add a Wallee terminal") };
