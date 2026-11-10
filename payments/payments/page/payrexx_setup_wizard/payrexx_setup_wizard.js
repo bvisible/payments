@@ -68,7 +68,7 @@ function payrexx_setup_config() {
 			till: {
 				label: __("Till"),
 				text: (row) => {
-					const linked = (row.linked || []).map((l) => `${l.pos_profile} (${l.default_device})`);
+					const linked = [...new Set((row.linked || []).map((l) => `${l.pos_profile} (${l.default_device})`))];
 					let detail = row.detail
 						? __("« {0} » on {1}: the cashier types the amount on the terminal.", [row.till_mode, row.detail])
 						: "";
@@ -95,7 +95,7 @@ function payrexx_setup_config() {
 			webhook: {
 				label: __("Instant confirmations"),
 				text: (row) => ({
-					pill: row.state === "ok" ? __("Set up") : __("Optional"),
+					pill: row.state === "ok" ? __("In place") : __("Optional"),
 					detail:
 						row.state === "ok"
 							? __("Payrexx tells Neoffice the moment a payment ends.")
@@ -160,7 +160,7 @@ function payrexx_setup_config() {
 				out.push(`
 					<div class="ps-card">
 						<div class="ps-head"><span class="ps-num">↯</span><h3>${esc(__("Instant confirmations (optional)"))}</h3>
-							<span class="ps-aside">${payments.setup.pill(ok ? "ok" : "optional", ok ? __("Set up") : __("Optional"))}</span></div>
+							<span class="ps-aside">${payments.setup.pill(ok ? "ok" : "optional", ok ? __("In place") : __("Optional"))}</span></div>
 						<p class="ps-detail" style="margin:0">${esc(__("Payrexx does not let the webhook be created from outside: two gestures in its back office, under Webhooks. 1. Add this address, content type JSON, event Transaction, retries on. 2. « Generate Signing-Key », then paste the key here."))}</p>
 						<code class="ps-url">${esc(status.webhook_url)}</code>
 						<div class="ps-actions">

@@ -62,7 +62,7 @@ class PaymentSettings {
 					<b style="font-size:18px">${esc(p.label)}</b>
 					<span>${payments.setup.pill(p.mode || "unknown", mode_text[p.mode] || mode_text.unknown)}</span>
 					<span class="ps-detail" style="color:var(--text-muted);font-size:13.5px">${esc(p.note)}</span>
-					<a href="${esc(p.route)}" style="font-weight:700;margin-top:auto">${esc(__("Open"))}</a>
+					<a href="${esc(p.route)}" style="font-weight:700;margin-top:auto">${esc(__("Open its page"))}</a>
 				</div>`
 			)
 			.join("");

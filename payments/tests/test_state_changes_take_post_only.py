@@ -22,6 +22,7 @@ MODULES = (
 	"payments.api.terminal",
 	"payments.api.terminal_receipt",
 	"payments.api.twint",
+	"payments.api.wallee_setup",
 	"payments.integrations.payrexx.api",
 	"payments.integrations.twint.api",
 	"payments.integrations.wallee.api",
@@ -47,6 +48,7 @@ OPEN_TO_GET = {
 	"payments.api.terminal": {"list_stripe_locations", "list_stripe_readers"},
 	"payments.api.terminal_receipt": {"preview_text", "preview_receipt"},
 	"payments.api.twint": set(),
+	"payments.api.wallee_setup": {"get_status"},
 	"payments.integrations.payrexx.api": {"get_intent_state", "is_payrexx_enabled"},
 	"payments.integrations.twint.api": {"get_intent_state", "get_ios_schemes"},
 	"payments.integrations.wallee.api": {
@@ -100,6 +102,7 @@ POST_ONLY = {
 	},
 	"payments.api.terminal_receipt": {"print_receipt"},
 	"payments.api.twint": {"simulate_consumer_success"},
+	"payments.api.wallee_setup": {"connect", "set_mode", "setup_webhook"},
 	"payments.integrations.payrexx.api": {"create_web_transaction"},
 	"payments.integrations.twint.api": {"create_web_transaction", "cancel_web_transaction"},
 	"payments.integrations.wallee.api": {

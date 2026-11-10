@@ -151,8 +151,7 @@ class WalleeTerminalDriver(PaymentDriverBase):
 		amount_major = round(request.amount / 100, 2)
 		line_items = [
 			LineItemCreate(
-				name=(request.metadata or {}).get("description")
-					or f"POS sale {request.intent_name}",
+				name=(request.metadata or {}).get("description") or f"POS sale {request.intent_name}",
 				unique_id=request.intent_name,
 				quantity=1,
 				amount_including_tax=amount_major,
@@ -174,9 +173,7 @@ class WalleeTerminalDriver(PaymentDriverBase):
 
 		try:
 			tx_service, _terminals, _refunds = self._services()
-			response = tx_service.post_payment_transactions(
-				self._wallee_provider.space_id, tx_create
-			)
+			response = tx_service.post_payment_transactions(self._wallee_provider.space_id, tx_create)
 		except Exception as exc:  # noqa: BLE001 — Wallee SDK raises generic Exception subclasses
 			friendly_msg, error_code = _extract_wallee_error(exc)
 			return DriverResponse(
@@ -356,8 +353,8 @@ class WalleeTerminalDriver(PaymentDriverBase):
 
 		Wallee webhook payload shape (JSON):
 
-			{"entityId": 123, "listenerEntityTechnicalName": "Transaction",
-			 "state": "COMPLETED", "spaceId": 4242, ...}
+		        {"entityId": 123, "listenerEntityTechnicalName": "Transaction",
+		         "state": "COMPLETED", "spaceId": 4242, ...}
 
 		The signature is HMAC-SHA256 of the raw body, hex-encoded, in the
 		``X-Signature`` header. Secret comes from ``Wallee Settings.webhook_secret``.
@@ -367,10 +364,14 @@ class WalleeTerminalDriver(PaymentDriverBase):
 		(no need to re-read merchant_reference).
 		"""
 		signature = (
-			headers.get("X-Signature")
-			or headers.get("x-signature")
-			or headers.get("HTTP_X_SIGNATURE")
+			headers.get("X-Signature") or headers.get("x-signature") or headers.get("HTTP_X_SIGNATURE")
 		)
+		# //// Neoffice — Wallee signs a listener's deliveries with its own key pair:
+		# //// `algorithm=SHA256withECDSA, keyId=…, signature=…`, verified against the public key Wallee
+		# //// serves for that keyId. The setup page creates the listener at Wallee since 2026-11-10, so
+		# //// those deliveries are proven here; the HMAC path below stays for a secret set by hand.
+		if signature and signature.startswith("algorithm="):
+			return self._handle_wallee_signed(payload, signature)
 		# //// Neoffice — a provider in test mode with no secret skipped this check, so a forged body moved
 		# //// any Payment Intent, and `mode` does not even say the provider is a sandbox. No secret, no
 		# //// proof: the delivery is refused, and the poller of this file, which asks Wallee every minute,
@@ -405,6 +406,34 @@ class WalleeTerminalDriver(PaymentDriverBase):
 			)
 		return self.parse_verified_event(payload)
 
+	# //// Neoffice — see handle_webhook: a delivery signed by Wallee's key pair (ECDSA), checked by the
+	# //// SDK against the public key Wallee publishes for its keyId. Any failure is a refusal.
+	def _handle_wallee_signed(self, payload: bytes, signature: str) -> WebhookResult:
+		try:
+			from wallee.service.webhook_encryption_keys_service import WebhookEncryptionKeysService
+
+			config = self._wallee_provider.build_configuration()
+			valid = WebhookEncryptionKeysService(config).is_content_valid(
+				signature, payload.decode("utf-8")
+			)
+		except Exception as exc:  # noqa: BLE001 - an unprovable delivery is refused, never processed
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="invalid_signature",
+				error_message=f"Wallee signature not verifiable: {str(exc)[:200]}",
+			)
+		if not valid:
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="invalid_signature",
+				error_message="Wallee signature mismatch",
+			)
+		return self.parse_verified_event(payload)
+
 	# //// Neoffice — split from handle_webhook. The worker called handle_webhook with no headers, so on a
 	# //// provider with a secret every genuine delivery came back unproven, was marked Processed and moved
 	# //// nothing: only the poller ever settled a Wallee payment. The worker reads its row here, and no
@@ -413,7 +442,7 @@ class WalleeTerminalDriver(PaymentDriverBase):
 		"""Map a delivery whose signature is proven to an FSM transition."""
 		try:
 			body = json.loads(payload.decode("utf-8") or "{}")
-		except (ValueError, UnicodeDecodeError) as exc:
+		except ValueError as exc:  # UnicodeDecodeError is a ValueError (flake8 B014)
 			return WebhookResult(
 				event_id="unknown",
 				event_type="unknown",
@@ -505,6 +534,7 @@ def _extract_wallee_error(exc: Exception) -> tuple[str, str | None]:
 	code = code_match.group(1) if (code_match and code_match.group(1) not in ("None", "")) else None
 	# Tag the HTTP status if present in the prefix "(NNN)\nReason:"
 	import re as _re
+
 	status_match = _re.match(r"\((\d{3})\)", raw)
 	if status_match:
 		message = f"[HTTP {status_match.group(1)}] {message}"
@@ -589,7 +619,8 @@ def poll_pending_transactions() -> dict[str, Any]:
 	stats = {"checked": 0, "transitioned": 0, "errors": 0}
 	# Find all wallee providers (typically `wallee_test` and `wallee_live`).
 	wallee_providers = [
-		r.name for r in frappe.get_all(
+		r.name
+		for r in frappe.get_all(
 			"Payment Provider",
 			filters={"driver_class": ["like", "payments.drivers.wallee.%"], "enabled": 1},
 			fields=["name"],
@@ -610,7 +641,14 @@ def poll_pending_transactions() -> dict[str, Any]:
 		},
 		# //// Neoffice — an intent whose request was deleted can never be saved again: it asked the PSP and
 		# //// wrote one Error Log row at every pass, for as long as it stayed open. It is left alone now.
-		fields=["name", "provider", "channel", "provider_intent_id", "reference_doctype", "reference_name"],
+		fields=[
+			"name",
+			"provider",
+			"channel",
+			"provider_intent_id",
+			"reference_doctype",
+			"reference_name",
+		],
 		limit=200,
 	)
 	for row in intents:

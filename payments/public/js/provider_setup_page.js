@@ -196,13 +196,17 @@ payments.setup.Page = class {
 	}
 
 	show_mode() {
+		const action = (this.config.mode_action && this.config.mode_action(this.status || {}, this)) || {
+			label: __("Check now"),
+			run: () => this.run("check_online"),
+		};
 		const d = new frappe.ui.Dialog({
 			title: __("Test or production"),
 			fields: [{ fieldtype: "HTML", fieldname: "body" }],
-			primary_action_label: __("Check now"),
+			primary_action_label: action.label,
 			primary_action: async () => {
 				d.hide();
-				await this.run("check_online");
+				await action.run();
 			},
 		});
 		d.fields_dict.body.$wrapper.html(this.config.mode_help(this.status || {}));
