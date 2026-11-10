@@ -25,6 +25,7 @@ payments.setup.style_once = function () {
 	.ps-setup .ps-hero { border: 1px solid var(--border-color); border-radius: 18px; padding: 24px 28px;
 		background: linear-gradient(115deg, rgba(245,93,26,.10), rgba(251,246,238,.5) 55%, transparent);
 		display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+	[data-theme="dark"] .ps-setup .ps-hero { background: linear-gradient(115deg, rgba(245,93,26,.18), transparent 65%); }
 	.ps-setup .ps-hero h2 { margin: 0; font-family: var(--font-display, Forum, serif); font-weight: 400; font-size: 40px; }
 	.ps-setup .ps-hero p { margin: 6px 0 0; color: var(--text-muted); font-size: 15px; }
 	.ps-setup .ps-card { border: 1px solid var(--border-color); border-radius: 22px; padding: 22px 26px;
