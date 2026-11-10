@@ -156,7 +156,20 @@ payments.setup.Page = class {
 	}
 
 	async connect() {
-		const { message } = await this.call("connect", this.values());
+		const values = this.values();
+		const stored = this.status && this.status.provider && (this.status.provider.has_api_secret || this.status.provider.has_key);
+		const replaces = (this.config.secret_field && values[this.config.secret_field]) && stored;
+		if (replaces) {
+			const go = await new Promise((resolve) =>
+				frappe.confirm(
+					__("A key is already in place. Replace it with the one you typed? It is tested first: a refused key changes nothing."),
+					() => resolve(true),
+					() => resolve(false)
+				)
+			);
+			if (!go) return;
+		}
+		const { message } = await this.call("connect", values);
 		if (!message) return;
 		this.$body.find('[data-zone="connect-error"]').html(
 			message.ok === false

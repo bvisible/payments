@@ -38,11 +38,11 @@ def _client():
 class TestPayrexxConnect(FrappeTestCase):
 	def setUp(self):
 		self._commit = patch.object(frappe.db, "commit")
-		self._commit.start()
+		self.commit = self._commit.start()
 		self.addCleanup(self._commit.stop)
 		self.addCleanup(frappe.db.rollback)
 		frappe.set_user("Administrator")  # the scene only
-		frappe.db.set_default(payrexx_setup.STATUS_KEY, "{}")
+		frappe.db.set_global(payrexx_setup.STATUS_KEY, "{}")
 
 	def shop_rows(self):
 		if not frappe.db.exists("DocType", "Webshop Settings"):
@@ -64,7 +64,7 @@ class TestPayrexxConnect(FrappeTestCase):
 				},
 			),
 			patch("payments.drivers.payrexx._common.build_client", return_value=client),
-			patch("requests.get", return_value=MagicMock(text=SITE_ONLY_PAGE)),
+			patch("requests.get", return_value=MagicMock(text=SITE_ONLY_PAGE, status_code=200)),
 			as_role("head_accountant"),
 		):
 			result = payrexx_setup.connect(instance="https://_t-shop.payrexx.com/", api_secret="_t-secret")
@@ -89,7 +89,7 @@ class TestPayrexxConnect(FrappeTestCase):
 		client = _client()
 		with (
 			patch("payments.drivers.payrexx._common.build_client", return_value=client),
-			patch("requests.get", return_value=MagicMock(text=ONLINE_PAGE)),
+			patch("requests.get", return_value=MagicMock(text=ONLINE_PAGE, status_code=200)),
 		):
 			online = payrexx_setup._probe_online()
 
@@ -110,6 +110,47 @@ class TestPayrexxConnect(FrappeTestCase):
 		self.assertIn("network down", online["error"])
 		client.gateway.delete.assert_called_once_with(4242)
 
+	def test_a_refused_key_is_rolled_back_not_committed(self):
+		rolled = []
+		with (
+			patch.object(
+				payrexx_setup, "test_connection", return_value={"ok": False, "error": "Unauthorized"}
+			),
+			patch.object(frappe.db, "rollback", side_effect=lambda *a, **k: rolled.append(1)),
+			as_role("head_accountant"),
+		):
+			result = payrexx_setup.connect(instance="_t-shop", api_secret="_t-wrong")
+		self.assertFalse(result["ok"])
+		self.assertIn("nothing was changed", result["error"])
+		self.assertEqual(rolled, [1], "a refused key must roll the transaction back")
+		self.commit.assert_not_called()
+
+	def test_an_unreadable_page_keeps_the_last_good_reading(self):
+		good = {"checked_at": "x", "methods": ["visa"], "card": True, "twint": False}
+		client = _client()
+		with (
+			patch("payments.drivers.payrexx._common.build_client", return_value=client),
+			patch("requests.get", return_value=MagicMock(text="<html></html>", status_code=200)),
+		):
+			failed = payrexx_setup._probe_online()
+		self.assertIn("no payment method", failed["error"])
+		merged = payrexx_setup._merge_probe(good, failed)
+		self.assertTrue(merged["card"])
+		self.assertEqual(merged["checked_at"], "x")
+		self.assertTrue(merged["error"])
+		with (
+			patch("payments.drivers.payrexx._common.build_client", return_value=_client()),
+			patch("requests.get", return_value=MagicMock(text=ONLINE_PAGE, status_code=503)),
+		):
+			self.assertIn("503", payrexx_setup._probe_online()["error"])
+
+	def test_a_test_mode_notice_keeps_the_shop_waiting(self):
+		online = {"checked_at": "x", "card": True, "twint": True, "test_banner": True}
+		self.assertEqual(payrexx_setup._shop_state(online), "waiting")
+		self.assertFalse(payrexx_setup.shop_can_take(online, "card"))
+		online["test_banner"] = False
+		self.assertEqual(payrexx_setup._shop_state(online), "ok")
+
 	def test_the_mode_reads_as_the_merchant_must_read_it(self):
 		mode = payrexx_setup._mode_state
 		pay = {"providers": ["Payrexx Pay"]}
@@ -122,7 +163,7 @@ class TestPayrexxConnect(FrappeTestCase):
 		if not frappe.db.exists("Payment Provider", payrexx_setup.PROVIDER):
 			self.skipTest("no Payrexx provider on this site")
 		frappe.db.set_value("Payment Provider", payrexx_setup.PROVIDER, "enabled", 1)
-		frappe.db.set_default(
+		frappe.db.set_global(
 			payrexx_setup.STATUS_KEY,
 			json.dumps({"connected_by": "Administrator", "online": {"checked_at": "x", "card": False}}),
 		)
@@ -183,10 +224,66 @@ class TestProviderSetup(FrappeTestCase):
 	def test_a_till_mode_reaches_every_till_and_stays_enabled(self):
 		with as_role("head_accountant"):
 			account = provider_setup.ensure_clearing_account(self.company, "_T clearing account")
-			tills = provider_setup.ensure_till_mode("_T Terminal", {self.company: account})
+			tills = provider_setup.ensure_till_mode("_T Terminal", {self.company: account})["tills"]
 
 		self.assertTrue(frappe.db.get_value("Mode of Payment", "_T Terminal", "enabled"))
 		for till in tills:
 			self.assertIn(
 				"_T Terminal", [r.mode_of_payment for r in frappe.get_doc("POS Profile", till).payments]
 			)
+
+	def test_a_mode_the_merchant_took_off_a_till_stays_off(self):
+		till = frappe.db.get_value("POS Profile", {"disabled": 0, "company": self.company}, "name")
+		if not till:
+			self.skipTest("no till for the default company")
+		with as_role("head_accountant"):
+			account = provider_setup.ensure_clearing_account(self.company, "_T clearing account")
+			first = provider_setup.ensure_till_mode("_T Terminal", {self.company: account})
+		self.assertTrue(first["created"])
+		self.assertIn(till, first["tills"])
+		profile = frappe.get_doc("POS Profile", till)
+		profile.set("payments", [r for r in profile.payments if r.mode_of_payment != "_T Terminal"])
+		profile.save()
+		with as_role("head_accountant"):
+			again = provider_setup.ensure_till_mode("_T Terminal", {self.company: account})
+		self.assertFalse(again["created"])
+		self.assertNotIn(till, again["tills"])
+
+	def test_another_companys_gateway_account_is_never_the_shops(self):
+		shop = provider_setup.shop_company()
+		other = frappe.db.get_value("Company", {"name": ["!=", shop]}, "name")
+		if not other:
+			self.skipTest("a single company on this site")
+		with as_role("head_accountant"):
+			account = provider_setup.ensure_clearing_account(other, "_T clearing account")
+			if not account:
+				self.skipTest("the other company has no bank account")
+			provider_setup.ensure_gateway_account("_T Gateway", other, account)
+		self.assertIsNone(provider_setup.shop_gateway_account("_T Gateway"))
+
+
+class TestTheHistoryNeverHoldsAKey(FrappeTestCase):
+	"""Payment Provider tracks its changes; frappe leaves Code fields out of a Version, so the
+	credentials never reach the history. This holds that: a change of field type would leak them."""
+
+	def setUp(self):
+		self.addCleanup(frappe.db.rollback)
+		frappe.set_user("Administrator")
+
+	def test_a_saved_key_never_reaches_the_history(self):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Payment Provider",
+				"provider_name": "_t_history",
+				"display_label": "T",
+				"driver_class": "payments.drivers.payrexx.provider.PayrexxProvider",
+				"credentials_json": json.dumps({"instance": "_t", "api_secret": "_t-first-secret"}),
+			}
+		).insert()
+		doc.credentials_json = json.dumps({"instance": "_t", "api_secret": "_t-second-secret"})
+		doc.display_label = "T2"
+		doc.save()
+		for data in frappe.get_all(
+			"Version", filters={"ref_doctype": "Payment Provider", "docname": doc.name}, pluck="data"
+		):
+			self.assertNotIn("secret", data or "")

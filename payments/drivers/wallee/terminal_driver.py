@@ -45,6 +45,7 @@ from __future__ import annotations
 import hmac
 import hashlib
 import json
+import re
 from typing import Any
 
 import frappe
@@ -77,6 +78,57 @@ _REFUND_STATE_TO_STATUS: dict[str, str] = {
 
 # Transaction states that carry no FSM transition (still in flight).
 _TX_PASSTHROUGH: set[str] = {"CREATE", "PENDING", "CONFIRMED", "PROCESSING"}
+
+# //// Neoffice — Wallee's signature header (the SDK's own pattern, spaces tolerated), and the public keys it
+# //// names, kept a day: verifying fetches the key from Wallee, and the webhook is open to anyone, so a
+# //// stream of forged keyIds must not turn into a stream of calls to Wallee (neoffice-maintenance#2306).
+_WALLEE_SIGNATURE = re.compile(
+	r"^algorithm=([a-zA-Z0-9]+),\s?keyId=([a-z0-9\-]{1,64}),\s?signature=([a-zA-Z0-9+/=]+)$"
+)
+#: (connect, read) seconds for « perform transaction » — see confirm_intent (#2358).
+_PERFORM_TIMEOUT = (10, 30)
+
+
+def _still_running(exc: Exception, error_code: str | None) -> bool:
+	"""A timeout while the terminal handles the payment: it is still in flight, not failed.
+
+	Only a timeout that proves Wallee had the request: its own long-polling limit (543), or
+	no answer within the read timeout. A connection that never opened did not reach the
+	terminal; that one is a failure the cashier can retry.
+	"""
+	if error_code == "long_polling_timeout":
+		return True
+	text = repr(exc)
+	return "ReadTimeoutError" in text or "Read timed out" in text
+
+
+_KEY_TTL = 86400
+_UNKNOWN_KEY_TTL = 300
+_KEY_LOOKUPS_PER_MINUTE = 6
+
+
+def _wallee_public_key(provider: WalleeProvider, key_id: str) -> str | None:
+	"""The public key Wallee signs with under ``key_id``; cached, and fetched at most a few times a minute."""
+	cache_key = f"payments:wallee_webhook_key:{key_id}"
+	cached = frappe.cache.get_value(cache_key)
+	if cached is not None:
+		return cached or None
+	lookups_key = "payments:wallee_webhook_key_lookups"
+	lookups = frappe.utils.cint(frappe.cache.get_value(lookups_key))
+	if lookups >= _KEY_LOOKUPS_PER_MINUTE:
+		return None
+	frappe.cache.set_value(lookups_key, lookups + 1, expires_in_sec=60)
+	try:
+		from wallee.service.webhook_encryption_keys_service import WebhookEncryptionKeysService
+
+		key = WebhookEncryptionKeysService(
+			provider.build_configuration()
+		).get_webhooks_encryption_keys_id(key_id)
+	except Exception:  # noqa: BLE001 - an unknown or unreachable key proves nothing
+		key = None
+	key = str(key) if key else ""
+	frappe.cache.set_value(cache_key, key, expires_in_sec=_KEY_TTL if key else _UNKNOWN_KEY_TTL)
+	return key or None
 
 
 class WalleeTerminalChannel(PaymentChannelBase):
@@ -225,6 +277,11 @@ class WalleeTerminalDriver(PaymentDriverBase):
 
 		try:
 			_tx, terminals, _refunds = self._services()
+			# //// Neoffice — the call blocks until the card is tapped (Wallee long-polls up to 90 s), and a
+			# //// till's web worker was held that long. 30 s of read is enough for Wallee to put the payment
+			# //// on the terminal; past that the payment goes on there and is settled by the webhook or the
+			# //// minute sweep (neoffice-maintenance#2358).
+			terminals.api_client.configuration.request_timeout = _PERFORM_TIMEOUT
 			# Note Wallee SDK signature: (terminal_id, transaction_id, space_id)
 			response = terminals.post_payment_terminals_id_perform_transaction(
 				terminal_id_int,
@@ -237,6 +294,24 @@ class WalleeTerminalDriver(PaymentDriverBase):
 			# it so the cashier sees something readable instead of an HTTP dump.
 			# Also expose Wallee's error code (e.g. long_polling_timeout, ...).
 			friendly_msg, error_code = _extract_wallee_error(exc)
+			# //// Neoffice — a timeout is not a failure: the SDK says « retrying will resume the transaction
+			# //// from where it left off », and the payment may still be tapped on the terminal. Ranked
+			# //// `failed`, the intent could not be resumed and a customer could pay a sale the till had
+			# //// dropped (#2358). It stays in flight; the webhook or the sweep says how it ended, and the
+			# //// cashier can still cancel it.
+			if _still_running(exc, error_code):
+				return DriverResponse(
+					status="processing",
+					provider_intent_id=provider_intent_id,
+					next_action_type="display_card_present_modal",
+					next_action_payload={
+						"terminal_id": terminal_id_int,
+						"terminal_action_status": "waiting",
+						"message": "The terminal has not answered yet: is it on and connected? "
+						"The payment goes on if the card is tapped; cancel it otherwise.",
+					},
+					raw={"exception": repr(exc)[:500], "error_code": error_code},
+				)
 			return DriverResponse(
 				status="failed",
 				provider_intent_id=provider_intent_id,
@@ -409,21 +484,30 @@ class WalleeTerminalDriver(PaymentDriverBase):
 	# //// Neoffice — see handle_webhook: a delivery signed by Wallee's key pair (ECDSA), checked by the
 	# //// SDK against the public key Wallee publishes for its keyId. Any failure is a refusal.
 	def _handle_wallee_signed(self, payload: bytes, signature: str) -> WebhookResult:
-		try:
-			from wallee.service.webhook_encryption_keys_service import WebhookEncryptionKeysService
-
-			config = self._wallee_provider.build_configuration()
-			valid = WebhookEncryptionKeysService(config).is_content_valid(
-				signature, payload.decode("utf-8")
-			)
-		except Exception as exc:  # noqa: BLE001 - an unprovable delivery is refused, never processed
+		def refuse(reason: str) -> WebhookResult:
 			return WebhookResult(
 				event_id="unknown",
 				event_type="unknown",
 				signature_valid=False,
 				error_code="invalid_signature",
-				error_message=f"Wallee signature not verifiable: {str(exc)[:200]}",
+				error_message=reason,
 			)
+
+		match = _WALLEE_SIGNATURE.match(signature.strip())
+		if not match:
+			return refuse("Wallee signature header malformed")
+		algorithm, key_id, content_signature = match.groups()
+		public_key = _wallee_public_key(self._wallee_provider, key_id)
+		if not public_key:
+			return refuse("Wallee signing key unknown")
+		try:
+			from wallee.utils.encryption_util import EncryptionUtil
+
+			valid = EncryptionUtil.is_content_valid(
+				payload.decode("utf-8"), content_signature, public_key, algorithm
+			)
+		except Exception as exc:  # noqa: BLE001 - an unprovable delivery is refused, never processed
+			return refuse(f"Wallee signature not verifiable: {str(exc)[:200]}")
 		if not valid:
 			return WebhookResult(
 				event_id="unknown",
@@ -431,6 +515,24 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				signature_valid=False,
 				error_code="invalid_signature",
 				error_message="Wallee signature mismatch",
+			)
+		# //// Neoffice — Wallee signs every merchant's deliveries with the same keys: a valid signature
+		# //// proves Wallee sent it, not that it concerns this space. Another merchant's listener pointed at
+		# //// this address must not move anything here.
+		try:
+			space = json.loads(payload.decode("utf-8") or "{}").get("spaceId")
+		except (ValueError, AttributeError):
+			space = None
+		expected = frappe.db.get_value(
+			"Wallee Settings", {"provider": self._wallee_provider.provider_doc.name}, "space_id"
+		)
+		if space is not None and str(space) != str(expected):
+			return WebhookResult(
+				event_id="unknown",
+				event_type="unknown",
+				signature_valid=False,
+				error_code="foreign_space",
+				error_message=f"Wallee delivery for space {space}, not this provider's",
 			)
 		return self.parse_verified_event(payload)
 

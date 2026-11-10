@@ -4017,3 +4017,210 @@ msgstr "{0}, et la passerelle Wallee en CHF"
 #, python-brace-format
 msgid "« {0} » on {1}: the cashier types the amount on the terminal."
 msgstr "« {0} » sur {1} : le caissier saisit le montant sur le terminal."
+
+#: payments/public/js/provider_setup_page.js:165
+msgid "A key is already in place. Replace it with the one you typed? It is tested first: a refused key changes nothing."
+msgstr "Une clé est déjà en place. La remplacer par celle que vous avez saisie ? Elle est d'abord testée : une clé refusée ne modifie rien."
+
+#: payments/payments/page/payment_settings/payment_settings.js:93
+#: payments/payments/page/payment_settings/payment_settings.js:172
+msgid "Add a Payrexx terminal"
+msgstr "Ajouter un terminal Payrexx"
+
+#: payments/payments/page/payment_settings/payment_settings.js:129
+#: payments/payments/page/payment_settings/payment_settings.js:172
+msgid "Add a Wallee terminal"
+msgstr "Ajouter un terminal Wallee"
+
+#: payments/payments/page/payment_settings/payment_settings.js:164
+#, python-brace-format
+msgid "also at {0}"
+msgstr "aussi à {0}"
+
+#: payments/payments/page/payment_settings/payment_settings.js:153
+msgctxt "card terminal status"
+msgid "Answers"
+msgstr "Répond"
+
+#: payments/payments/page/payment_settings/payment_settings.js:177
+msgid "Card terminals"
+msgstr "Terminaux de paiement"
+
+#: payments/payments/page/payment_settings/payment_settings.js:179
+msgid "Connect Payrexx or Wallee to add a terminal."
+msgstr "Connectez Payrexx ou Wallee pour ajouter un terminal."
+
+#: payments/api/terminals.py:177
+msgid "Connect Wallee on its page first."
+msgstr "Connectez d'abord Wallee sur sa page."
+
+#: payments/api/terminals.py:90
+#, python-brace-format
+msgid "Connect {0} on its page first: it prepares the till's payment mode."
+msgstr "Connectez d'abord {0} sur sa page : il prépare le mode de paiement de la caisse."
+
+#: payments/payments/page/payment_settings/payment_settings.js:122
+#, python-brace-format
+msgid "Every active terminal of your Wallee space is already at a till. A new terminal is made in the Wallee portal, or with the {0}."
+msgstr "Tous les terminaux actifs de votre espace Wallee sont déjà à une caisse. Un nouveau terminal se crée dans le portail Wallee, ou avec {0}."
+
+#: payments/api/payrexx_setup.py:213
+msgid "Instance and API secret are required"
+msgstr "L'instance et le secret API sont obligatoires"
+
+#: payments/api/payrexx_setup.py:181 payments/api/wallee_setup.py:329
+msgid "Mode must be 'test' or 'live'"
+msgstr "Le mode doit être 'test' ou 'live'"
+
+#: payments/api/payment_settings.py:391
+#, python-brace-format
+msgid "Mode of Payment {0} does not exist"
+msgstr "Le mode de paiement {0} n'existe pas"
+
+#: payments/api/payrexx_setup.py:796
+msgid "no account for its company"
+msgstr "aucun compte pour sa société"
+
+#: payments/payments/page/payment_settings/payment_settings.js:178
+msgid "No card terminal at a till yet."
+msgstr "Aucun terminal de paiement n'est encore à une caisse."
+
+#: payments/payments/page/payment_settings/payment_settings.js:162
+msgid "No till"
+msgstr "Aucune caisse"
+
+#: payments/payments/page/payment_settings/payment_settings.js:154
+msgid "Not answering"
+msgstr "Ne répond pas"
+
+#: payments/api/payment_settings.py:175
+msgid "not prepared: open the Payrexx page and Connect"
+msgstr "non préparé : ouvrez la page Payrexx et cliquez sur Connecter"
+
+#: payments/payments/page/payment_settings/payment_settings.js:99
+msgid "On the terminal: ≡ → Pay-Connect. Type the 6-character code it shows, while that screen stays open (the code changes when you leave it). The serial number is on the back."
+msgstr "Sur le terminal : ≡ → Pay-Connect. Saisissez le code de 6 caractères affiché, pendant que cet écran reste ouvert (le code change quand vous le quittez). Le numéro de série se trouve à l'arrière."
+
+#: payments/payments/page/payment_settings/payment_settings.js:177
+msgid "one list, every provider"
+msgstr "une seule liste, tous les prestataires"
+
+#: payments/payments/page/payment_settings/payment_settings.js:236
+#: payments/payments/page/payrexx_setup_wizard/payrexx_setup_wizard.js:81
+#: payments/payments/page/wallee_setup_wizard/wallee_setup_wizard.js:79
+msgid "Online shop"
+msgstr "Boutique en ligne"
+
+#: payments/api/payrexx_setup.py:293
+#, python-brace-format
+msgid "Payment Channel {0} does not exist"
+msgstr "Le canal de paiement {0} n'existe pas"
+
+#: payments/api/payrexx_setup.py:373
+#, python-brace-format
+msgid "Payrexx connection failed, nothing was created: {0}"
+msgstr "La connexion à Payrexx a échoué, rien n'a été créé : {0}"
+
+#: payments/api/payrexx_setup.py:808
+#, python-brace-format
+msgid "Payrexx did not pair terminal {0}: check the code on its screen (it changes when you leave that screen)."
+msgstr "Payrexx n'a pas appairé le terminal {0} : vérifiez le code affiché sur son écran (il change quand vous quittez cet écran)."
+
+#: payments/api/payrexx_setup.py:234 payments/api/payrexx_setup.py:854
+msgid "Payrexx is not configured yet"
+msgstr "Payrexx n'est pas encore configuré"
+
+#: payments/api/payment_settings.py:173
+msgid "Payrexx still shows a test-mode notice on its payment page"
+msgstr "Payrexx affiche encore un avis de mode test sur sa page de paiement"
+
+#: payments/payments/page/payment_settings/payment_settings.js:67
+msgid "Saved: the till takes it at its next load"
+msgstr "Enregistré : la caisse le prend à son prochain chargement"
+
+#: payments/payments/page/payment_settings/payment_settings.js:72
+msgid "Take this terminal off every till? It stays in your provider's account and can be added again."
+msgstr "Retirer ce terminal de toutes les caisses ? Il reste dans le compte de votre prestataire et peut être ajouté à nouveau."
+
+#: payments/payments/page/payment_settings/payment_settings.js:110
+#: payments/payments/page/payment_settings/payment_settings.js:144
+msgid "Terminal added"
+msgstr "Terminal ajouté"
+
+#: payments/payments/page/payment_settings/payment_settings.js:134
+msgid "Terminal of your Wallee space"
+msgstr "Terminal de votre espace Wallee"
+
+#: payments/payments/page/payment_settings/payment_settings.js:75
+msgid "Terminal removed"
+msgstr "Terminal retiré"
+
+#: payments/payments/page/payment_settings/payment_settings.js:123
+msgid "terminal wizard"
+msgstr "assistant des terminaux"
+
+#: payments/api/terminals.py:77
+#, python-brace-format
+msgid "Terminal {0} does not exist"
+msgstr "Le terminal {0} n'existe pas"
+
+#: payments/api/terminals.py:112
+#, python-brace-format
+msgid "Terminal {0} has no provider"
+msgstr "Le terminal {0} n'a pas de prestataire"
+
+#: payments/api/payment_settings.py:371
+msgid "The shop would be left with no way to pay: choose another provider for one means first."
+msgstr "La boutique n'aurait plus aucun moyen de paiement : choisissez d'abord un autre prestataire pour un moyen."
+
+#: payments/api/terminals.py:99
+#, python-brace-format
+msgid "Till {0} cannot offer {1}: no account for its company."
+msgstr "La caisse {0} ne peut pas proposer {1} : aucun compte pour sa société."
+
+#: payments/api/payrexx_setup.py:796
+#, python-brace-format
+msgid "Till {0} cannot offer {1}: {2}"
+msgstr "La caisse {0} ne peut pas proposer {1} : {2}"
+
+#: payments/api/payrexx_setup.py:374
+msgid "unknown error"
+msgstr "erreur inconnue"
+
+#: payments/api/payment_settings.py:329
+#, python-brace-format
+msgid "Unknown provider: {0}"
+msgstr "Prestataire inconnu : {0}"
+
+#: payments/api/payrexx_setup.py:331
+#, python-brace-format
+msgid "Unknown tiles: {0}"
+msgstr "Tuiles inconnues : {0}"
+
+#: payments/api/terminals.py:145
+#, python-brace-format
+msgid "Wallee did not answer: {0}"
+msgstr "Wallee n'a pas répondu : {0}"
+
+#: payments/api/terminals.py:141
+msgid "Wallee is not connected"
+msgstr "Wallee n'est pas connecté"
+
+#: payments/api/terminals.py:173
+#, python-brace-format
+msgid "Wallee terminal {0} is not active in your space, or a till has it already"
+msgstr "Le terminal Wallee {0} n'est pas actif dans votre espace, ou une caisse l'a déjà"
+
+#: payments/api/payment_settings.py:205
+msgid "Wallee's page offers every means of your Wallee space"
+msgstr "La page de Wallee propose tous les moyens de votre espace Wallee"
+
+#: payments/api/payment_settings.py:393
+#, python-brace-format
+msgid "{0} is not a payment provider's mode: change it on the till itself."
+msgstr "{0} n'est pas un mode de prestataire de paiement : modifiez-le directement sur la caisse."
+
+#: payments/api/payrexx_setup.py:531 payments/api/wallee_setup.py:119
+#, python-brace-format
+msgid "{0} — nothing was changed."
+msgstr "{0} — rien n'a été modifié."

@@ -5,6 +5,7 @@
 
 import base64
 import json
+import uuid
 from unittest.mock import patch
 
 import frappe
@@ -16,19 +17,19 @@ from frappe.tests.utils import FrappeTestCase
 from payments.api import wallee_setup
 
 
-def _signed(payload: bytes, key) -> str:  # noqa: ANN001
+def _signed(payload: bytes, key, key_id: str) -> str:  # noqa: ANN001
 	signature = base64.b64encode(key.sign(payload, ec.ECDSA(hashes.SHA256()))).decode()
-	return f"algorithm=SHA256withECDSA, keyId=test-key-1, signature={signature}"
+	return f"algorithm=SHA256withECDSA, keyId={key_id}, signature={signature}"
 
 
 class TestWalleeConnect(FrappeTestCase):
 	def setUp(self):
 		self._commit = patch.object(frappe.db, "commit")
-		self._commit.start()
+		self.commit = self._commit.start()
 		self.addCleanup(self._commit.stop)
 		self.addCleanup(frappe.db.rollback)
 		frappe.set_user("Administrator")  # the scene only
-		frappe.db.set_default(wallee_setup.STATUS_KEY, "{}")
+		frappe.db.set_global(wallee_setup.STATUS_KEY, "{}")
 
 	def shop_rows(self):
 		if not frappe.db.exists("DocType", "Webshop Settings"):
@@ -62,6 +63,19 @@ class TestWalleeConnect(FrappeTestCase):
 		if frappe.db.get_value("Payment Provider", name, "mode") != "live":
 			self.assertEqual(states["shop"], "waiting")
 
+	def test_a_refused_key_is_rolled_back_not_committed(self):
+		rolled = []
+		with (
+			patch.object(wallee_setup, "_health", return_value={"ok": False, "error": "refused"}),
+			patch.object(frappe.db, "rollback", side_effect=lambda *a, **k: rolled.append(1)),
+			as_role("head_accountant"),
+		):
+			result = wallee_setup.connect(space_id="999", user_id="111", authentication_key="_wrong")
+		self.assertFalse(result["ok"])
+		self.assertIn("nothing was changed", result["error"])
+		self.assertEqual(rolled, [1], "a refused key must roll the transaction back")
+		self.commit.assert_not_called()
+
 	def test_going_to_production_makes_wallee_choosable(self):
 		self.connect()
 		with patch.object(wallee_setup, "_health", return_value={"ok": True}), as_role(
@@ -91,34 +105,43 @@ class TestWalleeSignedWebhook(FrappeTestCase):
 			serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
 		)
 		self.public_b64 = base64.b64encode(public).decode()
-		self.payload = json.dumps(
+		self.key_id = f"t-{uuid.uuid4().hex[:12]}"
+		frappe.cache.delete_value("payments:wallee_webhook_key_lookups")
+		self.space = frappe.db.get_value("Wallee Settings", {"provider": name}, "space_id")
+		self.payload = self.body(self.space)
+
+	def body(self, space) -> bytes:  # noqa: ANN001
+		return json.dumps(
 			{
 				"entityId": 987654321,
 				"listenerEntityTechnicalName": "Transaction",
 				"state": "FULFILL",
-				"spaceId": 1,
+				"spaceId": space,
 			}
 		).encode()
 
-	def deliver(self, payload: bytes, header: str):
+	def deliver(self, payload: bytes, header: str, fetches=None):
 		from wallee.service.webhook_encryption_keys_service import WebhookEncryptionKeysService
+
+		def fetch(service, key_id):  # noqa: ANN001
+			if fetches is not None:
+				fetches.append(key_id)
+			return self.public_b64 if key_id == self.key_id else None
 
 		with (
 			patch.object(type(self.driver._wallee_provider), "build_configuration", return_value=None),
 			patch.object(WebhookEncryptionKeysService, "__init__", lambda self, configuration: None),
-			patch.object(
-				WebhookEncryptionKeysService, "get_webhooks_encryption_keys_id", return_value=self.public_b64
-			),
+			patch.object(WebhookEncryptionKeysService, "get_webhooks_encryption_keys_id", fetch),
 		):
 			return self.driver.handle_webhook(payload, {"x-signature": header})
 
 	def test_a_delivery_signed_by_wallee_is_proven(self):
-		result = self.deliver(self.payload, _signed(self.payload, self.key))
+		result = self.deliver(self.payload, _signed(self.payload, self.key, self.key_id))
 		self.assertTrue(result.signature_valid)
 		self.assertEqual(result.event_type, "transaction.fulfill")
 
 	def test_a_tampered_delivery_is_refused(self):
-		header = _signed(self.payload, self.key)
+		header = _signed(self.payload, self.key, self.key_id)
 		tampered = self.payload.replace(b"FULFILL", b"DECLINE")
 		result = self.deliver(tampered, header)
 		self.assertFalse(result.signature_valid)
@@ -126,8 +149,28 @@ class TestWalleeSignedWebhook(FrappeTestCase):
 
 	def test_a_signature_from_another_key_is_refused(self):
 		other = ec.generate_private_key(ec.SECP256R1())
-		result = self.deliver(self.payload, _signed(self.payload, other))
+		result = self.deliver(self.payload, _signed(self.payload, other, self.key_id))
 		self.assertFalse(result.signature_valid)
+
+	def test_the_public_key_is_asked_of_wallee_once(self):
+		fetches = []
+		header = _signed(self.payload, self.key, self.key_id)
+		self.assertTrue(self.deliver(self.payload, header, fetches).signature_valid)
+		self.assertTrue(self.deliver(self.payload, header, fetches).signature_valid)
+		self.assertEqual(fetches, [self.key_id])
+
+	def test_forged_key_ids_do_not_turn_into_a_stream_of_calls_to_wallee(self):
+		fetches = []
+		for _ in range(20):
+			forged = f"algorithm=SHA256withECDSA, keyId=f-{uuid.uuid4().hex[:12]}, signature=AAAA"
+			self.assertFalse(self.deliver(self.payload, forged, fetches).signature_valid)
+		self.assertLessEqual(len(fetches), 6)
+
+	def test_a_delivery_signed_by_wallee_for_another_space_is_refused(self):
+		other = self.body(int(self.space) + 1)
+		result = self.deliver(other, _signed(other, self.key, self.key_id))
+		self.assertFalse(result.signature_valid)
+		self.assertEqual(result.error_code, "foreign_space")
 
 	def test_the_hand_set_secret_path_is_unchanged(self):
 		with patch.object(type(self.driver._wallee_provider), "webhook_secret", new=None):

@@ -24,8 +24,9 @@ class TestPaymentSettings(FrappeTestCase):
 		self.addCleanup(self._commit.stop)
 		self.addCleanup(frappe.db.rollback)
 		frappe.set_user("Administrator")  # the scene only
-		frappe.db.set_default(payrexx_setup.STATUS_KEY, "{}")
-		frappe.db.set_default(payment_settings.PARKED_KEY, "{}")
+		frappe.db.set_global(payrexx_setup.STATUS_KEY, "{}")
+		frappe.db.set_global(payment_settings.PARKED_KEY, "{}")
+		frappe.db.set_global(payment_settings.PARKED_TILL_KEY, "{}")
 		with as_role("head_accountant"):
 			payrexx_setup._prepare_erp()
 
@@ -35,7 +36,7 @@ class TestPaymentSettings(FrappeTestCase):
 	def open_online(self, card=True, twint=True):
 		status = payrexx_setup._status()
 		status["online"] = {"checked_at": "x", "card": card, "twint": twint, "methods": []}
-		frappe.db.set_default(payrexx_setup.STATUS_KEY, json.dumps(status))
+		frappe.db.set_global(payrexx_setup.STATUS_KEY, json.dumps(status))
 
 	def test_payrexx_cannot_be_chosen_before_it_opens_online_sales(self):
 		before = self.shop_accounts()
@@ -100,3 +101,71 @@ class TestPaymentSettings(FrappeTestCase):
 			overview = payment_settings.set_till_mode(mode=mode, on=1)
 		states = {m["mode"]: m["state"] for m in overview["till"]["card"]}
 		self.assertIn(states.get(mode), ("all", "some"))
+
+	def test_the_shop_is_never_left_with_no_way_to_pay(self):
+		self.open_online()
+		settings = frappe.get_doc("Webshop Settings")
+		card = payrexx_setup._shop_gateway_account("Payrexx Carte")
+		settings.set("payment_methods", [{"payment_gateway_account": card}])
+		settings.save(ignore_permissions=True)
+		with as_role("head_accountant"), self.assertRaises(frappe.ValidationError):
+			payment_settings.set_shop_method(method="card", provider="none")
+		self.assertEqual(self.shop_accounts(), [card], "the refusal leaves the shop as it was")
+
+	def test_a_test_mode_notice_keeps_payrexx_off_the_shop(self):
+		status = payrexx_setup._status()
+		status["online"] = {"checked_at": "x", "card": True, "twint": True, "test_banner": True}
+		frappe.db.set_global(payrexx_setup.STATUS_KEY, json.dumps(status))
+		card = next(o for o in payment_settings._shop_options()["card"] if o["key"] == "payrexx")
+		self.assertFalse(card["available"])
+		self.assertIn("test", card["reason"])
+
+	def test_every_row_of_a_parked_account_comes_back(self):
+		self.open_online()
+		stripe = payment_settings._stripe_accounts()
+		if not stripe:
+			self.skipTest("no Stripe account on this site")
+		groups = frappe.get_all("Customer Group", filters={"is_group": 0}, pluck="name", limit=2)
+		if len(groups) < 2:
+			self.skipTest("fewer than two customer groups")
+		settings = frappe.get_doc("Webshop Settings")
+		settings.set(
+			"payment_methods",
+			[r for r in settings.payment_methods if r.payment_gateway_account not in stripe],
+		)
+		for group in groups:
+			settings.append(
+				"payment_methods", {"payment_gateway_account": stripe[0], "only_customer_group": group}
+			)
+		settings.save(ignore_permissions=True)
+
+		with as_role("head_accountant"):
+			payment_settings.set_shop_method(method="card", provider="payrexx")
+			payment_settings.set_shop_method(method="card", provider="stripe")
+
+		back = sorted(
+			r.only_customer_group
+			for r in frappe.get_doc("Webshop Settings").payment_methods
+			if r.payment_gateway_account == stripe[0]
+		)
+		self.assertEqual(back, sorted(groups))
+
+	def test_a_till_row_comes_back_with_its_settings(self):
+		mode = payrexx_setup._status()["till_mode"]
+		till = frappe.db.get_value("POS Profile", {"disabled": 0}, "name")
+		profile = frappe.get_doc("POS Profile", till)
+		row = next((r for r in profile.payments if r.mode_of_payment == mode), None)
+		if not row:
+			self.skipTest("the till mode is not on this till")
+		row.allow_in_returns = 1
+		profile.save(ignore_permissions=True)
+		with as_role("head_accountant"):
+			payment_settings.set_till_mode(mode=mode, on=0)
+			payment_settings.set_till_mode(mode=mode, on=1)
+		back = next(r for r in frappe.get_doc("POS Profile", till).payments if r.mode_of_payment == mode)
+		self.assertEqual(back.allow_in_returns, 1)
+
+	def test_cash_is_not_a_providers_mode(self):
+		modes = {m["mode"] for ms in payment_settings._till().values() for m in ms}
+		for cash in frappe.get_all("Mode of Payment", filters={"type": "Cash"}, pluck="name"):
+			self.assertNotIn(cash, modes)

@@ -164,6 +164,19 @@ def save_credentials(
 	Webhooks in the back office: without it every delivery is refused.
 	"""
 	frappe.only_for(("System Manager", "Accounts Manager"))
+	doc = _stage_credentials(instance, api_secret, pos_api_secret, mode, webhook_signing_key)
+	frappe.db.commit()
+	return {"ok": True, "provider": doc.name, "mode": doc.mode}
+
+
+def _stage_credentials(
+	instance: str | None,
+	api_secret: str | None = None,
+	pos_api_secret: str | None = None,
+	mode: str = "test",
+	webhook_signing_key: str | None = None,
+):  # noqa: ANN202 - a Payment Provider document
+	"""Write the credentials into the transaction, without committing them."""
 	if mode not in ("test", "live"):
 		frappe.throw(_("Mode must be 'test' or 'live'"))
 
@@ -204,9 +217,7 @@ def save_credentials(
 	doc.enabled = 1
 	doc.flags.ignore_permissions = True
 	doc.save()
-	frappe.db.commit()
-
-	return {"ok": True, "provider": doc.name, "mode": doc.mode}
+	return doc
 
 
 @frappe.whitelist()
@@ -400,11 +411,16 @@ def _set_webshop_row(account: str, spec: dict[str, Any]) -> None:
 	)
 	if not row:
 		row = settings.append("payment_methods", {"payment_gateway_account": account})
+	apply_tile(row, spec)
+	settings.flags.ignore_permissions = True
+	settings.save()
+
+
+def apply_tile(row, spec: dict[str, Any]) -> None:  # noqa: ANN001 - a Webshop Payment Method row
+	"""What makes a shop row a Payrexx tile: the intent, the means it shows, inline or not."""
 	row.use_payment_intent = 1
 	row.restrict_payment_methods = ",".join(spec["methods"])
 	row.render_inline = 1 if spec["inline"] else 0
-	settings.flags.ignore_permissions = True
-	settings.save()
 
 
 # ---------------------------------------------------------------------------
@@ -437,14 +453,15 @@ def _till_mode() -> str:
 
 
 def _status() -> dict[str, Any]:
-	try:
-		return frappe.parse_json(frappe.db.get_default(STATUS_KEY) or "{}") or {}
-	except (ValueError, TypeError):
-		return {}
+	from payments.setup.provider_setup import read_state
+
+	return read_state(STATUS_KEY)
 
 
 def _save_status(status: dict[str, Any]) -> None:
-	frappe.db.set_default(STATUS_KEY, json.dumps(status, default=str))
+	from payments.setup.provider_setup import write_state
+
+	write_state(STATUS_KEY, status)
 
 
 def _prepare_erp() -> dict[str, Any]:
@@ -461,29 +478,27 @@ def _prepare_erp() -> dict[str, Any]:
 	# it is skipped, the others are still laid down.
 	accounts = {}
 	for company in companies_in_use():
-		account = ensure_clearing_account(company, _clearing_label())
+		account = ensure_clearing_account(company, _clearing_label(), gateway=_gateway_name(""))
 		if account:
 			accounts[company] = account
 	for company, account in accounts.items():
 		for spec in payment_tiles().values():
 			ensure_gateway_account(_gateway_name(spec["suffix"]), company, account)
 	mode = _till_mode()
-	tills = ensure_till_mode(mode, accounts)
+	till = ensure_till_mode(mode, accounts)
 	status = _status()
 	status["till_mode"] = mode
+	status["accounts"] = accounts
+	status["till_errors"] = till["errors"]
 	_save_status(status)
-	return {"accounts": accounts, "tills": tills, "till_mode": mode}
+	return {"accounts": accounts, "tills": till["tills"], "till_mode": mode, "errors": till["errors"]}
 
 
 def _shop_gateway_account(gateway: str) -> str | None:
-	"""The gateway's account for the shop's company (Webshop Settings), else the default one."""
-	company = None
-	if frappe.db.exists("DocType", "Webshop Settings"):
-		company = frappe.db.get_single_value("Webshop Settings", "company")
-	company = company or frappe.defaults.get_global_default("company")
-	return frappe.db.get_value(
-		"Payment Gateway Account", {"payment_gateway": gateway, "company": company}, "name"
-	) or frappe.db.get_value("Payment Gateway Account", {"payment_gateway": gateway}, "name")
+	"""The gateway's account for the shop's company, never another company's."""
+	from payments.setup.provider_setup import shop_gateway_account
+
+	return shop_gateway_account(gateway)
 
 
 # //// Neoffice — POST only (maintenance#1721): see save_credentials.
@@ -498,7 +513,10 @@ def connect(
 	"""
 	frappe.only_for(("System Manager", "Accounts Manager"))
 	existing_mode = frappe.db.get_value("Payment Provider", PROVIDER, "mode")
-	save_credentials(
+	# //// Neoffice — the typed key is proven BEFORE it replaces the stored one. Saving first and testing
+	# //// after meant a mistyped key overwrote a working one: the shop and the till stopped taking money
+	# //// until someone found the right key again. A refused key now leaves everything as it was.
+	_stage_credentials(
 		instance=instance,
 		api_secret=api_secret,
 		mode=existing_mode or "live",
@@ -506,7 +524,15 @@ def connect(
 	)
 	connection = test_connection()
 	if not connection.get("ok"):
-		return {"ok": False, "error": connection.get("error") or _("Connection failed"), **get_status()}
+		frappe.db.rollback()
+		frappe.clear_document_cache("Payment Provider", PROVIDER)
+		return {
+			"ok": False,
+			"error": _("{0} — nothing was changed.").format(
+				connection.get("error") or _("Connection failed")
+			),
+			**get_status(),
+		}
 
 	_prepare_erp()
 	status = _status()
@@ -516,7 +542,7 @@ def connect(
 		"providers": connection.get("providers") or [],
 		"methods": connection.get("payment_methods") or [],
 	}
-	status["online"] = _probe_online()
+	status["online"] = _merge_probe(status.get("online"), _probe_online())
 	_save_status(status)
 	frappe.db.commit()
 	return {"ok": True, **get_status()}
@@ -544,9 +570,8 @@ def get_status() -> dict[str, Any]:
 	online = status.get("online") or {}
 	till_mode = status.get("till_mode")
 	tills = till_mode_tills(till_mode) if till_mode else []
-	clearing = frappe.db.get_value(
-		"Account", {"account_name": _clearing_label(), "is_group": 0}, "name"
-	)
+	accounts = status.get("accounts") or {}
+	clearing = ", ".join(a for a in accounts.values() if frappe.db.exists("Account", a)) or None
 	terminals = (
 		frappe.get_all(
 			"POS Payment Driver Mapping",
@@ -571,12 +596,15 @@ def get_status() -> dict[str, Any]:
 			"detail": ", ".join(tills),
 			"till_mode": till_mode,
 			"linked": terminals,
+			"errors": status.get("till_errors") or {},
 		},
 		{
 			"key": "shop",
 			"state": _shop_state(online),
 			"detail": ", ".join(online.get("methods") or []),
 			"checked_at": online.get("checked_at"),
+			"error": online.get("error"),
+			"test_banner": bool(online.get("test_banner")),
 		},
 		{
 			"key": "webhook",
@@ -597,10 +625,19 @@ def get_status() -> dict[str, Any]:
 
 def _shop_state(online: dict[str, Any]) -> str:
 	if not online.get("checked_at"):
-		return "todo"
-	if online.get("card") or online.get("twint"):
+		return "error" if online.get("error") else "todo"
+	if shop_can_take(online, "card") or shop_can_take(online, "twint"):
 		return "ok"
 	return "waiting"
+
+
+def shop_can_take(online: dict[str, Any], method: str) -> bool:
+	"""Whether a shopper on Payrexx's page is really offered ``method``, in production.
+
+	The page carries a « test mode » notice while any provider of the account is in test:
+	a method shown next to it may be the test one, so it is not offered to real buyers.
+	"""
+	return bool(online.get(method)) and not online.get("test_banner")
 
 
 def _mode_state(connection: dict[str, Any], online: dict[str, Any]) -> str:
@@ -627,10 +664,20 @@ def check_online() -> dict[str, Any]:
 	"""« Check now »: read a test payment page again."""
 	frappe.only_for(("System Manager", "Accounts Manager"))
 	status = _status()
-	status["online"] = _probe_online()
+	status["online"] = _merge_probe(status.get("online"), _probe_online())
 	_save_status(status)
 	frappe.db.commit()
 	return get_status()
+
+
+def _merge_probe(before: dict[str, Any] | None, now: dict[str, Any]) -> dict[str, Any]:
+	"""A failed reading keeps the last good one and says it failed; a good one replaces it."""
+	if not now.get("error"):
+		return now
+	kept = {k: v for k, v in (before or {}).items() if k not in ("error", "error_at")}
+	kept["error"] = now["error"]
+	kept["error_at"] = now.get("error_at")
+	return kept
 
 
 def _probe_online() -> dict[str, Any]:
@@ -647,6 +694,10 @@ def _probe_online() -> dict[str, Any]:
 	from payments.drivers.payrexx._common import build_client
 
 	checked_at = frappe.utils.now()
+
+	def failed(reason: str) -> dict[str, Any]:
+		return {"error": reason[:200], "error_at": checked_at}
+
 	try:
 		provider = frappe.get_doc("Payment Provider", PROVIDER)
 		with build_client(provider) as client:
@@ -654,17 +705,28 @@ def _probe_online() -> dict[str, Any]:
 				amount=100, currency="CHF", purpose=_("Neoffice check, nothing is charged")
 			)
 			try:
+				# English, so the test-mode notice is read in the language this code looks for.
 				response = requests.get(
-					gateway.link, headers={"User-Agent": "Mozilla/5.0 Neoffice"}, timeout=20
+					gateway.link,
+					headers={"User-Agent": "Mozilla/5.0 Neoffice", "Accept-Language": "en"},
+					timeout=20,
 				)
-				html = response.text
+				status_code, html = response.status_code, response.text
 			finally:
-				client.gateway.delete(gateway.id)
+				try:
+					client.gateway.delete(gateway.id)
+				except Exception:  # noqa: BLE001 - the page cannot be paid anyway; never hide the reading
+					frappe.log_error("Payrexx online check: page not deleted", frappe.get_traceback())
 	except Exception as exc:  # noqa: BLE001 - reported on the page, never raised into it
 		frappe.log_error("Payrexx online check failed", frappe.get_traceback())
-		return {"checked_at": checked_at, "error": str(exc)[:200]}
+		return failed(str(exc))
 
+	if status_code != 200:
+		return failed(f"Payrexx page answered HTTP {status_code}")
 	methods = sorted(set(re.findall(r'alt="([a-z][a-z0-9_-]{1,40})"', html)))
+	if not methods:
+		# An unreadable page (a new layout, a block) must not read as « Payrexx offers nothing ».
+		return failed("no payment method found on the Payrexx page")
 	return {
 		"checked_at": checked_at,
 		"methods": methods,
@@ -680,14 +742,19 @@ def daily_online_check() -> None:
 		return
 	status = _status()
 	before = status.get("online") or {}
-	if before.get("card") and before.get("twint"):
+	if shop_can_take(before, "card") and shop_can_take(before, "twint"):
 		return
-	now = _probe_online()
+	now = _merge_probe(before, _probe_online())
 	status["online"] = now
-	_save_status(status)
-	opened = (now.get("card") or now.get("twint")) and not (before.get("card") or before.get("twint"))
+	opened = shop_can_take(now, "card") or shop_can_take(now, "twint")
 	recipient = status.get("connected_by")
-	if opened and recipient and frappe.db.get_value("User", recipient, "enabled"):
+	# Said once: a later failed reading followed by a good one must not send it again.
+	notify = opened and not status.get("opened_notified")
+	if opened:
+		status["opened_notified"] = 1
+	_save_status(status)
+	frappe.db.commit()
+	if notify and recipient and frappe.db.get_value("User", recipient, "enabled"):
 		frappe.sendmail(
 			recipients=[recipient],
 			subject=_("Payrexx: your shop can now take payments"),
@@ -722,66 +789,68 @@ def link_terminal(serial_number: str, pairing_code: str, pos_profile: str) -> di
 			)
 		)
 
+	# //// Neoffice — the ERP side is written first and the terminal paired last: a pairing done at
+	# //// Payrexx before a refused database write left a terminal paired to nothing in the till. Any
+	# //// failure below, the pairing included, rolls the whole request back.
 	prepared = _prepare_erp()
-	pcs = frappe.db.get_value(
-		"Provider Channel Settings", {"provider": PROVIDER, "channel": "terminal"}, "name"
-	)
-	device = frappe.db.get_value("Payment Device", {"serial_number": serial}, "name")
-	if not device:
-		device_doc = frappe.get_doc(
-			{
-				"doctype": "Payment Device",
-				"device_label": f"Payrexx {serial}",
-				"serial_number": serial,
-				"provider_channel_settings": pcs,
-				"enabled": 1,
-				"status": "unknown",
-			}
+	mode = prepared["till_mode"]
+	if pos_profile not in prepared["tills"] and not _offer_mode_on(pos_profile, mode):
+		frappe.throw(
+			_("Till {0} cannot offer {1}: {2}").format(
+				pos_profile, mode, prepared["errors"].get(pos_profile) or _("no account for its company")
+			)
 		)
-		device_doc.insert(ignore_permissions=True)
-		device = device_doc.name
+	device = _ensure_device(serial)
+	from payments.setup.provider_setup import wire_terminal
+
+	wire_terminal(pos_profile, mode, device, PROVIDER)
 
 	from payments.drivers.registry import resolve_driver
 
 	driver = resolve_driver(PROVIDER, "terminal")
 	pairing = driver.pair_terminal(serial, code, cashier_name=pos_profile)
-
-	mode = prepared["till_mode"]
-	mapping_name = frappe.db.get_value(
-		"POS Payment Driver Mapping", {"pos_profile": pos_profile, "mode_of_payment": mode}, "name"
-	)
-	mapping = (
-		frappe.get_doc("POS Payment Driver Mapping", mapping_name)
-		if mapping_name
-		else frappe.new_doc("POS Payment Driver Mapping")
-	)
-	mapping.update(
-		{
-			"pos_profile": pos_profile,
-			"mode_of_payment": mode,
-			"enabled": 1,
-			"provider": PROVIDER,
-			"channel": "terminal",
-			"default_device": device,
-			"auto_attach_device": 1,
-		}
-	)
-	mapping.flags.ignore_permissions = True
-	mapping.save()
-
-	profile = frappe.get_doc("POS Profile", pos_profile)
-	if profile.meta.get_field("custom_active_payment_devices") and not any(
-		row.payment_device == device for row in profile.get("custom_active_payment_devices") or []
-	):
-		profile.append(
-			"custom_active_payment_devices",
-			{"payment_device": device, "mode_of_payment": mode, "is_default": 1},
+	if not (pairing or {}).get("paired"):
+		frappe.throw(
+			_(
+				"Payrexx did not pair terminal {0}: check the code on its screen (it changes when you leave that screen)."
+			).format(serial)
 		)
-		profile.flags.ignore_permissions = True
-		profile.save()
-
+	frappe.db.set_value("Payment Device", device, "status", "online", update_modified=False)
 	frappe.db.commit()
 	return {"ok": True, "device": device, "pos_profile": pos_profile, "pairing": pairing}
+
+
+def _offer_mode_on(pos_profile: str, mode: str) -> bool:
+	from payments.setup.provider_setup import offer_mode_on
+
+	return offer_mode_on(pos_profile, mode)
+
+
+def _ensure_device(serial: str) -> str:
+	pcs = frappe.db.get_value(
+		"Provider Channel Settings", {"provider": PROVIDER, "channel": "terminal"}, "name"
+	)
+	device = frappe.db.get_value("Payment Device", {"serial_number": serial}, "name")
+	if device:
+		frappe.db.set_value(
+			"Payment Device",
+			device,
+			{"provider_channel_settings": pcs, "enabled": 1},
+			update_modified=False,
+		)
+		return device
+	doc = frappe.get_doc(
+		{
+			"doctype": "Payment Device",
+			"device_label": f"Payrexx {serial}",
+			"serial_number": serial,
+			"provider_channel_settings": pcs,
+			"enabled": 1,
+			"status": "unknown",
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return doc.name
 
 
 # //// Neoffice — POST only (maintenance#1721): see save_credentials.

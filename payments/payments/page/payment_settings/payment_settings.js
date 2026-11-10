@@ -14,6 +14,9 @@ class PaymentSettings {
 		this.$body = $(`<div class="ps-setup"></div>`).appendTo(this.page.main);
 		this.$body.on("change", "select[data-method]", (e) => this.set_shop($(e.currentTarget)));
 		this.$body.on("click", "[data-till-mode]", (e) => this.toggle_till($(e.currentTarget)));
+		this.$body.on("change", "select[data-move]", (e) => this.move_terminal($(e.currentTarget)));
+		this.$body.on("click", "[data-remove]", (e) => this.remove_terminal($(e.currentTarget).data("remove")));
+		this.$body.on("click", "[data-add]", (e) => this.add_terminal($(e.currentTarget).data("add")));
 		this.load();
 	}
 
@@ -22,33 +25,163 @@ class PaymentSettings {
 		this.render(message || {});
 	}
 
+	/** A refused change is shown as the server says it, and the page goes back to what is true. */
 	async call(method, args) {
-		const { message } = await frappe.call({
-			method: `payments.api.payment_settings.${method}`,
-			args,
-			freeze: true,
-		});
-		if (message) this.render(message);
-		return message;
+		try {
+			const { message } = await frappe.call({
+				method: method.includes(".") ? method : `payments.api.payment_settings.${method}`,
+				args,
+				freeze: true,
+			});
+			if (message && message.shop) this.render(message);
+			return message;
+		} catch (e) {
+			this.load();
+			return null;
+		}
 	}
 
 	async set_shop($select) {
 		const method = $select.data("method");
 		const provider = $select.val();
-		await this.call("set_shop_method", { method, provider });
-		frappe.show_alert({ message: __("Saved: the shop offers it now"), indicator: "green" });
+		if (await this.call("set_shop_method", { method, provider }))
+			frappe.show_alert({ message: __("Saved: the shop offers it now"), indicator: "green" });
 	}
 
 	async toggle_till($chip) {
 		const mode = $chip.data("till-mode");
 		const on = $chip.data("on") ? 0 : 1;
 		const result = await this.call("set_till_mode", { mode, on });
-		if (result && (result.skipped || []).length)
+		if (!result) return;
+		if ((result.skipped || []).length)
 			frappe.msgprint(__("Not added to {0}: no account for that till's company.", [result.skipped.join(", ")]));
 		else frappe.show_alert({ message: __("Saved: the tills take it at their next load"), indicator: "green" });
 	}
 
+	async move_terminal($select) {
+		const device = $select.data("move");
+		const till = $select.val();
+		const done = till
+			? await this.call("payments.api.terminals.move_terminal", { device, pos_profile: till })
+			: await this.call("payments.api.terminals.remove_terminal", { device });
+		if (done) frappe.show_alert({ message: __("Saved: the till takes it at its next load"), indicator: "green" });
+	}
+
+	remove_terminal(device) {
+		frappe.confirm(
+			__("Take this terminal off every till? It stays in your provider's account and can be added again."),
+			async () => {
+				if (await this.call("payments.api.terminals.remove_terminal", { device }))
+					frappe.show_alert({ message: __("Terminal removed"), indicator: "green" });
+			}
+		);
+	}
+
+	till_field() {
+		return {
+			fieldname: "pos_profile",
+			fieldtype: "Select",
+			label: __("Till"),
+			options: (this.data.terminals || {}).tills || [],
+			reqd: 1,
+		};
+	}
+
+	async add_terminal(provider) {
+		if (provider === "payrexx") {
+			const d = new frappe.ui.Dialog({
+				title: __("Add a Payrexx terminal"),
+				fields: [
+					{
+						fieldtype: "HTML",
+						fieldname: "help",
+						options: `<p class="text-muted">${payments.setup.esc(
+							__("On the terminal: ≡ → Pay-Connect. Type the 6-character code it shows, while that screen stays open (the code changes when you leave it). The serial number is on the back.")
+						)}</p>`,
+					},
+					{ fieldname: "serial_number", fieldtype: "Data", label: __("Serial number"), reqd: 1 },
+					{ fieldname: "pairing_code", fieldtype: "Data", label: __("Pairing code"), reqd: 1 },
+					this.till_field(),
+				],
+				primary_action_label: __("Add"),
+				primary_action: async (values) => {
+					d.hide();
+					if (await this.call("payments.api.payrexx_setup.link_terminal", values)) {
+						frappe.show_alert({ message: __("Terminal added"), indicator: "green" });
+						this.load();
+					}
+				},
+			});
+			d.show();
+			return;
+		}
+		const found = await this.call("payments.api.terminals.wallee_terminals", {});
+		if (!found) return;
+		if (!found.length) {
+			frappe.msgprint(
+				__("Every active terminal of your Wallee space is already at a till. A new terminal is made in the Wallee portal, or with the {0}.", [
+					`<a href="/app/payment-terminal-wizard">${payments.setup.esc(__("terminal wizard"))}</a>`,
+				])
+			);
+			return;
+		}
+		const d = new frappe.ui.Dialog({
+			title: __("Add a Wallee terminal"),
+			fields: [
+				{
+					fieldname: "terminal_id",
+					fieldtype: "Select",
+					label: __("Terminal of your Wallee space"),
+					options: found.map((t) => ({ value: String(t.id), label: `${t.name} (${t.identifier || t.id})` })),
+					reqd: 1,
+				},
+				this.till_field(),
+			],
+			primary_action_label: __("Add"),
+			primary_action: async (values) => {
+				d.hide();
+				if (await this.call("payments.api.terminals.add_wallee_terminal", values))
+					frappe.show_alert({ message: __("Terminal added"), indicator: "green" });
+			},
+		});
+		d.show();
+	}
+
+	render_terminals(t) {
+		const esc = payments.setup.esc;
+		const status = {
+			online: ["ok", __("Answers", null, "card terminal status")],
+			offline: ["error", __("Not answering")],
+			unknown: ["unknown", __("Not checked yet")],
+		};
+		const tills = t.tills || [];
+		const rows = (t.devices || [])
+			.map((d) => {
+				const [state, text] = status[d.status] || status.unknown;
+				const select = `<select class="form-control" data-move="${esc(d.name)}">
+					<option value="">${esc(__("No till"))}</option>
+					${tills.map((x) => `<option value="${esc(x)}" ${d.tills[0] === x ? "selected" : ""}>${esc(x)}</option>`).join("")}
+				</select>${d.tills.length > 1 ? `<div class="ps-detail" style="font-size:12.5px">${esc(__("also at {0}", [d.tills.slice(1).join(", ")]))}</div>` : ""}`;
+				return `<div class="ps-row" style="grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto auto">
+					<div><b>${esc(d.label)}</b><div class="ps-detail">${esc([d.provider_label || d.provider, d.serial].filter(Boolean).join(" · "))}</div></div>
+					<div>${select}</div>
+					${payments.setup.pill(state, text)}
+					<button class="btn btn-xs btn-default" data-remove="${esc(d.name)}">${esc(__("Remove"))}</button></div>`;
+			})
+			.join("");
+		const labels = { payrexx: __("Add a Payrexx terminal"), wallee: __("Add a Wallee terminal") };
+		const add = (t.can_add || [])
+			.map((p) => `<button class="btn btn-sm btn-default" data-add="${p}">+ ${esc(labels[p])}</button>`)
+			.join(" ");
+		return `<div class="ps-card">
+			<div class="ps-head"><h3>${esc(__("Card terminals"))}</h3><span class="ps-aside">${esc(__("one list, every provider"))}</span></div>
+			${rows || `<div class="ps-note">${esc(__("No card terminal at a till yet."))}</div>`}
+			<div class="ps-actions">${add || `<span class="text-muted">${esc(__("Connect Payrexx or Wallee to add a terminal."))}</span>`}</div>
+		</div>`;
+	}
+
 	render(data) {
+		this.data = data;
 		const esc = payments.setup.esc;
 		const mode_text = {
 			live: __("In production"),
@@ -76,7 +209,7 @@ class PaymentSettings {
 						(o) =>
 							`<option value="${esc(o.key)}" ${o.key === shop.current ? "selected" : ""} ${
 								o.available || o.key === shop.current ? "" : "disabled"
-							}>${esc(o.label)}${o.reason ? " — " + esc(o.reason) : ""}</option>`
+							} title="${esc(o.hint || "")}">${esc(o.label)}${o.reason ? " — " + esc(o.reason) : ""}</option>`
 					)
 					.join("")}</select>`;
 				const chips = ((data.till || {})[method] || [])
@@ -105,6 +238,7 @@ class PaymentSettings {
 				<p class="text-muted" style="margin:6px 0 0;font-size:13.5px">${esc(
 					__("A choice is live for the shop at once; the tills take it at their next load. A provider in test, or not yet open to online sales, cannot be chosen: the reason is written beside it.")
 				)}</p>
-			</div>`);
+			</div>
+			${this.render_terminals(data.terminals || {})}`);
 	}
 }

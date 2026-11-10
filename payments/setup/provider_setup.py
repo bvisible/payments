@@ -17,6 +17,9 @@ every « Connect » without duplicating anything.
 
 from __future__ import annotations
 
+import json
+from typing import Any
+
 import frappe
 
 
@@ -25,43 +28,112 @@ import frappe
 _ANCHOR_HINTS = ("Twint", "carte de crédit", "Postcard", "Paypal")
 
 
+# ---------------------------------------------------------------------------
+# Where a setup page keeps what it knows
+# ---------------------------------------------------------------------------
+# A DefaultValue under « __default » is sent to every desk user in the boot (`sysdefaults`): the setup
+# state (who connected, the account's methods, the parked shop rows) does not belong there. It is kept
+# under « __global », which the boot does not send, and moved there the first time it is read.
+
+
+def read_state(key: str) -> dict:
+	raw = frappe.db.get_global(key)
+	if raw is None:
+		legacy = frappe.db.get_default(key)
+		if legacy is not None:
+			frappe.db.set_global(key, legacy)
+			frappe.defaults.clear_default(key, parent="__default")
+			raw = legacy
+	try:
+		value = frappe.parse_json(raw or "{}")
+	except (ValueError, TypeError):
+		return {}
+	return value if isinstance(value, dict) else {}
+
+
+def write_state(key: str, value: dict) -> None:
+	frappe.db.set_global(key, json.dumps(value, default=str))
+
+
+# ---------------------------------------------------------------------------
+# Companies
+# ---------------------------------------------------------------------------
+
+
+def shop_company() -> str | None:
+	"""The company the shop sells for (Webshop Settings), else the site's default company."""
+	company = None
+	if frappe.db.exists("DocType", "Webshop Settings"):
+		company = frappe.db.get_single_value("Webshop Settings", "company")
+	return company or frappe.defaults.get_global_default("company")
+
+
+def shop_gateway_account(gateway: str) -> str | None:
+	"""The gateway's account for the shop's company.
+
+	Never another company's account: a payment booked to the wrong company's clearing
+	account is worse than a tile that cannot be offered. A single-company site whose
+	account was made without a company still finds it.
+	"""
+	company = shop_company()
+	found = frappe.db.get_value(
+		"Payment Gateway Account", {"payment_gateway": gateway, "company": company}, "name"
+	)
+	if found:
+		return found
+	return frappe.db.get_value(
+		"Payment Gateway Account", {"payment_gateway": gateway, "company": ["in", ["", None]]}, "name"
+	)
+
+
 def companies_in_use() -> list[str]:
-	"""The default company and every company that has an enabled till."""
+	"""The shop's company, the default company and every company that has an enabled till."""
 	companies = []
-	default = frappe.defaults.get_global_default("company")
-	if default:
-		companies.append(default)
+	for company in (shop_company(), frappe.defaults.get_global_default("company")):
+		if company and company not in companies:
+			companies.append(company)
 	for row in frappe.get_all("POS Profile", filters={"disabled": 0}, fields=["company"]):
 		if row.company and row.company not in companies:
 			companies.append(row.company)
 	return companies
 
 
-def ensure_clearing_account(company: str, label: str) -> str | None:
-	"""The company's clearing account named ``label``; created beside the others if missing.
+def ensure_clearing_account(company: str, label: str, gateway: str | None = None) -> str | None:
+	"""The company's clearing account for a provider; created beside the others if missing.
 
-	It goes under the parent of an existing clearing account (TWINT first), with the
-	first free number after it — on a Swiss chart that is 103x under « Trésorerie », next
-	to the accounts the bookkeeper already knows. Without such an anchor it goes under the
-	parent of the company's first bank account. A company with no bank account at all
-	gets none (``None``): a setup page lays down the others rather than stop on it.
+	Found first through what is already wired: the account of ``gateway``'s Payment
+	Gateway Account for this company, then an account named ``label``. The label is in
+	the site's language, so a site whose language changed would otherwise get a second
+	account under another name.
+
+	A new one goes under the parent of an existing clearing account in the company's
+	currency (TWINT first), with the first free number after it — on a Swiss chart that is
+	103x under « Trésorerie », next to the accounts the bookkeeper already knows. Without
+	such an anchor it goes under the parent of the company's first bank account. A
+	company with no bank account at all gets none (``None``): a setup page lays down the
+	others rather than stop on it.
 	"""
+	if gateway:
+		wired = frappe.db.get_value(
+			"Payment Gateway Account", {"payment_gateway": gateway, "company": company}, "payment_account"
+		)
+		if wired:
+			return wired
 	existing = frappe.db.get_value(
 		"Account", {"company": company, "account_name": label, "is_group": 0}, "name"
 	)
 	if existing:
 		return existing
 
+	currency = frappe.get_cached_value("Company", company, "default_currency")
+	base = {"company": company, "is_group": 0, "account_type": "Bank"}
+	if currency:
+		base["account_currency"] = ["in", [currency, "", None]]
 	anchor = None
 	for hint in _ANCHOR_HINTS:
 		anchor = frappe.db.get_value(
 			"Account",
-			{
-				"company": company,
-				"is_group": 0,
-				"account_type": "Bank",
-				"account_name": ["like", f"%{hint}%"],
-			},
+			{**base, "account_name": ["like", f"%{hint}%"]},
 			["parent_account", "account_number", "account_currency"],
 			as_dict=True,
 		)
@@ -69,10 +141,7 @@ def ensure_clearing_account(company: str, label: str) -> str | None:
 			break
 	if not anchor:
 		anchor = frappe.db.get_value(
-			"Account",
-			{"company": company, "is_group": 0, "account_type": "Bank"},
-			["parent_account", "account_number", "account_currency"],
-			as_dict=True,
+			"Account", base, ["parent_account", "account_number", "account_currency"], as_dict=True
 		)
 	if not anchor:
 		return None
@@ -86,8 +155,7 @@ def ensure_clearing_account(company: str, label: str) -> str | None:
 			"parent_account": anchor.parent_account,
 			"company": company,
 			"account_type": "Bank",
-			"account_currency": anchor.account_currency
-			or frappe.get_cached_value("Company", company, "default_currency"),
+			"account_currency": currency or anchor.account_currency,
 			"is_group": 0,
 		}
 	)
@@ -135,43 +203,58 @@ def ensure_gateway_account(gateway: str, company: str, payment_account: str) -> 
 	return doc.name
 
 
-def ensure_till_mode(mode: str, accounts: dict[str, str]) -> list[str]:
-	"""A Bank ``Mode of Payment`` booked to ``accounts`` (company → account), on every till.
+def ensure_till_mode(mode: str, accounts: dict[str, str]) -> dict[str, Any]:
+	"""A Bank ``Mode of Payment`` booked to ``accounts`` (company → account).
 
-	Returns the tills (POS Profiles) that offer it. A till of a company with no account
-	in ``accounts`` is left alone: ERPNext refuses a mode without a default account for
-	the till's company.
+	A mode created here is put on every enabled till of a company in ``accounts``. A mode
+	that already existed is not put back on a till: the merchant may have taken it off
+	in Payment settings, and « Connect » again must not undo that. Its enabled state is
+	kept as it was. Returns ``{"created", "tills", "errors"}`` — a till that refuses the
+	mode is named in ``errors`` and the others still get it.
 	"""
-	if frappe.db.exists("Mode of Payment", mode):
-		doc = frappe.get_doc("Mode of Payment", mode)
-	else:
+	created = not frappe.db.exists("Mode of Payment", mode)
+	if created:
 		doc = frappe.new_doc("Mode of Payment")
 		doc.mode_of_payment = mode
 		doc.type = "Bank"
+		doc.enabled = 1
+		wanted_enabled = 1
+	else:
+		doc = frappe.get_doc("Mode of Payment", mode)
+		wanted_enabled = doc.enabled
 	known = {row.company for row in doc.get("accounts") or []}
-	for company, account in accounts.items():
-		if company not in known:
-			doc.append("accounts", {"company": company, "default_account": account})
-	doc.enabled = 1
-	doc.flags.ignore_permissions = True
-	doc.save()
+	missing = {c: a for c, a in accounts.items() if c not in known}
+	for company, account in missing.items():
+		doc.append("accounts", {"company": company, "default_account": account})
+	if created or missing:
+		doc.flags.ignore_permissions = True
+		doc.save()
 	# //// Neoffice — the theme's `handle_mode_of_payment` (on_update) disabled every mode with no
 	# //// bank account linked, a rule meant for QR-bill modes (neoffice-maintenance#2422, fixed in
-	# //// neoffice-theme 78d40a52). Until every site runs that fix, put back what was just asked for.
-	if not frappe.db.get_value("Mode of Payment", mode, "enabled"):
-		frappe.db.set_value("Mode of Payment", mode, "enabled", 1, update_modified=False)
+	# //// neoffice-theme 78d40a52). Until every site runs that fix, put back the state it had.
+	if frappe.db.get_value("Mode of Payment", mode, "enabled") != wanted_enabled:
+		frappe.db.set_value("Mode of Payment", mode, "enabled", wanted_enabled, update_modified=False)
 
-	tills = []
-	for name in frappe.get_all("POS Profile", filters={"disabled": 0}, pluck="name"):
-		profile = frappe.get_doc("POS Profile", name)
-		if profile.company not in accounts:
-			continue
-		if not any(row.mode_of_payment == mode for row in profile.payments):
+	errors = {}
+	if created:
+		for name in frappe.get_all("POS Profile", filters={"disabled": 0}, pluck="name"):
+			profile = frappe.get_doc("POS Profile", name)
+			if profile.company not in accounts:
+				continue
+			if any(row.mode_of_payment == mode for row in profile.payments):
+				continue
 			profile.append("payments", {"mode_of_payment": mode, "default": 0, "allow_in_returns": 0})
 			profile.flags.ignore_permissions = True
-			profile.save()
-		tills.append(name)
-	return tills
+			point = f"till_{frappe.generate_hash(length=8)}"
+			frappe.db.savepoint(point)
+			try:
+				profile.save()
+			except Exception as exc:  # noqa: BLE001 - one till's refusal must not stop the others
+				frappe.db.rollback(save_point=point)
+				errors[name] = str(exc)[:200]
+			else:
+				frappe.db.release_savepoint(point)
+	return {"created": created, "tills": till_mode_tills(mode), "errors": errors}
 
 
 def till_mode_tills(mode: str) -> list[str]:
@@ -183,3 +266,119 @@ def till_mode_tills(mode: str) -> list[str]:
 		distinct=True,
 	)
 	return [p for p in parents if not frappe.db.get_value("POS Profile", p, "disabled")]
+
+
+# ---------------------------------------------------------------------------
+# Terminals at a till
+# ---------------------------------------------------------------------------
+
+
+def offer_mode_on(pos_profile: str, mode: str) -> bool:
+	"""Put ``mode`` on one till if it does not offer it yet; False when its company has no account."""
+	profile = frappe.get_doc("POS Profile", pos_profile)
+	if any(row.mode_of_payment == mode for row in profile.payments):
+		return True
+	if not frappe.db.exists("Mode of Payment Account", {"parent": mode, "company": profile.company}):
+		return False
+	profile.append("payments", {"mode_of_payment": mode, "default": 0, "allow_in_returns": 0})
+	profile.flags.ignore_permissions = True
+	profile.save()
+	return True
+
+
+def wire_terminal(pos_profile: str, mode: str, device: str, provider: str) -> None:
+	"""The till's ``mode`` drives ``device``, its default device for that mode."""
+	mapping_name = frappe.db.get_value(
+		"POS Payment Driver Mapping", {"pos_profile": pos_profile, "mode_of_payment": mode}, "name"
+	)
+	mapping = (
+		frappe.get_doc("POS Payment Driver Mapping", mapping_name)
+		if mapping_name
+		else frappe.new_doc("POS Payment Driver Mapping")
+	)
+	mapping.update(
+		{
+			"pos_profile": pos_profile,
+			"mode_of_payment": mode,
+			"enabled": 1,
+			"provider": provider,
+			"channel": "terminal",
+			"default_device": device,
+			"auto_attach_device": 1,
+		}
+	)
+	mapping.flags.ignore_permissions = True
+	mapping.save()
+
+	profile = frappe.get_doc("POS Profile", pos_profile)
+	if not profile.meta.get_field("custom_active_payment_devices"):
+		return
+	rows = profile.get("custom_active_payment_devices") or []
+	mine = next((r for r in rows if r.payment_device == device), None)
+	for row in rows:
+		# One default per mode: the till would otherwise pick whichever came first.
+		if row is not mine and row.mode_of_payment == mode and row.is_default:
+			row.is_default = 0
+	if mine:
+		mine.mode_of_payment = mode
+		mine.is_default = 1
+	else:
+		profile.append(
+			"custom_active_payment_devices",
+			{"payment_device": device, "mode_of_payment": mode, "is_default": 1},
+		)
+	profile.flags.ignore_permissions = True
+	profile.save()
+
+
+def unwire_terminal(device: str, keep: str | None = None) -> list[str]:
+	"""Take ``device`` off every till but ``keep``; returns the tills it left.
+
+	A mapping whose default device it was keeps its mode but no device: the till then
+	asks which terminal, or takes the mode as a terminal used on its own.
+	"""
+	left = []
+	if frappe.db.exists("DocType", "POS Payment Driver Mapping"):
+		for name, till in frappe.get_all(
+			"POS Payment Driver Mapping",
+			filters={"default_device": device},
+			fields=["name", "pos_profile"],
+			as_list=True,
+		):
+			if till == keep:
+				continue
+			frappe.db.set_value("POS Payment Driver Mapping", name, "default_device", None)
+			left.append(till)
+	if frappe.get_meta("POS Profile").get_field("custom_active_payment_devices"):
+		child = frappe.get_meta("POS Profile").get_field("custom_active_payment_devices").options
+		for till in frappe.get_all(
+			child, filters={"payment_device": device}, pluck="parent", distinct=True
+		):
+			if till == keep:
+				continue
+			profile = frappe.get_doc("POS Profile", till)
+			profile.set(
+				"custom_active_payment_devices",
+				[r for r in profile.custom_active_payment_devices if r.payment_device != device],
+			)
+			profile.flags.ignore_permissions = True
+			profile.save()
+			left.append(till)
+	return sorted(set(left))
+
+
+def terminal_tills(device: str) -> list[str]:
+	"""The tills ``device`` is wired to."""
+	tills = set()
+	if frappe.db.exists("DocType", "POS Payment Driver Mapping"):
+		tills.update(
+			frappe.get_all(
+				"POS Payment Driver Mapping",
+				filters={"default_device": device, "enabled": 1},
+				pluck="pos_profile",
+			)
+		)
+	field = frappe.get_meta("POS Profile").get_field("custom_active_payment_devices")
+	if field:
+		tills.update(frappe.get_all(field.options, filters={"payment_device": device}, pluck="parent"))
+	return sorted(tills)

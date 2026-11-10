@@ -37,6 +37,7 @@ function payrexx_setup_config() {
 			},
 		],
 
+		secret_field: "api_secret",
 		fill_fields(status, page) {
 			const p = status.provider;
 			if (!p) return;

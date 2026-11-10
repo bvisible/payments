@@ -21,6 +21,7 @@ MODULES = (
 	"payments.api.payrexx_setup",
 	"payments.api.terminal",
 	"payments.api.terminal_receipt",
+	"payments.api.terminals",
 	"payments.api.twint",
 	"payments.api.wallee_setup",
 	"payments.integrations.payrexx.api",
@@ -47,6 +48,7 @@ OPEN_TO_GET = {
 	"payments.api.payrexx_setup": {"get_current_setup", "test_connection", "get_status"},
 	"payments.api.terminal": {"list_stripe_locations", "list_stripe_readers"},
 	"payments.api.terminal_receipt": {"preview_text", "preview_receipt"},
+	"payments.api.terminals": {"wallee_terminals"},
 	"payments.api.twint": set(),
 	"payments.api.wallee_setup": {"get_status"},
 	"payments.integrations.payrexx.api": {"get_intent_state", "is_payrexx_enabled"},
@@ -84,6 +86,7 @@ POST_ONLY = {
 		"send_receipt",
 	},
 	"payments.api.payment_settings": {"set_shop_method", "set_till_mode"},
+	"payments.api.terminals": {"move_terminal", "remove_terminal", "add_wallee_terminal"},
 	"payments.api.payrexx_setup": {
 		"save_credentials",
 		"setup_channels",

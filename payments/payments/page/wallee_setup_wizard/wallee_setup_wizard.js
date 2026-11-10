@@ -38,6 +38,7 @@ function wallee_setup_config() {
 			},
 		],
 
+		secret_field: "authentication_key",
 		fill_fields(status, page) {
 			const p = status.provider;
 			if (!p) return;

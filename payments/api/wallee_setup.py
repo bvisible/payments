@@ -9,7 +9,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import frappe
@@ -33,14 +32,15 @@ def _site_lang() -> str:
 
 
 def _status() -> dict[str, Any]:
-	try:
-		return frappe.parse_json(frappe.db.get_default(STATUS_KEY) or "{}") or {}
-	except (ValueError, TypeError):
-		return {}
+	from payments.setup.provider_setup import read_state
+
+	return read_state(STATUS_KEY)
 
 
 def _save_status(status: dict[str, Any]) -> None:
-	frappe.db.set_default(STATUS_KEY, json.dumps(status, default=str))
+	from payments.setup.provider_setup import write_state
+
+	write_state(STATUS_KEY, status)
 
 
 def _provider_name() -> str:
@@ -105,11 +105,20 @@ def connect(space_id: str, user_id: str, authentication_key: str | None = None) 
 		frappe.throw(_("The authentication key is required"))
 	settings.flags.ignore_permissions = True
 	settings.save()
-	frappe.db.commit()
 
+	# //// Neoffice — proven before committed: a mistyped key used to replace a working one, and every
+	# //// till and the shop lost Wallee until the right key was found again. A refusal leaves all as it was.
 	health = _health(provider)
 	if not health.get("ok"):
-		return {"ok": False, "error": health.get("error") or _("Connection failed"), **get_status()}
+		frappe.db.rollback()
+		frappe.clear_document_cache("Payment Provider", name)
+		if settings_name:
+			frappe.clear_document_cache("Wallee Settings", settings_name)
+		return {
+			"ok": False,
+			"error": _("{0} — nothing was changed.").format(health.get("error") or _("Connection failed")),
+			**get_status(),
+		}
 
 	_bind_channels(name)
 	_prepare_erp()
@@ -173,16 +182,20 @@ def _prepare_erp() -> dict[str, Any]:
 
 	accounts = {}
 	for company in companies_in_use():
-		account = ensure_clearing_account(company, _("Wallee clearing account", lang=_site_lang()))
+		account = ensure_clearing_account(
+			company, _("Wallee clearing account", lang=_site_lang()), gateway=GATEWAY
+		)
 		if account:
 			accounts[company] = account
 			ensure_gateway_account(GATEWAY, company, account)
 	status = _status()
 	mode = status.get("till_mode") or _("Wallee Terminal", lang=_site_lang())
-	tills = ensure_till_mode(mode, accounts)
+	till = ensure_till_mode(mode, accounts)
 	status["till_mode"] = mode
+	status["accounts"] = accounts
+	status["till_errors"] = till["errors"]
 	_save_status(status)
-	return {"accounts": accounts, "tills": tills, "till_mode": mode}
+	return {"accounts": accounts, "tills": till["tills"], "till_mode": mode, "errors": till["errors"]}
 
 
 def _ensure_webhook(provider) -> dict[str, Any]:  # noqa: ANN001
@@ -265,14 +278,11 @@ def get_status() -> dict[str, Any]:
 	webhook = status.get("webhook") or {}
 	till_mode = status.get("till_mode")
 	tills = till_mode_tills(till_mode) if till_mode else []
-	clearing = frappe.db.get_value(
-		"Account",
-		{"account_name": _("Wallee clearing account", lang=_site_lang()), "is_group": 0},
-		"name",
-	)
-	gateway_account = frappe.db.get_value(
-		"Payment Gateway Account", {"payment_gateway": GATEWAY}, "name"
-	)
+	from payments.setup.provider_setup import shop_gateway_account
+
+	accounts = status.get("accounts") or {}
+	clearing = ", ".join(a for a in accounts.values() if frappe.db.exists("Account", a)) or None
+	gateway_account = shop_gateway_account(GATEWAY)
 	live = bool(provider and provider["mode"] == "live")
 	rows = [
 		{
@@ -292,6 +302,7 @@ def get_status() -> dict[str, Any]:
 			"state": "ok" if tills else "todo",
 			"detail": ", ".join(tills),
 			"till_mode": till_mode,
+			"errors": status.get("till_errors") or {},
 		},
 		{"key": "shop", "state": ("ok" if live else "waiting") if gateway_account else "todo"},
 		{

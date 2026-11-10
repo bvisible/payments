@@ -196,9 +196,7 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		tx_service = MagicMock()
 		tx_service.post_payment_transactions.side_effect = RuntimeError("Wallee 503")
 		with _patch_services(tx_mock=tx_service):
-			result = driver.create_intent(
-				IntentRequest(intent_name="PI-w-002", amount=100, currency="CHF")
-			)
+			result = driver.create_intent(IntentRequest(intent_name="PI-w-002", amount=100, currency="CHF"))
 		self.assertEqual(result.status, "failed")
 		self.assertEqual(result.error_code, "wallee_create_failed")
 		self.assertIn("Wallee 503", result.error_message)
@@ -220,9 +218,7 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		with _patch_services(terminals_mock=terminals):
 			result = driver.confirm_intent("12345", reader_id="678")
 
-		terminals.post_payment_terminals_id_perform_transaction.assert_called_once_with(
-			678, 12345, 100
-		)
+		terminals.post_payment_terminals_id_perform_transaction.assert_called_once_with(678, 12345, 100)
 		self.assertEqual(result.status, "processing")
 		self.assertEqual(result.next_action_payload["terminal_id"], 678)
 
@@ -250,10 +246,36 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 			)
 		)
 
-		self.assertEqual(result.status, "failed")
-		self.assertEqual(result.error_code, "long_polling_timeout")
-		self.assertTrue(result.error_message.startswith("[HTTP 543] The request timed out."))
+		# //// Neoffice — #2358: a timeout leaves the payment in flight (the SDK resumes it; the card may
+		# //// still be tapped), it is settled by the webhook or the sweep, never ranked failed.
+		self.assertEqual(result.status, "processing")
+		self.assertEqual(result.raw["error_code"], "long_polling_timeout")
+		self.assertEqual(result.next_action_payload["terminal_action_status"], "waiting")
 		self.assertEqual(result.provider_intent_id, "12345")
+
+	def test_a_read_that_times_out_leaves_the_payment_in_flight(self):
+		from urllib3.exceptions import ReadTimeoutError
+
+		result = self._confirm_with(
+			ReadTimeoutError(None, "/perform", "Read timed out. (read timeout=30)")
+		)
+		self.assertEqual(result.status, "processing")
+
+	def test_a_connection_that_never_opened_is_a_failure_to_retry(self):
+		from urllib3.exceptions import ConnectTimeoutError
+
+		result = self._confirm_with(ConnectTimeoutError(None, "Connection to app-wallee.com timed out"))
+		self.assertEqual(result.status, "failed")
+
+	def test_the_terminal_call_does_not_hold_the_till_ninety_seconds(self):
+		driver = _build_driver()
+		terminals = MagicMock()
+		terminals.post_payment_terminals_id_perform_transaction.return_value = SimpleNamespace(
+			to_dict=lambda: {}
+		)
+		with _patch_services(terminals_mock=terminals):
+			driver.confirm_intent("12345", reader_id="678")
+		self.assertEqual(terminals.api_client.configuration.request_timeout, (10, 30))
 
 	def test_a_terminal_that_is_not_available_says_so_in_words(self):
 		result = self._confirm_with(
@@ -271,7 +293,9 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 
 	def test_a_transaction_cancelled_on_the_terminal_is_a_failure_not_an_exception(self):
 		result = self._confirm_with(
-			_wallee_error(422, "Unprocessable Entity", "Terminal transaction canceled.", "terminal_cancelled")
+			_wallee_error(
+				422, "Unprocessable Entity", "Terminal transaction canceled.", "terminal_cancelled"
+			)
 		)
 
 		self.assertEqual(result.status, "failed")
@@ -289,8 +313,12 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 	def test_the_message_and_code_are_pulled_out_of_the_sdks_text(self):
 		from payments.drivers.wallee.terminal_driver import _extract_wallee_error
 
-		message, code = _extract_wallee_error(_wallee_error(404, "Not Found", "The requested resource does not exist.", "resource_missing"))
-		self.assertEqual((message, code), ("[HTTP 404] The requested resource does not exist.", "resource_missing"))
+		message, code = _extract_wallee_error(
+			_wallee_error(404, "Not Found", "The requested resource does not exist.", "resource_missing")
+		)
+		self.assertEqual(
+			(message, code), ("[HTTP 404] The requested resource does not exist.", "resource_missing")
+		)
 
 		# an error the SDK words in another way is kept, cut short, and has no code
 		message, code = _extract_wallee_error(RuntimeError("x" * 500))
@@ -353,7 +381,9 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		self.assertEqual(refunds.refund.call_args.args[1].amount, 9.5)
 		self.assertEqual(result.status, "refunded")
 
-	def test_refund_full_of_a_transaction_that_says_no_amount_is_refused_and_asks_wallee_nothing(self):
+	def test_refund_full_of_a_transaction_that_says_no_amount_is_refused_and_asks_wallee_nothing(
+		self,
+	):
 		driver = _build_driver()
 		tx_service = MagicMock()
 		tx_service.get_payment_transactions_id.return_value = _wallee_tx(
@@ -377,7 +407,9 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 	def test_refundable_amount_prefers_what_was_captured_then_what_was_authorized_then_nothing(self):
 		from payments.drivers.wallee.terminal_driver import refundable_amount
 
-		self.assertEqual(refundable_amount(_wallee_tx(authorization_amount=15.0, completed_amount=12.0)), 12.0)
+		self.assertEqual(
+			refundable_amount(_wallee_tx(authorization_amount=15.0, completed_amount=12.0)), 12.0
+		)
 		self.assertEqual(refundable_amount(_wallee_tx(authorization_amount=15.0)), 15.0)
 		self.assertEqual(refundable_amount(_wallee_tx(authorization_amount=None)), 0.0)
 		self.assertEqual(refundable_amount(SimpleNamespace()), 0.0)
@@ -436,7 +468,9 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 
 	def test_webhook_transaction_pending_no_transition(self):
 		driver = _build_driver()
-		body = b'{"entityId":222,"listenerEntityTechnicalName":"Transaction","state":"PENDING","spaceId":100}'
+		body = (
+			b'{"entityId":222,"listenerEntityTechnicalName":"Transaction","state":"PENDING","spaceId":100}'
+		)
 		sig = hmac.new(b"unit-test-secret", body, hashlib.sha256).hexdigest()
 		result = driver.handle_webhook(body, {"X-Signature": sig})
 		self.assertTrue(result.signature_valid)
@@ -444,7 +478,9 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 
 	def test_webhook_refund_successful(self):
 		driver = _build_driver()
-		body = b'{"entityId":777,"listenerEntityTechnicalName":"Refund","state":"SUCCESSFUL","spaceId":100}'
+		body = (
+			b'{"entityId":777,"listenerEntityTechnicalName":"Refund","state":"SUCCESSFUL","spaceId":100}'
+		)
 		sig = hmac.new(b"unit-test-secret", body, hashlib.sha256).hexdigest()
 		result = driver.handle_webhook(body, {"X-Signature": sig})
 		self.assertTrue(result.signature_valid)
@@ -482,7 +518,9 @@ class TestWalleeWebDriverRefund(FrappeTestCase):
 		return result, refunds
 
 	def test_a_full_refund_gives_back_what_was_captured(self):
-		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED", authorization_amount=15.0, completed_amount=12.0))
+		result, refunds = self._refund_with(
+			_wallee_tx(state="COMPLETED", authorization_amount=15.0, completed_amount=12.0)
+		)
 
 		self.assertEqual(result.status, "refunded")
 		self.assertEqual(refunds.refund.call_args.args[1].amount, 12.0)
