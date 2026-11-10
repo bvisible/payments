@@ -41,7 +41,7 @@ OPEN_TO_GET = {
 		"mobile_paid_total",
 		"mobile_receipt",
 	},
-	"payments.api.payrexx_setup": {"get_current_setup", "test_connection"},
+	"payments.api.payrexx_setup": {"get_current_setup", "test_connection", "get_status"},
 	"payments.api.terminal": {"list_stripe_locations", "list_stripe_readers"},
 	"payments.api.terminal_receipt": {"preview_text", "preview_receipt"},
 	"payments.api.twint": set(),
@@ -79,7 +79,17 @@ POST_ONLY = {
 		"simulate_success",
 		"send_receipt",
 	},
-	"payments.api.payrexx_setup": {"save_credentials", "setup_channels", "setup_tiles"},
+	"payments.api.payrexx_setup": {
+		"save_credentials",
+		"setup_channels",
+		"setup_tiles",
+		# //// Neoffice — the one-gesture setup (2026-11-10): connecting, reading a test payment page
+		# //// (it creates and deletes one at Payrexx), pairing a terminal, storing a key.
+		"connect",
+		"check_online",
+		"link_terminal",
+		"save_webhook_key",
+	},
 	"payments.api.terminal": {
 		"create_stripe_location",
 		"ensure_stripe_webhook",

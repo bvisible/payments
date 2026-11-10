@@ -227,6 +227,9 @@ scheduler_events["cron"]["*/5 * * * *"].append(
 # the cert's notAfter (TWINT certs last ~3 years and expire silently).
 scheduler_events["daily"] = [
 	"payments.payment_gateways.doctype.twint_bridge_settings.twint_bridge_settings.check_certificate_expiry",
+	# //// Neoffice — Payrexx opens a shop's online sales on its own schedule; the setup page promises
+	# //// an e-mail the morning it happens. Reads a test payment page, changes nothing in the shop.
+	"payments.api.payrexx_setup.daily_online_check",
 ]
 
 # Testing

@@ -1,330 +1,235 @@
 //// Neoffice — added file (no upstream equivalent).
 ////
-//// Standing a Payrexx account up by hand means touching six doctypes in the
-//// right order, and every miss fails silently: a tile that never appears, or one
-//// that appears and cannot take money. This walks through it once, and refuses
-//// to build anything before the credentials have actually reached Payrexx.
-////
-//// Deliberately one page rather than a stepper. There are three decisions —
-//// credentials, channels, tiles — and hiding two of them behind "Next" makes a
-//// five-minute job feel like a form to endure. Sections unlock as they become
-//// answerable.
+//// The Payrexx setup page. Since 2026-11-10 it is one gesture: paste the space and the API key,
+//// « Connect », and Neoffice lays down the rest (clearing account, gateways, channels, the till mode)
+//// and reads what the Payrexx account really offers off a test payment page. Nothing reaches the shop
+//// on its own: the merchant chooses in Payment settings. The layout is shared with Wallee
+//// (public/js/provider_setup_page.js), as Jérémy asked: every provider looks the same.
 
 frappe.pages["payrexx-setup-wizard"].on_page_load = function (wrapper) {
-	const page = frappe.ui.make_app_page({
-		parent: wrapper,
-		title: __("Payrexx Setup"),
-		single_column: true,
+	frappe.require("/assets/payments/js/provider_setup_page.js", () => {
+		new payments.setup.Page(wrapper, payrexx_setup_config());
 	});
-	new PayrexxSetup(page);
 };
 
-class PayrexxSetup {
-	constructor(page) {
-		this.page = page;
-		this.$body = $(`<div class="payrexx-setup"></div>`).appendTo(page.main);
-		this.connexion_ok = false;
-		this.render();
-		this.charger();
-	}
+function payrexx_setup_config() {
+	const esc = (t) => payments.setup.esc(t);
+	const space = (status, page) =>
+		((page && page.fields.instance.get_value()) || (status.provider && status.provider.instance) || "").trim();
+	const base = (name) => `https://${encodeURIComponent(name)}.payrexx.com/cadmin/index.php`;
 
-	appel(methode, args) {
-		return frappe.call({
-			method: `payments.api.payrexx_setup.${methode}`,
-			args: args || {},
-			freeze: true,
-			freeze_message: __("Talking to Payrexx…"),
-		});
-	}
+	return {
+		title: "Payrexx",
+		subtitle: __("Card and TWINT, in the shop and online. Paste your key: Neoffice prepares the rest."),
+		method: "payments.api.payrexx_setup",
+		fields: [
+			{
+				fieldname: "instance",
+				fieldtype: "Data",
+				label: __("Your Payrexx space"),
+				description: __("The name or the address of your back office: both are read."),
+			},
+			{
+				fieldname: "api_secret",
+				fieldtype: "Password",
+				label: __("API key"),
+				description: __("Back office › API & Plugins: the key of type « API ». The « HPOS Device API Key » is not needed."),
+			},
+		],
 
-	render() {
-		this.$body.html(`
-			<style>
-				.payrexx-setup .card { margin-bottom: var(--margin-lg); }
-				.payrexx-setup .etat { font-size: var(--text-sm); }
-				.payrexx-setup .tuile { display:flex; align-items:flex-start; gap:8px;
-					padding:8px 0; border-bottom:1px solid var(--border-color); }
-				.payrexx-setup .tuile:last-child { border-bottom:0; }
-				.payrexx-setup .tuile small { color: var(--text-muted); }
-			</style>
-
-			<div class="card">
-				<div class="card-body">
-					<h5>${__("1. Your Payrexx space")}</h5>
-					<p class="text-muted etat">${__(
-						"Everything else follows from this. It is the part before .payrexx.com in the address of your back office — sign in and read the address bar."
-					)}</p>
-					<div class="row">
-						<div class="col-sm-5"><div class="frappe-control" data-champ="instance"></div></div>
-						<div class="col-sm-7 pt-4">
-							<a href="https://signup.payrexx.com" target="_blank" rel="noopener"
-							   class="btn btn-default btn-xs">${__("No account yet — create one")}</a>
-						</div>
-					</div>
-					<div class="mt-2 etat" data-zone="liens"></div>
-				</div>
-			</div>
-
-			<div class="card">
-				<div class="card-body">
-					<h5>${__("2. Credentials")}</h5>
-					<p class="text-muted etat">${__(
-						"In your back office, under API & Plugins: the key of type API. Leave the POS key empty; the « HPOS Device API Key » that Payrexx creates by itself is not needed."
-					)}</p>
-					<div class="row">
-						<div class="col-sm-5"><div class="frappe-control" data-champ="api_secret"></div></div>
-						<div class="col-sm-5"><div class="frappe-control" data-champ="pos_api_secret"></div></div>
-						<div class="col-sm-2"><div class="frappe-control" data-champ="mode"></div></div>
-					</div>
-					<div class="row">
-						<div class="col-sm-5"><div class="frappe-control" data-champ="webhook_signing_key"></div></div>
-						<div class="col-sm-7 etat pt-4" data-zone="webhook"></div>
-					</div>
-					<button class="btn btn-primary btn-sm" data-action="enregistrer">${__("Save and test")}</button>
-					<div class="etat mt-3" data-zone="connexion"></div>
-				</div>
-			</div>
-
-			<div class="card">
-				<div class="card-body">
-					<h5>${__("3. What Payrexx is used for")}</h5>
-					<div class="frappe-control" data-champ="web"></div>
-					<div class="frappe-control" data-champ="terminal"></div>
-					<button class="btn btn-default btn-sm" data-action="canaux" disabled>${__("Apply")}</button>
-					<div class="etat mt-3" data-zone="canaux"></div>
-				</div>
-			</div>
-
-			<div class="card">
-				<div class="card-body">
-					<h5>${__("4. What the shop offers")}</h5>
-					<p class="text-muted etat">${__(
-						"One tile per payment method reads better than a single tile that asks the shopper to choose again on Payrexx's page."
-					)}</p>
-					<div data-zone="tuiles"></div>
-					<button class="btn btn-default btn-sm mt-3" data-action="tuiles" disabled>${__("Create the tiles")}</button>
-					<div class="etat mt-3" data-zone="resultat"></div>
-				</div>
-			</div>
-		`);
-
-		this.champs = {};
-		const def = [
-			["instance", "Data", __("Instance"), __("the part before .payrexx.com — the full address is accepted too")],
-			["api_secret", "Password", __("API secret"), ""],
-			//// The POS key is optional even for a terminal: the API secret drives the terminal
-			//// too (both keys carry the same rights, measured 2026-08-03). Said here because a
-			//// merchant read « terminal only » as « needed for the terminal » and looked for it.
-			["pos_api_secret", "Password", __("POS API key"), __("optional — leave empty, the API secret also drives the terminal")],
-			["mode", "Select", __("Mode"), ""],
-			["webhook_signing_key", "Password", __("Webhook signing key"), __("shown only once by Payrexx")],
-			["web", "Check", __("Online payments"), ""],
-			["terminal", "Check", __("Card terminal"), ""],
-		];
-		for (const [nom, type, label, aide] of def) {
-			this.champs[nom] = frappe.ui.form.make_control({
-				parent: this.$body.find(`[data-champ="${nom}"]`),
-				df: {
-					fieldname: nom,
-					fieldtype: type,
-					label: label,
-					description: aide,
-					options: type === "Select" ? ["test", "live"] : undefined,
-				},
-				render_input: true,
-			});
-		}
-		this.champs.mode.set_value("test");
-		this.champs.web.set_value(1);
-
-		//// Les liens du back-office ne sont adressables qu'avec le nom de l'espace :
-		//// il fait partie du domaine. D'où l'instance en première question — sans
-		//// elle on ne peut que dire « allez dans API & Plugins » et laisser le
-		//// client chercher. Avec elle, chaque lien tombe sur SA page.
-		this.champs.instance.$input.on("input", () => this.rendre_liens());
-		this.rendre_liens();
-
-		this.$body.on("click", "[data-action]", (e) => {
-			const action = $(e.currentTarget).data("action");
-			({
-				enregistrer: () => this.enregistrer(),
-				canaux: () => this.canaux(),
-				tuiles: () => this.tuiles(),
-			})[action]();
-		});
-	}
-
-	//// `valeur` est passée explicitement à l'ouverture : `set_value` est
-	//// asynchrone, donc relire le contrôle juste après rend encore le champ
-	//// vide et les liens ne s'affichent jamais sur une configuration existante.
-	rendre_liens(valeur) {
-		const espace = (valeur !== undefined ? valeur : this.champs.instance.get_value() || "").trim();
-		const zone = this.$body.find('[data-zone="liens"]');
-		if (!espace) {
-			zone.html(
-				`<span class="text-muted">${__(
-					"Enter your space above and the links to your own back office appear here."
-				)}</span>`
-			);
-			return;
-		}
-		const base = `https://${encodeURIComponent(espace)}.payrexx.com/cadmin/index.php`;
-		//// Payrexx names its pages the other way round from what one expects: API & Plugins (the
-		//// secrets) is `act=integrations`, and `act=api` is the Webhooks page. Seen in the back
-		//// office on 2026-08-11; the first link used to open the webhooks instead of the secrets.
-		const liens = [
-			[`${base}?cmd=checkout&act=integrations`, __("API & Plugins — the secrets")],
-			[`${base}?cmd=checkout&act=api`, __("Webhooks — the signing key")],
-			[`${base}?cmd=checkout&act=softpos`, __("Tap to Pay")],
-			[`${base}?cmd=checkout&act=api&tpl=webhookLogs`, __("Webhook logs")],
-			[`https://${encodeURIComponent(espace)}.payrexx.com/cadmin/`, __("Back office")],
-		];
-		zone.html(
-			liens
-				.map(
-					([url, texte]) =>
-						`<a href="${frappe.utils.escape_html(url)}" target="_blank" rel="noopener"
-						    class="btn btn-default btn-xs mr-2 mb-1">${frappe.utils.escape_html(texte)} ↗</a>`
-				)
-				.join("")
-		);
-	}
-
-	async charger() {
-		const { message } = await frappe.call({
-			method: "payments.api.payrexx_setup.get_current_setup",
-		});
-		if (!message) return;
-		this.rendre_webhook(message.webhook_url);
-		const p = message.provider;
-		if (p) {
-			this.champs.instance.set_value(p.instance || "");
-			this.rendre_liens(p.instance || "");
-			this.champs.mode.set_value(p.mode || "test");
-			//// The secrets are never sent back, so the fields stay empty and the
-			//// description says they are already stored. Echoing a key into a form
-			//// would put it in every browser cache and screenshot from then on.
-			for (const [champ, present] of [
-				["api_secret", p.has_api_secret],
-				["pos_api_secret", p.has_pos_secret],
-				["webhook_signing_key", p.has_webhook_key],
-			]) {
-				if (present) {
-					this.champs[champ].df.description = __("Already stored — leave empty to keep it");
-					this.champs[champ].refresh();
-				}
+		fill_fields(status, page) {
+			const p = status.provider;
+			if (!p) return;
+			if (!page.fields.instance.get_value() && p.instance) page.fields.instance.set_value(p.instance);
+			if (p.has_api_secret) {
+				page.fields.api_secret.df.description = __("Already stored — leave empty to keep it");
+				page.fields.api_secret.refresh();
 			}
-		}
-		const canaux = (message.channels || []).map((c) => c.channel);
-		this.champs.web.set_value(canaux.includes("payrexx_web") ? 1 : 0);
-		this.champs.terminal.set_value(canaux.includes("terminal") ? 1 : 0);
+		},
 
-		this.rendre_tuiles(message.tiles || []);
-		if (p && p.enabled) this.enregistrer(true);
-	}
+		links(status) {
+			const name = space(status);
+			if (!name) return [];
+			return [[`${base(name)}?cmd=checkout&act=integrations`, __("Open API & Plugins at Payrexx")]];
+		},
 
-	//// The address Payrexx must post to. Without a webhook and its signing key a till
-	//// payment is learnt only by the five-minute sweep: the cashier waits that long.
-	rendre_webhook(url) {
-		if (!url) return;
-		this.$body.find('[data-zone="webhook"]').html(
-			`<span class="text-muted">${__(
-				"Under Webhooks in your back office: add this address, content type JSON, event Transaction, then generate the signing key and paste it here."
-			)}</span><br><code>${frappe.utils.escape_html(url)}</code>`
-		);
-	}
+		rows: {
+			account: {
+				label: __("Account"),
+				text: (row) => ({ pill: row.state === "ok" ? __("Connected") : __("To connect"), detail: row.detail }),
+			},
+			accounting: {
+				label: __("Accounting"),
+				text: (row) => ({
+					pill: row.state === "ok" ? __("Ready") : __("To prepare"),
+					detail: row.detail ? __("{0}, and the Payrexx gateways in CHF", [row.detail]) : "",
+				}),
+			},
+			till: {
+				label: __("Till"),
+				text: (row) => {
+					const linked = (row.linked || []).map((l) => `${l.pos_profile} (${l.default_device})`);
+					let detail = row.detail
+						? __("« {0} » on {1}: the cashier types the amount on the terminal.", [row.till_mode, row.detail])
+						: "";
+					if (linked.length) detail += " " + __("Linked to the till: {0}.", [linked.join(", ")]);
+					return { pill: row.state === "ok" ? __("Ready") : __("To prepare"), detail };
+				},
+			},
+			shop: {
+				label: __("Online shop"),
+				text: (row) => {
+					if (row.state === "ok")
+						return {
+							pill: __("Ready to choose"),
+							html: `${esc(__("Payrexx offers {0} online.", [row.detail]))} <a href="/app/payment-settings">${esc(__("Choose what it takes in Payment settings"))}</a>`,
+						};
+					if (row.state === "waiting")
+						return {
+							pill: __("Waiting for Payrexx"),
+							detail: __("Card and TWINT prepared, not shown. A test payment page shows that Payrexx does not take online payments yet: see below."),
+						};
+					return { pill: __("Not checked yet"), detail: "" };
+				},
+			},
+			webhook: {
+				label: __("Instant confirmations"),
+				text: (row) => ({
+					pill: row.state === "ok" ? __("Set up") : __("Optional"),
+					detail:
+						row.state === "ok"
+							? __("Payrexx tells Neoffice the moment a payment ends.")
+							: __("The webhook: needed to link a terminal to the till. Without it the shop confirms when the shopper comes back."),
+				}),
+			},
+		},
 
-	rendre_tuiles(existantes) {
-		const par_cle = Object.fromEntries(existantes.map((t) => [t.key, t]));
-		const def = [
-			["card", __("Card"), __("Visa and Mastercard, entered inside the checkout")],
-			["twint", "TWINT", __("goes straight to TWINT, no second choice")],
-			["all", __("All methods"), __("one tile, the shopper chooses on Payrexx's page")],
-		];
-		this.$body.find('[data-zone="tuiles"]').html(
-			def
-				.map(([cle, titre, aide]) => {
-					const t = par_cle[cle];
-					const etat = t
-						? `<small>${__("already there")} — ${frappe.utils.escape_html(t.account)}</small>`
-						: `<small>${frappe.utils.escape_html(aide)}</small>`;
-					return `<label class="tuile">
-						<input type="checkbox" data-tuile="${cle}" ${t ? "checked" : ""}>
-						<span><b>${frappe.utils.escape_html(titre)}</b><br>${etat}</span>
-					</label>`;
-				})
-				.join("")
-		);
-	}
+		mode_text(state) {
+			return {
+				live: __("Production — payments are real"),
+				test: __("Test mode — no real payment"),
+				mixed: __("Mixed — part still in test or not open"),
+				unknown: __("Not checked yet"),
+			}[state];
+		},
 
-	async enregistrer(silencieux) {
-		const instance = this.champs.instance.get_value();
-		const secret = this.champs.api_secret.get_value();
-		if (!silencieux) {
-			if (!instance) return frappe.msgprint(__("The instance is required"));
-			const r = await this.appel("save_credentials", {
-				instance: instance,
-				api_secret: secret,
-				pos_api_secret: this.champs.pos_api_secret.get_value(),
-				mode: this.champs.mode.get_value(),
-				webhook_signing_key: this.champs.webhook_signing_key.get_value(),
-			});
-			if (!r.message) return;
-		}
-		const { message } = await this.appel("test_connection");
-		this.connexion_ok = !!(message && message.ok);
-		this.$body.find('[data-zone="connexion"]').html(
-			this.connexion_ok
-				? `<div class="text-success">✓ ${__("Connected to {0}", [
-						frappe.utils.escape_html(message.instance || ""),
-				  ])} — ${__("mode")} <b>${frappe.utils.escape_html(message.mode)}</b><br>
-				   <span class="text-muted">${__("Methods on this account")}: ${(message.payment_methods || [])
-						.map(frappe.utils.escape_html)
-						.join(", ")}</span></div>`
-				: `<div class="text-danger">✗ ${frappe.utils.escape_html(
-						(message && message.error) || __("Connection failed")
-				  )}</div>`
-		);
-		this.$body.find('[data-action="canaux"], [data-action="tuiles"]').prop("disabled", !this.connexion_ok);
+		mode_help(status) {
+			const name = space(status);
+			const online = status.online || {};
+			const methods = (online.methods || []).join(", ") || "—";
+			return `
+				<p>${esc(__("How Neoffice knows: it opens a test payment page (nothing is paid, it is deleted at once) and reads what it offers."))}</p>
+				<div class="ps-note">${esc(__("Offered today: {0}", [methods]))}${online.test_banner ? "<br>" + esc(__("Payrexx shows « test mode » on that page: a provider of the account is still in test.")) : ""}</div>
+				<p style="margin-top:12px"><b>${esc(__("Going to production happens at Payrexx; Neoffice cannot do it"))}</b></p>
+				<ol>
+					<li>${esc(__("Back office › Payment providers › the provider in test › Configure › Mode: Live › Save."))}</li>
+					<li>${esc(__("Online sales missing from the contract: ask the support (the sentence is ready on the page)."))}</li>
+					<li>${esc(__("Come back here: « Check now »."))}</li>
+				</ol>
+				${name ? `<a href="${esc(base(name))}?cmd=checkout&act=psps" target="_blank" rel="noopener">${esc(__("Open Payment providers"))} ↗</a>` : ""}`;
+		},
 
-		//// A live account is worth saying out loud: the same click that was
-		//// harmless a moment ago now moves real money.
-		if (this.connexion_ok && message.mode === "live") {
-			this.$body.find('[data-zone="connexion"]').append(
-				`<div class="text-warning mt-2">⚠ ${__(
-					"This account is live. Payments taken from now on are real."
-				)}</div>`
-			);
-		}
-	}
+		panels(status) {
+			const out = [];
+			const shop = (status.rows || []).find((r) => r.key === "shop") || {};
+			const name = space(status);
+			if (shop.state === "waiting") {
+				const sentence = __(
+					"Hello, please add online sales for our website {0} to our Payrexx Pay contract (cards and TWINT).",
+					[window.location.host]
+				);
+				const when = shop.checked_at ? frappe.datetime.str_to_user(shop.checked_at) : "—";
+				out.push(`
+					<div class="ps-card">
+						<div class="ps-head"><span class="ps-num">!</span><h3>${esc(__("Your shop is waiting for Payrexx"))}</h3></div>
+						<p class="ps-detail" style="margin:0">${esc(__("Your Payrexx contract covers the shop on site, not your website yet. Ask Payrexx to open online sales: the « Support » button at the bottom right of your back office. One sentence is enough:"))}</p>
+						<div class="ps-note">${esc(sentence)}</div>
+						<div class="ps-actions">
+							<button class="btn btn-default btn-sm" data-action="copy" data-text="${esc(sentence)}">${esc(__("Copy the sentence"))}</button>
+							${name ? `<a href="https://${esc(encodeURIComponent(name))}.payrexx.com/cadmin/" target="_blank" rel="noopener" style="font-weight:700">${esc(__("Open my Payrexx back office"))} ↗</a>` : ""}
+						</div>
+						<p class="ps-detail" style="margin:0">${esc(__("Every morning Neoffice opens the test page again and e-mails you the day Payrexx has said yes. Nothing changes in your shop on its own."))}</p>
+						<div class="ps-actions">
+							<button class="btn btn-primary btn-sm" data-action="check">${esc(__("Check now"))}</button>
+							<span class="ps-detail">${esc(__("Last check: {0}", [when]))}</span>
+						</div>
+					</div>`);
+			}
+			if (status.provider) {
+				const ok = status.provider.has_webhook_key;
+				out.push(`
+					<div class="ps-card">
+						<div class="ps-head"><span class="ps-num">↯</span><h3>${esc(__("Instant confirmations (optional)"))}</h3>
+							<span class="ps-aside">${payments.setup.pill(ok ? "ok" : "optional", ok ? __("Set up") : __("Optional"))}</span></div>
+						<p class="ps-detail" style="margin:0">${esc(__("Payrexx does not let the webhook be created from outside: two gestures in its back office, under Webhooks. 1. Add this address, content type JSON, event Transaction, retries on. 2. « Generate Signing-Key », then paste the key here."))}</p>
+						<code class="ps-url">${esc(status.webhook_url)}</code>
+						<div class="ps-actions">
+							<input type="password" class="form-control" data-zone="webhook-key" style="max-width:340px" placeholder="${esc(ok ? __("Already stored — leave empty to keep it") : __("Signing key"))}">
+							<button class="btn btn-default btn-sm" data-action="save-webhook">${esc(__("Save the key"))}</button>
+							${name ? `<a href="${esc(base(name))}?cmd=checkout&act=api" target="_blank" rel="noopener" style="font-weight:700">${esc(__("Open Webhooks at Payrexx"))} ↗</a>` : ""}
+						</div>
+					</div>`);
+			}
+			return out.join("");
+		},
 
-	async canaux() {
-		const r = await this.appel("setup_channels", {
-			web: this.champs.web.get_value() ? 1 : 0,
-			terminal: this.champs.terminal.get_value() ? 1 : 0,
-		});
-		if (r.message && r.message.ok) {
-			this.$body
-				.find('[data-zone="canaux"]')
-				.html(`<div class="text-success">✓ ${r.message.channels.join(", ")}</div>`);
-		}
-	}
+		actions(status) {
+			if (!status.provider) return "";
+			return `
+				<button class="btn btn-default btn-sm" data-action="link-terminal">${esc(__("Link a terminal to the till"))}</button>
+				<a class="btn btn-primary btn-sm" href="/app/payment-settings">${esc(__("Who takes what"))}</a>`;
+		},
 
-	async tuiles() {
-		const choisies = this.$body
-			.find("[data-tuile]:checked")
-			.map((i, e) => $(e).data("tuile"))
-			.get();
-		if (!choisies.length) return frappe.msgprint(__("Pick at least one tile"));
-
-		const r = await this.appel("setup_tiles", { tiles: choisies });
-		if (!r.message || !r.message.ok) return;
-		this.$body.find('[data-zone="resultat"]').html(
-			`<div class="text-success">✓ ${r.message.tiles
-				.map((t) => frappe.utils.escape_html(t.gateway))
-				.join(" · ")}</div>
-			 <div class="text-muted mt-1">${__("Open the shop's payment step to see them.")}</div>`
-		);
-		this.charger();
-	}
+		async on_action(action, page) {
+			if (action === "save-webhook") {
+				const key = (page.$body.find('[data-zone="webhook-key"]').val() || "").trim();
+				if (!key) return frappe.msgprint(__("Paste the signing key first"));
+				await page.run("save_webhook_key", { webhook_signing_key: key });
+				frappe.show_alert({ message: __("Signing key saved"), indicator: "green" });
+			}
+			if (action === "link-terminal") {
+				const d = new frappe.ui.Dialog({
+					title: __("Link a terminal to the till"),
+					fields: [
+						{
+							fieldtype: "HTML",
+							fieldname: "intro",
+							options: `<p class="text-muted">${esc(__("Optional. Linked, the terminal receives the amount from the till: nothing to type. Without it, it takes payments all the same."))}</p>`,
+						},
+						{
+							fieldname: "serial_number",
+							fieldtype: "Data",
+							label: __("Serial number"),
+							reqd: 1,
+							description: __("On the label at the back (N86… or N6…), or in the back office › Card readers."),
+						},
+						{ fieldname: "pos_profile", fieldtype: "Link", options: "POS Profile", label: __("Till"), reqd: 1 },
+						{
+							fieldname: "pairing_code",
+							fieldtype: "Data",
+							label: __("Pay-Connect code"),
+							reqd: 1,
+							description: __("On the terminal: menu ≡ at the top left › Pay-Connect. A 6-character code appears. Stay on that screen: the code changes if you leave it."),
+						},
+					],
+					primary_action_label: __("Link"),
+					primary_action: async (values) => {
+						const { message } = await page.call("link_terminal", values);
+						if (message && message.ok) {
+							d.hide();
+							frappe.show_alert({
+								message: __("{0} linked to {1}: make a first payment of one franc from the till.", [
+									values.serial_number,
+									values.pos_profile,
+								]),
+								indicator: "green",
+							});
+							page.load();
+						}
+					},
+				});
+				d.show();
+			}
+		},
+	};
 }
