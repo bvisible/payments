@@ -1,14 +1,20 @@
 # //// Neoffice — added file (no upstream equivalent). Pytest fixtures for the suite. Every
-# //// backend call goes over HTTPS with an Administrator API key rather than SSH, so
-# //// the suite runs from any laptop or from CI. Needs `E2E_API_KEY` / `E2E_API_SECRET`
-# //// and targets `--base-url` (osiris by default).
+# //// backend call goes over HTTP with an Administrator API key rather than SSH, so the
+# //// fixtures need no shell on the server. Needs `E2E_API_KEY` / `E2E_API_SECRET`
+# //// and targets `--base-url`: the test clone `prodclone.local` of osiris by default, never a live
+# //// site (maintenance #950: every run used to write into osiris's prod.local).
 # //// Commits: 187b5c8 2026-05-20 "add Playwright Python suite with 9 webshop scenarios".
 """Pytest fixtures for the webshop E2E suite.
 
-The tests target the live Frappe site at ``--base-url`` (default
-``osiris.neoffice.me``). All backend calls (state setup + assertions) go
-through HTTPS API using an Administrator API key — no SSH dependency, so
-the suite runs from any laptop or CI.
+The tests target the Frappe site at ``--base-url`` (default
+``http://prodclone.local:8000``: the test clone of osiris, served by the bench's
+own web server; run the suite on osiris, see README). All backend calls (state
+setup + assertions) go through the HTTP API using an Administrator API key.
+
+A live site is refused before anything runs: ``prod.local`` and every host that
+is not a ``*.local`` test site (osiris.neoffice.me serves prod.local). The suite
+creates and cancels documents, and a run on prod.local left 117 validated test
+invoices in its ledger (maintenance #950).
 
 Required env vars (or override via pytest --base-url):
 - ``E2E_API_KEY`` : Administrator API key on the target Frappe site
@@ -54,7 +60,8 @@ def _load_credentials() -> tuple[str, str]:
 		for line in env_file.read_text().splitlines():
 			if "=" in line and not line.startswith("#"):
 				k, v = line.split("=", 1)
-				k = k.strip(); v = v.strip().strip("'\"")
+				k = k.strip()
+				v = v.strip().strip("'\"")
 				if k == "E2E_API_KEY" and not key:
 					key = v
 				elif k == "E2E_API_SECRET" and not secret:
@@ -87,6 +94,7 @@ class FrappeAPI:
 				if resp.status_code >= 500:
 					last_err = RuntimeError(f"{method} HTTP {resp.status_code}")
 					import time
+
 					time.sleep(3)
 					continue
 				if not resp.ok:
@@ -96,6 +104,7 @@ class FrappeAPI:
 			except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
 				last_err = exc
 				import time
+
 				time.sleep(3)
 		raise RuntimeError(f"{method} failed after 3 attempts: {last_err}")
 
@@ -105,9 +114,31 @@ class FrappeAPI:
 # ---------------------------------------------------------------------------
 
 
+DEFAULT_BASE_URL = "http://prodclone.local:8000"
+
+
+def refuse_a_live_site(url: str) -> str | None:
+	"""Why this URL must not be tested, or None when it is a test site (a ``*.local`` name other than prod.local)."""
+	from urllib.parse import urlparse
+
+	host = (urlparse(url).hostname or "").lower()
+	if host == "prod.local":
+		return "prod.local is osiris's live site"
+	if not host.endswith(".local"):
+		return f"{host or url!r} is not a test site (*.local): a public host serves a live site"
+	return None
+
+
 @pytest.fixture(scope="session")
 def base_url(pytestconfig) -> str:
-	return pytestconfig.getoption("--base-url") or "https://osiris.neoffice.me"
+	url = pytestconfig.getoption("--base-url") or DEFAULT_BASE_URL
+	reason = refuse_a_live_site(url)
+	if reason:
+		pytest.exit(
+			f"Refusing to run the e2e suite against {url}: {reason}. Use the test clone (README).",
+			returncode=2,
+		)
+	return url
 
 
 @pytest.fixture(scope="session")

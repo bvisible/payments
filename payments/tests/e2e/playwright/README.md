@@ -1,5 +1,5 @@
-<!-- //// Neoffice — added file (no upstream equivalent). How to run the Playwright suite: the
-     //// `.venv-e2e` virtualenv, the pytest markers (smoke / checkout / psp_*), the
+<!-- //// Neoffice — added file (no upstream equivalent). How to run the Playwright suite: on osiris,
+     //// against the test clone (never prod.local, #950), the pytest markers (smoke / checkout / psp_*), the
      //// API-key env vars, and the site it targets. Upstream has no browser test at all.
      //// Commits: 187b5c8 2026-05-20 "test(e2e): add Playwright Python suite with 9
      //// webshop scenarios". -->
@@ -7,23 +7,25 @@
 
 ## Quick start
 
+The suite runs **on osiris, against the test clone `prodclone.local`**, never against `prod.local` or any live
+site: it creates and cancels orders, invoices and payments, and the runs that targeted osiris's `prod.local` left
+117 validated test invoices in its ledger (maintenance #950). `conftest.py` refuses any `--base-url` whose host is
+`prod.local` or not a `*.local` test site, before a single test runs.
+
 ```bash
-cd /Users/jeremy/GitHub/payments
-source .venv-e2e/bin/activate
-cd payments/tests/e2e/playwright
-pytest                              # all tests, headless
+# on osiris, once per clone rebuild (see "The clone" below)
+cd ~/frappe-bench/apps/payments/payments/tests/e2e/playwright
 pytest -m smoke                     # smoke only
-pytest -m psp_stripe                # Stripe-only
-pytest --headed                     # see the browser
+pytest                              # all tests, headless
+pytest -m psp_stripe                # Stripe only
 pytest -k "signup or cart"          # by name
-pytest --slowmo=300                 # slowmo for debugging
 ```
 
 ## Architecture
 
 - **`conftest.py`** : pytest fixtures
-  - `backend` : SSH helper to run `bench execute` commands on Osiris
-  - `test_customer` : ensure_test_customer + cleanup before each test
+  - `backend` : HTTP client of the target site's whitelisted methods (Administrator API key)
+  - `reset_state` : `reset_test_env` before each test (cancels and keeps submitted documents, deletes drafts)
   - `logged_in_page` : authenticated Playwright `Page` ready to use
   - `paying_item` : Website Item code with positive price
 
@@ -33,18 +35,21 @@ pytest --slowmo=300                 # slowmo for debugging
   - `complete_shipping_step(page)` : select first shipping method → next
   - `pay_stripe(page, card="4242…")` : full Stripe iframe interaction
 
-## Configuration
+## The clone
 
-The tests target `osiris.neoffice.me` by default. Override:
-```bash
-pytest --base-url=https://myothersite.example
-```
+The default `--base-url` is `http://prodclone.local:8000`: the bench's own web server, which picks the site from
+the host name. `prodclone.local` is not served by nginx and is rebuilt from `prod.local` without its secrets, so
+after each rebuild:
 
-The test customer + password come from osiris site_config keys:
-- `e2e_test_customer`
-- `e2e_test_user_email`
-- `e2e_test_user_password`
-- `enable_e2e_simulators` (required for TWINT test)
+- the name resolves on osiris: `bench --site prodclone.local add-to-hosts` (once per server);
+- an Administrator API key of the clone in `E2E_API_KEY` / `E2E_API_SECRET` (or `~/.e2e-osiris.env`):
+  `bench --site prodclone.local execute frappe.core.doctype.user.user.generate_keys --args "['Administrator']"`;
+- the test keys copied into the clone's `site_config.json` (`bench --site prodclone.local set-config …`):
+  `e2e_test_customer`, `e2e_test_user_email`, `e2e_test_user_password`, `enable_e2e_simulators` (TWINT test);
+- the PSP tests (`psp_*`) need the PSP's sandbox settings on the clone, and the hosted-page ones (Wallee, Payrexx)
+  a return URL the PSP can reach: without them, run `-m "not psp_wallee and not psp_payrexx"`.
+
+Another test site: `pytest --base-url=http://<name>.local:8000`.
 
 ## Tests
 
@@ -68,15 +73,17 @@ The test customer + password come from osiris site_config keys:
 - Run with `PWDEBUG=1` to step interactively via Playwright Inspector
 - Per-test traces : `pytest --tracing=on`
 
-## Pattern : appel backend depuis le test
+## Backend calls from the tests
 
-Les tests appellent `bench execute payments.tests.e2e.fixtures.X` sur Osiris via SSH (configuré dans `conftest.py::backend` fixture). Avantages :
-- Le setup state (Customer, Address) ne pollue pas la DB de l'utilisateur réel
-- L'assertion finale (`assert_payment_complete`) interroge directement la DB Frappe pour vérifier le triplet PI/PR/SO
+The tests call the whitelisted methods `payments.tests.e2e.fixtures.*` and `payments.tests.e2e.assertions.*` over
+HTTP with the Administrator API key (`conftest.py::backend`):
+- the state setup (Customer, Address) uses the fixed test customer, never a real one;
+- the final assertion (`assert_payment_complete`) reads the Payment Intent / Payment Request / Sales Order triplet in
+  the database.
 
-## Cleanup automatique
+## Automatic cleanup
 
-`conftest.py::test_customer` lance `reset_test_env` AVANT chaque test (idempotent). À la fin du run, on peut optionnellement nettoyer manuellement :
+`reset_test_env` runs BEFORE each test (idempotent). To clean by hand after a run, on the clone:
 ```bash
-ssh osiris "bench --site prod.local execute payments.tests.e2e.fixtures.reset_test_env"
+bench --site prodclone.local execute payments.tests.e2e.fixtures.reset_test_env
 ```

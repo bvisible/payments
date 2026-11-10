@@ -23,6 +23,8 @@ that wait would make this UI test slow + flaky on a shared dev box.
 
 from __future__ import annotations
 
+from urllib.parse import urlparse
+
 import pytest
 from playwright.sync_api import expect
 
@@ -70,8 +72,10 @@ def test_checkout_wallee_redirect_and_pay(logged_in_page, paying_item, base_url)
 	# //// problem — Wallee was DECLINING the card, and `fill_wallee_redirect_card` now
 	# //// says so instead of letting this line time out on a redirect that is not
 	# //// coming. Kept at 60 s: once the payment is accepted, the return is immediate.
-	page.wait_for_url("**osiris.neoffice.me/**", timeout=60_000)
-	assert "osiris.neoffice.me" in page.url, f"Did not return to the shop: {page.url}"
-	assert any(seg in page.url for seg in ("/wallee/success", "/thank-you")), (
-		f"Unexpected return URL: {page.url}"
-	)
+	# //// Neoffice — the shop's own host, not osiris.neoffice.me: the suite runs against the test clone (#950).
+	shop = urlparse(base_url).netloc
+	page.wait_for_url(f"**{shop}/**", timeout=60_000)
+	assert shop in page.url, f"Did not return to the shop: {page.url}"
+	assert any(
+		seg in page.url for seg in ("/wallee/success", "/thank-you")
+	), f"Unexpected return URL: {page.url}"
