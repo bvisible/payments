@@ -45,7 +45,9 @@ def refuse_delivery(psp: str, reason: str | None) -> str:
 	differently to a guest. The reason goes to the operator instead.
 	"""
 	reason = reason or "no enabled provider"
-	log_once_an_hour(f"{psp} webhook refused: {reason}", f"Delivery refused ({reason}). Nothing was stored.")
+	log_once_an_hour(
+		f"{psp} webhook refused: {reason}", f"Delivery refused ({reason}). Nothing was stored."
+	)
 	frappe.local.response["http_status_code"] = 400
 	return "invalid signature"
 
@@ -66,7 +68,9 @@ def webhook_drivers(driver_class_like: str, provider: str | None = None) -> list
 		filters["name"] = provider
 
 	drivers = []
-	providers = frappe.get_all("Payment Provider", filters=filters, order_by="modified desc", pluck="name")
+	providers = frappe.get_all(
+		"Payment Provider", filters=filters, order_by="modified desc", pluck="name"
+	)
 	for name in providers:
 		channels = frappe.get_all(
 			"Provider Channel Settings",
@@ -103,7 +107,9 @@ def signed_delivery(driver_class_like: str, payload: bytes, headers: dict[str, s
 		if not result.signature_valid:
 			refused = result
 			continue
-		holder = result.intent_name and frappe.db.get_value("Payment Intent", result.intent_name, "provider")
+		holder = result.intent_name and frappe.db.get_value(
+			"Payment Intent", result.intent_name, "provider"
+		)
 		if not holder or holder == provider_of(driver):
 			return driver, result
 		signed = signed or (driver, result)
@@ -143,6 +149,20 @@ def received_before(event_id: str, method: str, job_prefix: str) -> bool:
 	return True
 
 
+def record_delivery(values: dict):  # noqa: ANN201 - a Webhook Event Log, or None
+	"""The delivery's row; None when a twin delivery of the same event wrote it first.
+
+	A provider may send one event twice at once (Wallee, 2026-11-10: two deliveries one second apart). Both
+	passed received_before, the second insert hit the unique name and answered 409, so the provider counted a
+	delivered event as failed and sent it again. The twin is the same event: the caller answers « ok ».
+	"""
+	try:
+		return frappe.get_doc({"doctype": "Webhook Event Log", **values}).insert(ignore_permissions=True)
+	except frappe.DuplicateEntryError:
+		frappe.db.rollback()
+		return None
+
+
 def fail_the_row(log, exc: Exception) -> None:  # noqa: ANN001
 	"""A job could not apply a proven delivery: what it wrote is undone, and its row says why.
 
@@ -162,7 +182,9 @@ def fail_the_row(log, exc: Exception) -> None:  # noqa: ANN001
 def skip_foreign_intent(log, intent_doc) -> None:  # noqa: ANN001
 	"""A proven delivery names an intent another provider holds: it is not that provider's word."""
 	log.status = "Skipped"
-	log.error = f"Payment Intent {intent_doc.name} is held by {intent_doc.provider}, not by {log.provider}"
+	log.error = (
+		f"Payment Intent {intent_doc.name} is held by {intent_doc.provider}, not by {log.provider}"
+	)
 	log.processed_at = frappe.utils.now_datetime()
 	log.save(ignore_permissions=True)
 

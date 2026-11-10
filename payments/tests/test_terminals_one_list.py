@@ -135,3 +135,13 @@ class TestTerminalsOneList(FrappeTestCase):
 		device = frappe.db.get_value("Payment Device", {"provider_device_id": "9000001"}, "name")
 		self.assertTrue(device)
 		self.assertEqual(provider_setup.terminal_tills(device), [self.tills[0]])
+
+	def test_a_disabled_mode_never_drives_a_terminal(self):
+		mode = self.prepared["till_mode"]
+		with as_role("head_accountant"):
+			terminals.attach_terminal(device=self.device, pos_profile=self.tills[0])
+		self.assertEqual(provider_setup.terminal_mode(self.device), mode)
+		self.assertEqual(provider_setup.driven_mode(payrexx_setup.PROVIDER), mode)
+		frappe.db.set_value("Mode of Payment", mode, "enabled", 0)
+		self.assertIsNone(provider_setup.terminal_mode(self.device))
+		self.assertNotEqual(provider_setup.driven_mode(payrexx_setup.PROVIDER), mode)

@@ -302,8 +302,11 @@ def _till() -> dict[str, list[dict[str, Any]]]:
 
 	out: dict[str, list[dict[str, Any]]] = {"card": [], "twint": []}
 	for mode in sorted(candidates):
-		mode_type = frappe.db.get_value("Mode of Payment", mode, "type")
-		if not mode_type or mode_type == "Cash":
+		mode_type, enabled = frappe.db.get_value("Mode of Payment", mode, ["type", "enabled"]) or (
+			None,
+			0,
+		)
+		if not mode_type or mode_type == "Cash" or not enabled:
 			continue
 		method = "twint" if "twint" in mode.lower() else "card"
 		on = offered.get(mode, set())

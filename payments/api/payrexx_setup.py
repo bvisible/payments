@@ -448,8 +448,13 @@ def _clearing_label() -> str:
 
 
 def _till_mode() -> str:
-	"""The till mode's name: the one created before, else the site's word for it."""
-	return _status().get("till_mode") or _("Payrexx Terminal", lang=_site_lang())
+	"""The till mode's name: the one created before, else the enabled mode a till already drives
+	Payrexx terminals with, else the site's word for it (a mode made by hand under that name is reused)."""
+	from payments.setup.provider_setup import driven_mode
+
+	return (
+		_status().get("till_mode") or driven_mode(PROVIDER) or _("Payrexx Terminal", lang=_site_lang())
+	)
 
 
 def _status() -> dict[str, Any]:

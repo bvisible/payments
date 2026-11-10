@@ -367,18 +367,41 @@ def unwire_terminal(device: str, only: str | None = None) -> list[str]:
 	return sorted(set(left))
 
 
-def terminal_mode(device: str) -> str | None:
-	"""The till mode a terminal is already driven by, at any till."""
-	if frappe.db.exists("DocType", "POS Payment Driver Mapping"):
-		mode = frappe.db.get_value(
-			"POS Payment Driver Mapping", {"default_device": device}, "mode_of_payment"
-		)
-		if mode:
+def _enabled(modes) -> str | None:  # noqa: ANN001
+	"""The first of ``modes`` that is an enabled Mode of Payment: a till cannot offer a disabled one."""
+	for mode in modes:
+		if mode and frappe.db.get_value("Mode of Payment", mode, "enabled"):
 			return mode
+	return None
+
+
+def terminal_mode(device: str) -> str | None:
+	"""The enabled till mode a terminal is already driven by, at any till."""
+	modes = []
+	if frappe.db.exists("DocType", "POS Payment Driver Mapping"):
+		modes += frappe.get_all(
+			"POS Payment Driver Mapping", filters={"default_device": device}, pluck="mode_of_payment"
+		)
 	field = frappe.get_meta("POS Profile").get_field("custom_active_payment_devices")
 	if field:
-		return frappe.db.get_value(field.options, {"payment_device": device}, "mode_of_payment")
-	return None
+		modes += frappe.get_all(
+			field.options, filters={"payment_device": device}, pluck="mode_of_payment"
+		)
+	return _enabled(modes)
+
+
+def driven_mode(provider: str) -> str | None:
+	"""The enabled till mode that already drives ``provider``'s terminals at a till, if any."""
+	if not frappe.db.exists("DocType", "POS Payment Driver Mapping"):
+		return None
+	return _enabled(
+		frappe.get_all(
+			"POS Payment Driver Mapping",
+			filters={"provider": provider, "channel": "terminal", "enabled": 1},
+			pluck="mode_of_payment",
+			order_by="creation asc",
+		)
+	)
 
 
 def terminal_tills(device: str) -> list[str]:

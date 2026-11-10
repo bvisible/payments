@@ -94,14 +94,15 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 		return refuse_delivery("Payrexx", result.error_code)
 
 	# //// Neoffice — maintenance#2296: a row its job never finished is queued again (see received_before).
-	from payments.api.webhook_common import queue_event, received_before
+	from payments.api.webhook_common import queue_event, received_before, record_delivery
 
 	if received_before(result.event_id, _PROCESS_EVENT, _JOB_PREFIX):
 		return "ok"
 
-	log = frappe.get_doc(
+	# //// Neoffice — a twin delivery of the same event, sent at the same moment, is answered « ok »
+	# //// instead of 409 (see record_delivery).
+	log = record_delivery(
 		{
-			"doctype": "Webhook Event Log",
 			"event_id": result.event_id,
 			"provider": provider_name,
 			"event_type": result.event_type,
@@ -109,7 +110,9 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 			"status": "Queued",
 			"raw_payload": _safe_truncate(payload),
 		}
-	).insert(ignore_permissions=True)
+	)
+	if log is None:
+		return "ok"
 	frappe.db.commit()  # explicit: the dedup record must survive a later failure
 
 	# //// Neoffice — the same job, through the helper a retry uses too.
@@ -157,9 +160,7 @@ def parse_delivery(
 		)
 
 	try:
-		event = parse_webhook(
-			payload, headers=headers, signing_key=signing_key, require_signature=True
-		)
+		event = parse_webhook(payload, headers=headers, signing_key=signing_key, require_signature=True)
 	except Exception as exc:  # noqa: BLE001 - signature mismatch or unparseable body
 		return WebhookResult(
 			event_id="payrexx_invalid",
@@ -258,7 +259,7 @@ def _match_terminal_intent(tx) -> str | None:  # noqa: ANN001
 	- a ``Payment Device`` carries that serial;
 	- an intent on the ``terminal`` channel used that device;
 	- the amounts match, compared in absolute value so a refund (which arrives
-      negative) finds the payment it reverses;
+	  negative) finds the payment it reverses;
 	- the intent moved within the last six hours.
 
 	The most recent match wins. This exists because Payrexx does not echo our
@@ -378,9 +379,7 @@ def process_event(log_name: str) -> None:
 			# through this app — a link paid from the back office, or a test
 			# delivery whose referenceId is empty.
 			log.status = "Skipped"
-			log.error = _("No matching Payment Intent for reference {0}").format(
-				result.intent_name or "-"
-			)
+			log.error = _("No matching Payment Intent for reference {0}").format(result.intent_name or "-")
 			log.processed_at = now_datetime()
 			log.save(ignore_permissions=True)
 			frappe.db.commit()

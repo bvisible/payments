@@ -189,7 +189,13 @@ def _prepare_erp() -> dict[str, Any]:
 			accounts[company] = account
 			ensure_gateway_account(GATEWAY, company, account)
 	status = _status()
-	mode = status.get("till_mode") or _("Wallee Terminal", lang=_site_lang())
+	from payments.setup.provider_setup import driven_mode
+
+	mode = (
+		status.get("till_mode")
+		or driven_mode(_provider_name())
+		or _("Wallee Terminal", lang=_site_lang())
+	)
 	till = ensure_till_mode(mode, accounts)
 	status["till_mode"] = mode
 	status["accounts"] = accounts

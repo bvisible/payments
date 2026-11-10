@@ -58,6 +58,7 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 		provider_of,
 		queue_event,
 		received_before,
+		record_delivery,
 		refuse_delivery,
 		signed_delivery,
 	)
@@ -77,9 +78,10 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 	# Persist + queue.
 	# //// Neoffice — the provider that proved it: the worker reads the row with this provider's driver.
 	provider_name = provider_of(driver)
-	log = frappe.get_doc(
+	# //// Neoffice — a twin delivery of the same event, sent at the same moment, is answered « ok »
+	# //// instead of 409 (see record_delivery).
+	log = record_delivery(
 		{
-			"doctype": "Webhook Event Log",
 			"event_id": result.event_id,
 			"provider": provider_name,
 			"event_type": result.event_type,
@@ -87,7 +89,9 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 			"status": "Queued",
 			"raw_payload": _safe_truncate(payload),
 		}
-	).insert(ignore_permissions=True)
+	)
+	if log is None:
+		return "ok"
 	frappe.db.commit()  # noqa: T201 — explicit commit so the dedup row survives.
 
 	# //// Neoffice — the same job, through the helper a retry uses too.
