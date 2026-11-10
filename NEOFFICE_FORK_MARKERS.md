@@ -197,3 +197,8 @@ bridge by tests whose data cannot carry a comment. All ours, none with an upstre
   `neoffice-devops/scripts/twint_engine_bench/make_vectors.py` and replayed by `tests/test_twint_engine_vectors.py`:
   - `payments/twint_engine/testing/vectors-v10.json`
   - `payments/twint_engine/testing/vectors-v8_7.json`
+
+## Auto-marked (fork-markers workflow)
+
+- `payments/payments/page/payment_settings/payment_settings.json` — new Page doctype record (`payment-settings`, roles System Manager / Accounts Manager) for the « Payment settings » page — who takes what on the shop and at the till, in a few clicks (0704b05 "feat(payments): « Payment settings », who takes what on the shop and at the till, in a few clicks")
+- `payments/payments/page/wallee_setup_wizard/wallee_setup_wizard.json` — new Page doctype record (`wallee-setup-wizard`, roles System Manager / Accounts Manager) for the Wallee one-gesture setup page, mirroring the Payrexx wizard (cae6261 "feat(wallee): the same one-gesture setup page as Payrexx, and Wallee-signed webhooks are proven")
