@@ -1,7 +1,7 @@
 # //// Neoffice — added file (no upstream equivalent). The till's TWINT calls on the instance's own engine
-# //// (maintenance#1721): the site's switch, the certificate kept encrypted on the instance, the one fetch from the
-# //// hub, and the way back to the hub when there is no certificate. TWINT is payments' fake server
-# //// (twint_engine/testing), the hub a mock: nothing leaves the process.
+# //// (maintenance#1721): the certificate kept encrypted on the instance, the one fetch from the hub's certificate
+# //// store, and a clear refusal when there is no certificate (the hub's PHP bridge is retired since 10.11.2026). TWINT
+# //// is payments' fake server (twint_engine/testing), the hub a mock: nothing leaves the process.
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 
@@ -43,32 +43,7 @@ def _hub_answer(message, ok=True, status=200):
 	return response
 
 
-class TestTheSwitch(FrappeTestCase):
-	def test_what_the_setting_means(self):
-		for setting, expected in (
-			(None, True),
-			(False, False),
-			("off", False),
-			("hub", False),
-			("", False),
-			(True, True),
-			("all", True),
-			("on", True),
-			([MERCHANT], True),
-			(["someone-else"], False),
-			(f"someone-else, {MERCHANT}", True),
-		):
-			with self.subTest(setting=setting), mock.patch.dict(
-				frappe.conf, {"twint_local_engine": setting}
-			):
-				self.assertIs(local_engine.runs_locally(MERCHANT), expected)
-
-	def test_absent_is_the_engine(self):
-		# The default since 19.10.2026: an updated instance speaks TWINT itself, `false` sends it back to the hub.
-		conf = {key: value for key, value in frappe.conf.items() if key != "twint_local_engine"}
-		with mock.patch.object(frappe.local, "conf", frappe._dict(conf)):
-			self.assertTrue(local_engine.runs_locally(MERCHANT))
-
+class TestTheServiceVersion(FrappeTestCase):
 	def test_the_service_version(self):
 		# 10 by default since 19.10.2026; "8.7" (the hub bridge's version) sends a site back, as text or parsed.
 		conf = {key: value for key, value in frappe.conf.items() if key != "twint_soap_version"}
@@ -147,9 +122,16 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		from payments.payment_gateways.doctype.twint_bridge_settings.twint_bridge_settings import (
+			TwintBridgeSettings,
+		)
+
 		cls.fake.stop()
 		shutil.rmtree(cls.folder, ignore_errors=True)
-		frappe.delete_doc(local_engine.DOCTYPE, MERCHANT, ignore_permissions=True, force=True)
+		# Deleting the record asks the hub to delete its copy of the certificate: a test merchant has none there, and
+		# a site whose TWINT provider names no hub (a clone) would fail the removal.
+		with mock.patch.object(TwintBridgeSettings, "_delete_certificate_remote"):
+			frappe.delete_doc(local_engine.DOCTYPE, MERCHANT, ignore_permissions=True, force=True)
 		super().tearDownClass()
 
 	def setUp(self):
@@ -182,21 +164,23 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 		_forget_certificate()
 		_set_password(self.pki.password)
 
-	def call(self, setting, hub=None):
+	def call(self, hub=None):
 		import requests
 
-		with (
-			mock.patch.dict(frappe.conf, {"twint_local_engine": setting}),
-			mock.patch.object(
-				requests, "post", side_effect=hub or AssertionError("the hub must not be called")
-			) as post,
-		):
+		with mock.patch.object(
+			requests, "post", side_effect=hub or AssertionError("the hub must not be called")
+		) as post:
 			answer = self.driver._call_bridge("register_payment", MERCHANT, REGISTER)
 		return answer, post
 
-	def test_on_with_the_certificate_here_twint_is_reached_without_the_hub(self):
+	def assert_no_certificate(self, answer):
+		from payments.drivers.twint.php_bridge_driver import NO_CERTIFICATE
+
+		self.assertEqual(answer, {"success": False, "error": NO_CERTIFICATE})
+
+	def test_with_the_certificate_here_twint_is_reached_without_the_hub(self):
 		local_engine.store_certificate(MERCHANT, self.pki.merchant_p12)
-		answer, post = self.call(True)
+		answer, post = self.call()
 		self.assertTrue(answer["success"], answer)
 		self.assertEqual(answer["merchant_reference"], "PI-LOCAL-1")
 		self.assertEqual(
@@ -204,49 +188,40 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 		)
 		post.assert_not_called()
 
-	def test_off_goes_to_the_hub(self):
+	def test_the_hubs_retired_bridge_is_never_called(self):
+		# A site that still names the old switch is served by the engine all the same.
 		local_engine.store_certificate(MERCHANT, self.pki.merchant_p12)
-		answer, post = self.call(False, hub=[_hub_answer({"success": True, "order_id": "from-the-hub"})])
-		self.assertEqual(answer["order_id"], "from-the-hub")
-		self.assertTrue(post.call_args.args[0].endswith("neoffice_devops.api.twint.execute"))
-		self.assertEqual(self.fake.requests, [])
-
-	def test_a_merchant_not_listed_goes_to_the_hub(self):
-		local_engine.store_certificate(MERCHANT, self.pki.merchant_p12)
-		answer, _post = self.call(
-			["another-merchant"], hub=[_hub_answer({"success": True, "order_id": "from-the-hub"})]
-		)
-		self.assertEqual(answer["order_id"], "from-the-hub")
+		with mock.patch.dict(frappe.conf, {"twint_local_engine": False}):
+			answer, post = self.call()
+		self.assertTrue(answer["success"], answer)
+		post.assert_not_called()
+		self.assertFalse(hasattr(local_engine, "runs_locally"))
 
 	def test_the_certificate_is_fetched_once_from_the_hub_with_the_password(self):
 		fetched = _hub_answer(
 			{"success": True, "content_base64": base64.b64encode(self.pki.merchant_p12).decode()}
 		)
-		answer, post = self.call(True, hub=[fetched])
+		answer, post = self.call(hub=[fetched])
 		self.assertTrue(answer["success"], answer)
 		url = post.call_args.args[0]
 		self.assertTrue(url.endswith(local_engine.FETCH_METHOD))
 		self.assertEqual(post.call_args.kwargs["json"]["current_password"], self.pki.password)
 		self.assertNotIn(self.pki.password, url)
 		self.assertEqual(local_engine.stored_certificate(MERCHANT), self.pki.merchant_p12)
-		answer, post = self.call(True)  # kept: no second fetch
+		answer, post = self.call()  # kept: no second fetch
 		self.assertTrue(answer["success"], answer)
 
-	def test_no_certificate_anywhere_goes_to_the_hub_as_before(self):
+	def test_no_certificate_anywhere_is_said_and_nothing_else_is_called(self):
 		refused = _hub_answer({"success": False, "error": "A certificate is already stored…"})
-		bridged = _hub_answer({"success": True, "order_id": "from-the-hub"})
-		answer, post = self.call(True, hub=[refused, bridged])
-		self.assertEqual(answer["order_id"], "from-the-hub")
+		answer, post = self.call(hub=[refused])
+		self.assert_no_certificate(answer)
 		self.assertEqual(
-			[call.args[0].rsplit("/", 1)[-1] for call in post.call_args_list],
-			[local_engine.FETCH_METHOD, "neoffice_devops.api.twint.execute"],
+			[call.args[0].rsplit("/", 1)[-1] for call in post.call_args_list], [local_engine.FETCH_METHOD]
 		)
 		self.assertIsNone(local_engine.stored_certificate(MERCHANT))
-		answer, post = self.call(True, hub=[_hub_answer({"success": True, "order_id": "again"})])
-		self.assertEqual(answer["order_id"], "again")
-		self.assertEqual(
-			len(post.call_args_list), 1, "no second fetch for ten minutes: straight to the hub"
-		)
+		answer, post = self.call()
+		self.assert_no_certificate(answer)
+		post.assert_not_called()  # no second fetch for ten minutes
 
 	def test_a_copy_here_that_no_longer_opens_is_replaced_by_the_hubs(self):
 		# Renewed by hand on the hub, or on another site of the same merchant: the copy kept here is stale.
@@ -254,7 +229,7 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 		fetched = _hub_answer(
 			{"success": True, "content_base64": base64.b64encode(self.pki.merchant_p12).decode()}
 		)
-		answer, post = self.call(True, hub=[fetched])
+		answer, post = self.call(hub=[fetched])
 		self.assertTrue(answer["success"], answer)
 		self.assertTrue(post.call_args.args[0].endswith(local_engine.FETCH_METHOD))
 		self.assertEqual(local_engine.stored_certificate(MERCHANT), self.pki.merchant_p12)
@@ -262,37 +237,34 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 			[request["operation"] for request in self.fake.requests], ["EnrollCashRegister", "StartOrder"]
 		)
 
-	def test_a_stale_copy_and_no_hub_copy_go_to_the_hubs_bridge(self):
+	def test_a_stale_copy_and_no_hub_copy_say_there_is_no_certificate(self):
 		local_engine.store_certificate(MERCHANT, b"\x30\x03\x02\x01\x00")
 		refused = _hub_answer(
 			{"success": False, "error": "Send the password that opens the certificate…"}
 		)
-		bridged = _hub_answer({"success": True, "order_id": "from-the-hub"})
-		answer, post = self.call(True, hub=[refused, bridged])
-		self.assertEqual(answer["order_id"], "from-the-hub")
+		answer, post = self.call(hub=[refused])
+		self.assert_no_certificate(answer)
+		self.assertEqual(len(post.call_args_list), 1)
 		self.assertEqual(self.fake.requests, [], "nothing reached TWINT from here")
 
-	def test_a_hub_that_does_not_know_the_fetch_yet_goes_to_the_hub(self):
+	def test_a_hub_that_does_not_answer_the_fetch_says_there_is_no_certificate(self):
 		missing = mock.Mock(ok=False, status_code=404)
 		missing.json.return_value = {"exc_type": "DoesNotExistError"}
-		bridged = _hub_answer({"success": True, "order_id": "from-the-hub"})
-		answer, _post = self.call(True, hub=[missing, bridged])
-		self.assertEqual(answer["order_id"], "from-the-hub")
+		answer, _post = self.call(hub=[missing])
+		self.assert_no_certificate(answer)
 
-	def test_a_wrong_password_asks_the_hub_then_its_bridge_says_no(self):
-		# The copy here does not open: the hub's copy is asked for (it refuses the same wrong password), then the
-		# hub's bridge answers as it always did. Nothing reached TWINT from here.
+	def test_a_wrong_password_asks_the_hub_once_and_replaces_nothing(self):
+		# The copy here does not open: the hub's copy is asked for, and the hub refuses the same wrong password.
+		# Nothing reached TWINT from here.
 		local_engine.store_certificate(MERCHANT, self.pki.merchant_p12)
 		_set_password("wrong")
 		refused = _hub_answer(
 			{"success": False, "error": "Send the password that opens the certificate…"}
 		)
-		bridged = _hub_answer({"success": False, "error": "Reading PKCS12 file failed"})
-		answer, post = self.call(True, hub=[refused, bridged])
-		self.assertEqual(answer["error"], "Reading PKCS12 file failed")
+		answer, post = self.call(hub=[refused])
+		self.assert_no_certificate(answer)
 		self.assertEqual(
-			[call.args[0].rsplit("/", 1)[-1] for call in post.call_args_list],
-			[local_engine.FETCH_METHOD, "neoffice_devops.api.twint.execute"],
+			[call.args[0].rsplit("/", 1)[-1] for call in post.call_args_list], [local_engine.FETCH_METHOD]
 		)
 		self.assertEqual(self.fake.requests, [])
 		self.assertEqual(
@@ -302,7 +274,7 @@ class TestTheDriverOnTheEngine(FrappeTestCase):
 	def test_a_refusal_of_twint_is_the_engines_answer_not_a_reason_to_go_to_the_hub(self):
 		local_engine.store_certificate(MERCHANT, self.pki.merchant_p12)
 		self.fake.force("StartOrder", _fault_answer())
-		answer, post = self.call(True)
+		answer, post = self.call()
 		self.assertEqual(answer["exception"], "Twint\\Sdk\\Exception\\ApiFailure")
 		self.assertEqual(answer["error"], "Merchant is not valid")
 		post.assert_not_called()

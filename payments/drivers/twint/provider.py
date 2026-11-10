@@ -1,25 +1,26 @@
 # //// Neoffice — added file (no upstream equivalent). TWINT credentials lookup +
-# //// bridge health check. TWINT has no Python SDK: the official one is PHP and needs
-# //// the merchant P12 certificate on disk, so we host it on neoservice and every
-# //// instance calls it over HTTP (ADR-002, the EBICS pattern). The credentials are
-# //// therefore a service_url + a Frappe token, not a PSP API key.
+# //// health check. TWINT's official SDK is PHP and needed the merchant P12 certificate
+# //// on disk, so it was hosted on neoservice and every instance called it over HTTP
+# //// (ADR-002, the EBICS pattern). Since maintenance#1721 each instance speaks TWINT
+# //// with its own Python engine and the hub's PHP bridge is retired (10.11.2026); the
+# //// service_url + Frappe token remain for the hub's certificate store.
 # //// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
 # ////          ec69d96 2026-05-19 "feat(twint): Phase 11 fusion twint_integration → payments (webshop QR consumer + dialog)"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
-"""TWINT provider — credentials lookup + bridge health check.
+"""TWINT provider — credentials lookup + health check.
 
-Unlike Stripe (which lives in a centralized SaaS), TWINT requires a PHP SDK
-running where the P12 certificate is stored. We host that SDK on
-``neoservice.neoffice.me`` (see :mod:`neoffice_devops.api.twint`) and call it
-over HTTP from every client instance.
+Every instance speaks TWINT with its own engine (:mod:`payments.twint_engine`), with
+the merchant's P12 certificate kept encrypted on the instance. The hub
+(``neoservice.neoffice.me``, :mod:`neoffice_devops.api.twint`) keeps a copy of each
+certificate, which an instance uploads or takes once; its PHP bridge is retired.
 
-The provider credentials therefore contain:
+The provider credentials contain:
 
 - ``service_url``: typically ``https://neoservice.neoffice.me`` (also resolvable
   from ``frappe.conf.twint_service_url`` for backward compat with EBICS pattern)
 - ``api_key`` + ``api_secret``: Frappe Token for authenticating against the TWINT
-  Service User on neoservice
+  Service User on neoservice (the certificate store)
 - ``default_merchant_uuid``: optional, used when not provided per-call
 
 Per-merchant TWINT credentials (Store UUID, P12 password) live on the
@@ -41,7 +42,7 @@ class TwintProvider(PaymentProviderBase):
 	name = "twint"
 
 	@classmethod
-	def from_doc(cls, provider_doc) -> "TwintProvider":  # noqa: ANN001
+	def from_doc(cls, provider_doc) -> TwintProvider:  # noqa: ANN001
 		return cls(provider_doc)
 
 	# ------------------------------------------------------------------------
@@ -87,30 +88,25 @@ class TwintProvider(PaymentProviderBase):
 	# ------------------------------------------------------------------------
 
 	def health_check(self) -> dict[str, Any]:
-		"""Ping the TWINT bridge via its ``health_check`` command."""
-		import requests
+		"""Whether this instance can speak TWINT for its default merchant: its own engine and the merchant's .p12.
 
-		try:
-			resp = requests.post(
-				f"{self.service_url}/api/method/neoffice_devops.api.twint.execute",
-				headers=self._auth_headers(),
-				json={
-					"command": "health_check",
-					"merchant_uuid": self.default_merchant_uuid or "none",
-					"store_uuid": "",
-					"environment": "production",
-					"params": "{}",
-				},
-				timeout=10,
-			)
-			data = resp.json() if resp.headers.get("Content-Type", "").startswith("application/json") else {}
-			return {
-				"ok": resp.ok and data.get("message", {}).get("success", False),
-				"http_status": resp.status_code,
-				"detail": data,
-			}
-		except Exception as exc:  # noqa: BLE001
-			return {"ok": False, "error": repr(exc)}
+		The hub's PHP bridge this used to ping is retired (10.11.2026): every call runs on the instance's engine
+		(payments.twint_engine), with the certificate kept here. Nothing is sent to TWINT or to the hub.
+		"""
+		from payments.drivers.twint import local_engine
+
+		merchant = self.default_merchant_uuid
+		if not merchant:
+			return {"ok": False, "error": "No default TWINT merchant on this provider"}
+		certificate = local_engine.stored_certificate(merchant) is not None
+		return {
+			"ok": certificate,
+			"engine": "python",
+			"certificate_here": certificate,
+			**(
+				{} if certificate else {"error": "No TWINT certificate for this merchant on this instance yet"}
+			),
+		}
 
 	def list_supported_channels(self) -> list[str]:
 		# qr_bridge: merchant-initiated (POS terminal)

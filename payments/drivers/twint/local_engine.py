@@ -1,10 +1,10 @@
 # //// Neoffice — added file (no upstream equivalent). The till's and the shop's TWINT calls run on the instance's own
-# //// engine (payments.twint_engine, Python) instead of the hub's PHP bridge, unless the site sends them back with
-# //// its `twint_local_engine` switch (maintenance#1721; the default since Jérémy's decision of 19.10.2026, after a
-# //// real payment captured and refunded by the engine on osiris). The engine needs the merchant's .p12, which until now lived on
-# //// the hub alone: the instance keeps it encrypted with the site's key (Frappe's __Auth table, so it is in the
-# //// database backups), takes it from the form on upload, and fetches the ones already on the hub once, proving it
-# //// holds the password that opens them. No certificate here and none to fetch: the call goes to the hub as before.
+# //// engine (payments.twint_engine, Python; maintenance#1721, the default since Jérémy's decision of 19.10.2026, after
+# //// a real payment captured and refunded by the engine on osiris; the only path since the hub's PHP bridge was
+# //// retired on 10.11.2026). The engine needs the merchant's .p12, which until then lived on the hub alone: the
+# //// instance keeps it encrypted with the site's key (Frappe's __Auth table, so it is in the database backups), takes
+# //// it from the form on upload, and fetches the ones already on the hub once, proving it holds the password that
+# //// opens them. No certificate here and none to fetch: the call fails and says so.
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """The instance's TWINT engine, as seen from the driver."""
@@ -34,36 +34,12 @@ def _refused_key(merchant_uuid: str) -> str:
 	return f"twint_engine_fetch_refused:{merchant_uuid}"
 
 
-def runs_locally(merchant_uuid: str) -> bool:
-	"""Whether this merchant's calls run on the instance's engine: `twint_local_engine` in site_config.json.
-
-	Absent, true, "all" or "on": every merchant (the default: an updated instance speaks TWINT itself).
-	False, "off" or "hub": the hub's bridge, with nothing to redo (the hub keeps its copy of the certificate).
-	A list (["uuid", ...] or "uuid, uuid"): only those merchants.
-	"""
-	setting = frappe.conf.get("twint_local_engine")
-	if setting is None or setting is True or setting == 1:
-		return True
-	if setting is False or setting == 0:
-		return False
-	if isinstance(setting, str):
-		text = setting.strip().lower()
-		if text in ("all", "true", "1", "on", "yes"):
-			return True
-		if text in ("", "off", "false", "0", "no", "hub", "none"):
-			return False
-		setting = setting.split(",")
-	if isinstance(setting, (list, tuple)):
-		return (merchant_uuid or "").strip() in {str(name).strip() for name in setting}
-	return False
-
-
 def soap_version() -> str:
 	"""TWINT's service version the engine speaks: `twint_soap_version`, "10" unless set to "8.7".
 
 	10 is the default since Jérémy's decision of 19.10.2026, after a real payment captured and refunded in 10 on
-	osiris (it is the TWINT SDK 2.0's default). "8.7" is what the hub's PHP bridge speaks: an order made in either
-	version reads the same in the other, so a site can be sent back to 8.7 at any time.
+	osiris (it is the TWINT SDK 2.0's default). "8.7" is what the hub's PHP bridge spoke until it was retired: an order
+	made in either version reads the same in the other, so a site can be sent back to 8.7 at any time.
 	"""
 	return str(frappe.conf.get("twint_soap_version") or "10")
 
@@ -118,7 +94,7 @@ def fetch_from_hub(provider, merchant_uuid: str, password: str) -> bytes | None:
 			timeout=30,
 		)
 		answer = (response.json() or {}).get("message") or {}
-	except Exception as exc:  # noqa: BLE001 — the hub may not know the method yet: the call goes to the hub
+	except Exception as exc:  # noqa: BLE001 — the hub does not answer: no certificate this time
 		_log("fetch", merchant_uuid, {"success": False, "error": repr(exc)[:120]}, time.monotonic())
 		return None
 	if not (response.ok and answer.get("success") and answer.get("content_base64")):
@@ -150,7 +126,7 @@ def execute(
 	provider, command: str, merchant_uuid: str, params: dict, context: dict
 ) -> dict | None:
 	"""Run a bridge command on the engine. None when this instance has no certificate for the merchant and the hub
-	would not give it: the caller then goes to the hub's bridge, as before."""
+	would not give it: the caller then answers that no certificate is here."""
 	from payments import twint_engine
 
 	started = time.monotonic()
@@ -182,7 +158,7 @@ def execute(
 		# The copy kept here does not open with the merchant's password: the certificate was renewed elsewhere (on
 		# the hub by hand, on another site of the same merchant) or the password changed without a new upload. Nothing
 		# reached TWINT yet (the .p12 is read before the first call). Take the hub's copy, which the hub only gives
-		# for the password that opens it; none: the hub's bridge, as before.
+		# for the password that opens it; none: no certificate here.
 		_log(command, merchant_uuid, answer, started)
 		certificate = _fetch_unless_refused(provider, merchant_uuid, password)
 		if certificate is None:

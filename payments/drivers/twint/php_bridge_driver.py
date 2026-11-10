@@ -7,12 +7,15 @@
 # ////          fc43f8f 2026-06-30 "fix(twint): POS capture flow — poll confirm_payment on ORDER_CONFIRMATION_PENDING + map ORDER_OK/abort/timeout statuses"
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
-"""TWINT driver — calls the PHP bridge hosted on ``neoservice.neoffice.me``.
+"""TWINT driver — speaks TWINT with the instance's own engine.
 
-Flow (compass §2 + ADR-002):
+Flow (compass §2 + ADR-002; the engine since maintenance#1721):
 
-	Frappe (any client) → requests.post(neoservice/twint.execute) → subprocess php
-	twint_bridge.php → twint-ag/sdk → TWINT Merchant API
+	Frappe (any client) → payments.twint_engine (Python, the merchant's .p12 kept on the instance)
+	→ TWINT Merchant API
+
+The class keeps its name (``TwintPHPBridgeDriver``): Payment Providers name it in ``driver_class``. The hub's PHP
+bridge it used to call is retired (10.11.2026).
 
 Driver mapping:
 
@@ -47,6 +50,13 @@ from payments.drivers.base import (
 	WebhookResult,
 )
 from payments.drivers.twint.provider import TwintProvider
+
+# //// Neoffice — what a payment answers when neither this instance nor the hub's certificate store holds the merchant's
+# //// .p12 (or the password does not open it): there is no bridge left to fall back on (10.11.2026).
+NO_CERTIFICATE = (
+	"No TWINT certificate for this merchant on this instance: upload the merchant's .p12 (with its password) "
+	"in Twint Bridge Settings."
+)
 
 # Mapping TWINT bridge transaction_status → unified FSM target.
 # The TWINT SDK exposes a state machine that broadly groups into these buckets.
@@ -143,57 +153,18 @@ class TwintPHPBridgeDriver(PaymentDriverBase):
 	def _call_bridge(
 		self, command: str, merchant_uuid: str, params: dict[str, Any]
 	) -> dict[str, Any]:
-		"""POST to neoservice's neoffice_devops.api.twint.execute and parse the result."""
-		import requests
-
+		"""Run a TWINT command on this instance's own engine (payments.twint_engine) and return its answer."""
 		ctx = self._resolve_merchant_context(merchant_uuid)
-		# //// Neoffice — the instance's own TWINT engine (payments.twint_engine, maintenance#1721): same commands,
-		# //// same answers as the hub's PHP bridge, with the merchant's .p12 kept on this instance. Merchant by
-		# //// merchant behind the site's `twint_local_engine` switch (on unless set false); without a certificate here
-		# //// and none the hub would give, the call goes on to the hub below, as before.
+		# //// Neoffice — the instance's own TWINT engine (payments.twint_engine, maintenance#1721), with the merchant's
+		# //// .p12 kept on this instance (taken once from the hub's certificate store when it is not here yet). The hub's
+		# //// PHP bridge this used to call (`neoffice_devops.api.twint.execute`) is retired (10.11.2026): there is no
+		# //// other path, and a merchant without a certificate here or on the hub is told so.
 		from payments.drivers.twint import local_engine
 
-		if local_engine.runs_locally(merchant_uuid):
-			answer = local_engine.execute(self._twint_provider, command, merchant_uuid, params, ctx)
-			if answer is not None:
-				return answer
-		body = {
-			"command": command,
-			"merchant_uuid": merchant_uuid,
-			"certificate_password": ctx["certificate_password"],
-			"store_uuid": ctx["store_uuid"],
-			"cash_register_id": ctx["cash_register_id"],
-			"environment": ctx["environment"],
-			"params": json.dumps(params),
-		}
-		url = f"{self._twint_provider.service_url}/api/method/neoffice_devops.api.twint.execute"
-		try:
-			resp = requests.post(
-				url,
-				headers=self._twint_provider._auth_headers(),  # noqa: SLF001 — provider helper
-				json=body,
-				timeout=70,  # bridge has 60s PHP timeout itself
-			)
-		except requests.exceptions.RequestException as exc:
-			return {"success": False, "error": f"HTTP error: {exc!r}"}
-
-		# Frappe whitelisted endpoints wrap the return in {"message": ...}.
-		try:
-			data = resp.json()
-		except ValueError:
-			return {"success": False, "error": f"non-JSON response (status={resp.status_code})"}
-		# Frappe answers an error with {exc_type, exception, _server_messages} and never a "message": read as
-		# "no result", the till showed only "register_payment failed" when the hub refused its service account
-		# (403, 30.09) and nothing said why. Say which HTTP status the bridge answered.
-		status = resp.status_code if isinstance(resp.status_code, int) else 200
-		if status >= 400:
-			exc_type = data.get("exc_type") if isinstance(data, dict) else None
-			return {
-				"success": False,
-				"error": f"TWINT bridge answered HTTP {status}" + (f" ({exc_type})" if exc_type else ""),
-				"exception": exc_type,
-			}
-		return data.get("message") if isinstance(data, dict) else data
+		answer = local_engine.execute(self._twint_provider, command, merchant_uuid, params, ctx)
+		if answer is None:
+			return {"success": False, "error": NO_CERTIFICATE}
+		return answer
 
 	# ------------------------------------------------------------------------
 	# Driver contract

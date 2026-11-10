@@ -1,16 +1,16 @@
-# //// Neoffice — added file (no upstream equivalent). Unit tests for the TWINT PHP
-# //// bridge driver; the HTTP layer to neoservice is mocked, so nothing reaches the
-# //// bridge or the TWINT Merchant API.
+# //// Neoffice — added file (no upstream equivalent). Unit tests for the TWINT driver;
+# //// the instance's engine is mocked, so nothing reaches TWINT. (The driver called the
+# //// hub's PHP bridge until it was retired on 10.11.2026; it speaks through the engine.)
 # //// Commits: 258f8cf 2026-05-13 "feat(payments): Phase 4 — TWINT PHP bridge driver + scheduler poll"
 # ////          cc503b1 2026-05-13 "fix(payments): rename Twint Settings → Twint Bridge Settings + scheduler cron syntax"
 # Copyright (c) 2026, Neoffice and Contributors
 # License: MIT. See LICENSE
-"""Unit tests for the TWINT PHP bridge driver (mocks the HTTP layer)."""
+"""Unit tests for the TWINT driver (mocks the instance's engine)."""
 
 from __future__ import annotations
 
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -88,13 +88,7 @@ def _build_driver() -> TwintPHPBridgeDriver:
 	return TwintPHPBridgeDriver.from_docs(provider_doc, channel_doc, binding_doc)
 
 
-def _mock_post_response(payload: dict) -> MagicMock:
-	resp = MagicMock()
-	resp.ok = True
-	resp.status_code = 200
-	resp.headers = {"Content-Type": "application/json"}
-	resp.json = MagicMock(return_value={"message": payload})
-	return resp
+ENGINE = "payments.drivers.twint.local_engine.execute"
 
 
 class TestTwintPHPBridgeDriver(FrappeTestCase):
@@ -102,13 +96,6 @@ class TestTwintPHPBridgeDriver(FrappeTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		_ensure_fixtures()
-
-	def setUp(self):
-		# //// Neoffice — these tests are about the hub's bridge: the instance's own engine is the default since
-		# //// maintenance#1721, so they name the bridge's path (`twint_local_engine` false) as a site would.
-		patch_conf = patch.dict(frappe.conf, {"twint_local_engine": False})
-		patch_conf.start()
-		self.addCleanup(patch_conf.stop)
 
 	def test_create_intent_calls_register_payment(self):
 		driver = _build_driver()
@@ -118,23 +105,22 @@ class TestTwintPHPBridgeDriver(FrappeTestCase):
 			currency="CHF",
 			metadata={"twint_merchant_uuid": MERCHANT_UUID},
 		)
-		with patch("requests.post") as mock_post:
-			mock_post.return_value = _mock_post_response(
-				{
-					"success": True,
-					"order_id": "order_abc123",
-					"order_status": "InProgress",
-					"transaction_status": "ORDER_RECEIVED",
-					"pairing_token": "PAIR_TOKEN_XYZ",
-				}
-			)
+		with patch(ENGINE) as engine, patch("requests.post") as hub:
+			engine.return_value = {
+				"success": True,
+				"order_id": "order_abc123",
+				"order_status": "InProgress",
+				"transaction_status": "ORDER_RECEIVED",
+				"pairing_token": "PAIR_TOKEN_XYZ",
+			}
 			result = driver.create_intent(request)
 
-		mock_post.assert_called_once()
-		body = mock_post.call_args.kwargs["json"]
-		self.assertEqual(body["command"], "register_payment")
-		self.assertEqual(body["merchant_uuid"], MERCHANT_UUID)
-		params_sent = json.loads(body["params"])
+		hub.assert_not_called()
+		engine.assert_called_once()
+		_provider, command, merchant, params_sent, context = engine.call_args.args
+		self.assertEqual(command, "register_payment")
+		self.assertEqual(merchant, MERCHANT_UUID)
+		self.assertEqual(context["certificate_password"], "not_real_password")
 		self.assertEqual(params_sent["amount"], 2500)
 		self.assertEqual(params_sent["currency"], "CHF")
 		self.assertEqual(params_sent["merchant_reference"], "PI-test-twint-001")
@@ -146,10 +132,12 @@ class TestTwintPHPBridgeDriver(FrappeTestCase):
 
 	def test_create_intent_returns_failed_when_bridge_unsuccessful(self):
 		driver = _build_driver()
-		with patch("requests.post") as mock_post:
-			mock_post.return_value = _mock_post_response(
-				{"success": False, "error": "Certificate expired", "exception": "RuntimeException"}
-			)
+		with patch(ENGINE) as engine:
+			engine.return_value = {
+				"success": False,
+				"error": "Certificate expired",
+				"exception": "RuntimeException",
+			}
 			result = driver.create_intent(
 				IntentRequest(
 					intent_name="PI-fail-001",
@@ -162,62 +150,22 @@ class TestTwintPHPBridgeDriver(FrappeTestCase):
 		self.assertEqual(result.error_code, "RuntimeException")
 		self.assertIn("Certificate expired", result.error_message or "")
 
-	def test_create_intent_says_which_http_status_the_bridge_answered(self):
-		# 30.09: the hub's portal gate answered 403 to the service account every till uses, with a Frappe
-		# error body (no "message"), and the till could only say "register_payment failed".
-		driver = _build_driver()
-		refusal = MagicMock()
-		refusal.ok = False
-		refusal.status_code = 403
-		refusal.headers = {"Content-Type": "application/json"}
-		refusal.json = MagicMock(return_value={"exc_type": "PermissionError", "_server_messages": "[]"})
-		with patch("requests.post", return_value=refusal):
-			result = driver.create_intent(
-				IntentRequest(
-					intent_name="PI-403-001",
-					amount=190,
-					currency="CHF",
-					metadata={"twint_merchant_uuid": MERCHANT_UUID},
-				)
-			)
-		self.assertEqual(result.status, "failed")
-		self.assertEqual(result.error_code, "PermissionError")
-		self.assertIn("HTTP 403", result.error_message or "")
+	def test_without_a_certificate_the_till_is_told_so_and_nothing_else_is_called(self):
+		from payments.drivers.twint.php_bridge_driver import NO_CERTIFICATE
 
-	def test_a_server_error_without_a_frappe_body_still_names_its_status(self):
 		driver = _build_driver()
-		broken = MagicMock()
-		broken.ok = False
-		broken.status_code = 502
-		broken.headers = {"Content-Type": "text/html"}
-		broken.json = MagicMock(return_value={})
-		with patch("requests.post", return_value=broken):
+		with patch(ENGINE, return_value=None), patch("requests.post") as hub:
 			result = driver.create_intent(
 				IntentRequest(
-					intent_name="PI-502-001",
+					intent_name="PI-nocert-001",
 					amount=190,
 					currency="CHF",
 					metadata={"twint_merchant_uuid": MERCHANT_UUID},
 				)
 			)
+		hub.assert_not_called()
 		self.assertEqual(result.status, "failed")
-		self.assertIn("HTTP 502", result.error_message or "")
-
-	def test_a_success_still_reads_the_message(self):
-		driver = _build_driver()
-		with patch("requests.post") as mock_post:
-			mock_post.return_value = _mock_post_response(
-				{"success": True, "order_id": "order_ok", "pairing_token": "P"}
-			)
-			result = driver.create_intent(
-				IntentRequest(
-					intent_name="PI-ok-001",
-					amount=190,
-					currency="CHF",
-					metadata={"twint_merchant_uuid": MERCHANT_UUID},
-				)
-			)
-		self.assertEqual(result.status, "requires_action")
+		self.assertEqual(result.error_message, NO_CERTIFICATE)
 
 	def test_create_intent_without_merchant_uuid_fails(self):
 		# Wipe the provider default and binding default first.
@@ -264,9 +212,9 @@ class TestTwintPHPBridgeDriver(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 		driver = _build_driver()
-		with patch("requests.post") as mock_post:
-			mock_post.return_value = _mock_post_response({"success": True, "order_id": "order_to_cancel"})
+		with patch(ENGINE, return_value={"success": True, "order_id": "order_to_cancel"}) as engine:
 			result = driver.cancel_intent("order_to_cancel")
+		self.assertEqual(engine.call_args.args[1], "cancel_payment")
 		self.assertEqual(result.status, "canceled")
 		# Cleanup.
 		for ev in frappe.get_all("Payment Event", filters={"intent": intent_doc.name}, pluck="name"):
