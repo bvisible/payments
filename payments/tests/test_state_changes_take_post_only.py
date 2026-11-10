@@ -17,6 +17,7 @@ MODULES = (
 	"payments.api.intent",
 	"payments.api.intent_http",
 	"payments.api.mobile_payments",
+	"payments.api.payment_settings",
 	"payments.api.payrexx_setup",
 	"payments.api.terminal",
 	"payments.api.terminal_receipt",
@@ -41,6 +42,7 @@ OPEN_TO_GET = {
 		"mobile_paid_total",
 		"mobile_receipt",
 	},
+	"payments.api.payment_settings": {"get_overview"},
 	"payments.api.payrexx_setup": {"get_current_setup", "test_connection", "get_status"},
 	"payments.api.terminal": {"list_stripe_locations", "list_stripe_readers"},
 	"payments.api.terminal_receipt": {"preview_text", "preview_receipt"},
@@ -79,6 +81,7 @@ POST_ONLY = {
 		"simulate_success",
 		"send_receipt",
 	},
+	"payments.api.payment_settings": {"set_shop_method", "set_till_mode"},
 	"payments.api.payrexx_setup": {
 		"save_credentials",
 		"setup_channels",
