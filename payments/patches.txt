@@ -46,3 +46,6 @@ payments.patches.v15_13.repoint_the_twint_gateway_to_the_bridge_settings
 # //// (Stripe terminal of neopay_integration, the first till TWINT) are copied into Payment Intent, so a
 # //// refund, the reconciliation and a customer's history read them; the old tables stay.
 payments.patches.v15_14.copy_legacy_payment_records_into_intents
+# //// Neoffice — v15_15 (2026-11-11, neoffice-maintenance#2556): a deployed TWINT certificate with no end date is
+# //// read again from the copy the instance keeps, so the expiry reminder and the hub's check can see it.
+payments.patches.v15_15.read_the_missing_certificate_expiry
