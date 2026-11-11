@@ -3945,3 +3945,43 @@ msgstr ""
 msgid "⚠️ The TWINT certificate expires on {0} (in {1} days). Renew it with TWINT and upload the new .p12 in the field above — it replaces the current one automatically."
 msgstr ""
 
+#. Label of a Datetime field in DocType 'Webhook Event Log'
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:115
+msgid "Alerted At"
+msgstr ""
+
+#: payments/api/webhook_common.py:300
+#, python-brace-format
+msgid "Paid at {0}, not recorded: {1} event(s)"
+msgstr ""
+
+#. Label of a Int field in DocType 'Webhook Event Log'
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:108
+msgid "Retries"
+msgstr ""
+
+#. Description of the 'Retries' (Int) field in DocType 'Webhook Event Log'
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:105
+msgid ""
+"Times the five-minute sweep queued this event again after its job did not "
+"finish (5 at most)."
+msgstr ""
+
+#. Description of the 'Alerted At' (Datetime) field in DocType 'Webhook Event
+#. Log'
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:112
+msgid "When the managers were told that this event could not be recorded."
+msgstr ""
+
+#: payments/api/webhook_common.py:295
+#, python-brace-format
+msgid ""
+"{0} sent {1} event(s) that the ERP could not record, even after {2} tries. A"
+" 'succeeded' event is a customer charged at {0} with no payment recorded in "
+"the ERP.\n"
+"\n"
+"{3}\n"
+"\n"
+"To do: check each line in the {0} dashboard, then record the payment, or "
+"refund the customer if the sale was taken again."
+msgstr ""

@@ -4232,3 +4232,39 @@ msgstr "+ Ajouter à une caisse"
 #: payments/payments/page/payment_settings/payment_settings.js:174
 msgid "Take it off this till"
 msgstr "Retirer de cette caisse"
+
+#. Label of a Datetime field in DocType 'Webhook Event Log'
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:115
+msgid "Alerted At"
+msgstr "Signalé le"
+
+#: payments/api/webhook_common.py:300
+#, python-brace-format
+msgid "Paid at {0}, not recorded: {1} event(s)"
+msgstr "Payé chez {0}, non enregistré : {1} événement(s)"
+
+#. Description of the 'Retries' (Int) field in DocType 'Webhook Event Log'
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:105
+msgid "Times the five-minute sweep queued this event again after its job did not finish (5 at most)."
+msgstr "Nombre de fois où la tâche des cinq minutes a remis cet événement en file d'attente après que son traitement ne s'est pas terminé (5 au maximum)."
+
+#. Description of the 'Alerted At' (Datetime) field in DocType 'Webhook Event
+#. Log'
+#: payments/payments/doctype/webhook_event_log/webhook_event_log.json:112
+msgid "When the managers were told that this event could not be recorded."
+msgstr "Moment où les responsables ont été informés que cet événement n'a pas pu être enregistré."
+
+#: payments/api/webhook_common.py:295
+#, python-brace-format
+msgid ""
+"{0} sent {1} event(s) that the ERP could not record, even after {2} tries. A 'succeeded' event is a customer charged at {0} with no payment recorded in the ERP.\n"
+"\n"
+"{3}\n"
+"\n"
+"To do: check each line in the {0} dashboard, then record the payment, or refund the customer if the sale was taken again."
+msgstr ""
+"{0} a envoyé {1} événement(s) que l'ERP n'a pas pu enregistrer, même après {2} tentatives. Un événement 'succeeded' signifie qu'un client a été débité chez {0} sans qu'aucun paiement ne soit enregistré dans l'ERP.\n"
+"\n"
+"{3}\n"
+"\n"
+"À faire : vérifiez chaque ligne dans le tableau de bord de {0}, puis enregistrez le paiement, ou remboursez le client si la vente a été encaissée une seconde fois."
