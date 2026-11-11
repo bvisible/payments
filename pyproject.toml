@@ -32,6 +32,10 @@ dependencies = [
     # Payrexx client — no official Python SDK exists, so this is ours:
     # https://github.com/neoserviceai/payrexx-python
     "payrexx @ git+https://github.com/neoserviceai/payrexx-python.git@main",
+    # //// Neoffice — the TWINT drivers draw the QR of a payment with `qrcode` (twint/web_driver.py, _pairing_token_to_svg).
+    # //// It was never declared: a bench had it only through erpnextswiss's qrbill, and on a site without it (this app's own CI)
+    # //// the QR came out empty, which the phone's suite measured once it stopped skipping (maintenance#629).
+    "qrcode>=7.4",
 ]
 
 [build-system]
