@@ -115,6 +115,15 @@ def _refresh_status(intent_doc, max_retries: int = 9, retry_delay: int = 3) -> N
 
 
 def get_context(context):  # noqa: ANN001
+	"""Decide the state as before, then let the shared return view say it (payments/utils/payment_return.py)."""
+	from payments.utils.payment_return import present
+
+	_decide(context)
+	present(context)
+	return context
+
+
+def _decide(context):  # noqa: ANN001
 	intent_name = _find_intent_name(frappe.form_dict)
 	_debug(f"START payment_intent={intent_name}")
 
@@ -188,14 +197,10 @@ def get_context(context):  # noqa: ANN001
 					# //// Neoffice — only a real order (see above).
 					order = submitted_sales_order(pr.reference_doctype, pr.reference_name)
 					if order:
-						frappe.local.flags.redirect_location = (
-							f"/thank-you?sales_order={order}"
-						)
+						frappe.local.flags.redirect_location = f"/thank-you?sales_order={order}"
 						raise frappe.Redirect
 				else:
-					context.error = (result or {}).get("message") or _(
-						"Error finalising order"
-					)
+					context.error = (result or {}).get("message") or _("Error finalising order")
 			except frappe.Redirect:
 				raise
 			except ImportError:

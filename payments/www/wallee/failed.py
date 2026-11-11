@@ -24,6 +24,27 @@ no_cache = 1
 
 
 def get_context(context):  # noqa: ANN001
+	"""Decide as before, then let the shared return view say it (payments/utils/payment_return.py)."""
+	from payments.utils.payment_return import present
+
+	_decide(context)
+	intent = context.get("intent")
+	if intent and intent.status == "succeeded":
+		# //// Neoffice — the buyer came back on the failure address but the payment arrived: the success page finalises the order.
+		from urllib.parse import urlencode
+
+		query = {"payment_intent": intent.name}
+		if frappe.form_dict.get("access_token"):
+			query["access_token"] = frappe.form_dict.get("access_token")
+		frappe.local.flags.redirect_location = "/wallee/success?" + urlencode(query)
+		raise frappe.Redirect
+	if intent:
+		context.status = "failed"
+	present(context, detail=intent.error_message if intent else None)
+	return context
+
+
+def _decide(context):  # noqa: ANN001
 	from payments.www.wallee.success import _find_intent_name, _refresh_status
 
 	intent_name = _find_intent_name(frappe.form_dict)

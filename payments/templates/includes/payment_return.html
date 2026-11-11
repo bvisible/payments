@@ -1,0 +1,199 @@
+{#- //// Neoffice — added file (no upstream equivalent). The body of every return page of a hosted checkout (Wallee,
+    //// Payrexx): the mark of the state, its title, what the payment was for, what to do next, and the confetti of a
+    //// payment that arrived. `view` is composed by payments/utils/payment_return.py.
+    //// The page is the shop's, not ours: its structure is neutral and its fonts and the colour of its main button come
+    //// from the theme of the site (`h1`, `.btn-primary`); only the green of a success and the red of a failure are fixed.
+    //// Design: the canvas « Pages de retour du paiement en ligne », boards 2 to 8. -#}
+{% set v = view %}
+{% set s = v.summary %}
+<style>
+	.pr-wrap { max-width: 640px; margin: 0 auto; padding: 48px 16px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+	.pr-mark { position: relative; width: 88px; height: 88px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+	.pr-ok .pr-mark { background: #137949; }
+	.pr-ok .pr-mark.pr-ring:before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #137949; animation: pr-ring 2.4s ease-out infinite; }
+	.pr-warn .pr-mark { background: #FDF3DC; }
+	.pr-bad .pr-mark { background: #FBEBE7; }
+	.pr-mut .pr-mark { background: #EDEDED; }
+	.pr-spin .pr-mark:before { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 3px solid #E9D7A5; border-top-color: #A16207; animation: pr-spin 1.1s linear infinite; }
+	@keyframes pr-ring { 0% { transform: scale(.7); opacity: .55; } 100% { transform: scale(1.7); opacity: 0; } }
+	@keyframes pr-spin { to { transform: rotate(360deg); } }
+	@media (prefers-reduced-motion: reduce) { .pr-ok .pr-mark.pr-ring:before, .pr-spin .pr-mark:before { animation: none; } }
+	.pr-title { margin: 26px 0 0; font-size: clamp(30px, 6vw, 46px); line-height: 1.1; }
+	.pr-text { margin: 12px 0 0; font-size: 18px; line-height: 1.5; color: #525252; max-width: 520px; }
+	.pr-card { width: 100%; max-width: 580px; margin-top: 30px; background: #fff; border: 1px solid #E5E5E5; border-radius: 16px; padding: 20px 26px; text-align: left; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+	.pr-card h2 { margin: 0; font-size: 28px; line-height: 1.15; }
+	.pr-pill { display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: #E6F4EA; color: #15803D; white-space: nowrap; }
+	.pr-pill i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: block; }
+	.pr-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+	.pr-when { margin: 4px 0 10px; font-size: 15.5px; color: #525252; }
+	.pr-step { display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 14px; padding: 10px 0; border-top: 1px solid #EDEDED; font-size: 15.5px; line-height: 1.4; }
+	.pr-step:first-of-type { border-top: 0; }
+	.pr-step .pr-t { color: #525252; font-variant-numeric: tabular-nums; white-space: nowrap; }
+	.pr-pause { color: #525252; font-style: italic; }
+	.pr-money { margin-top: 8px; border-top: 1px solid #E5E5E5; padding-top: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; }
+	.pr-money > div { display: flex; justify-content: space-between; gap: 12px; }
+	.pr-money b { white-space: nowrap; }
+	.pr-paid { color: #15803D; font-weight: 700; }
+	.pr-line { display: flex; justify-content: space-between; gap: 12px; font-size: 16px; padding: 5px 0; }
+	.pr-line span:first-child { color: #525252; }
+	.pr-mail { width: 100%; max-width: 580px; margin-top: 16px; display: flex; gap: 12px; align-items: center; font-size: 14.5px; line-height: 1.45; color: #525252; text-align: left; }
+	.pr-mail svg { flex: 0 0 auto; }
+	.pr-hold { margin-top: 20px; display: inline-flex; align-items: center; gap: 10px; background: #FDF3DC; color: #A16207; border-radius: 12px; padding: 10px 16px; font-size: 14.5px; font-weight: 600; }
+	.pr-hold b { font-variant-numeric: tabular-nums; font-size: 17px; }
+	.pr-note { margin-top: 18px; font-size: 14.5px; color: #737373; max-width: 480px; line-height: 1.45; }
+	.pr-detail { margin-top: 12px; font-size: 13.5px; color: #737373; max-width: 480px; }
+	.pr-todo { display: flex; flex-direction: column; gap: 14px; }
+	.pr-todo > div { display: flex; gap: 12px; align-items: flex-start; font-size: 15.5px; line-height: 1.5; }
+	.pr-todo .pr-n { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: #171717; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+	.pr-label { font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: #737373; font-weight: 600; margin-bottom: 14px; display: block; }
+	.pr-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 26px; }
+	.pr-actions .btn { min-height: 48px; border-radius: 12px; padding: 0 24px; display: inline-flex; align-items: center; font-size: 16px; font-weight: 600; }
+	.pr-ref { margin-top: 18px; font-size: 13.5px; color: #737373; font-variant-numeric: tabular-nums; }
+	.pr-slow { display: none; }
+	#pr-confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1050; }
+	#pr-confetti span { position: fixed; display: block; will-change: transform, opacity; }
+	@media (max-width: 575px) { .pr-wrap { padding-top: 32px; } .pr-actions { flex-direction: column; width: 100%; } .pr-actions .btn { justify-content: center; } }
+</style>
+
+{% if v.celebrate %}<div id="pr-confetti" data-ref="{{ (v.reference)|e }}" aria-hidden="true"></div>{% endif %}
+
+<div class="pr-wrap pr-{{ (v.tone)|e }}{% if v.kind == 'pending' %} pr-spin{% endif %}" id="pr-page" data-ref="{{ (v.reference or '')|e }}"{% if v.kind == 'pending' %} data-reload="{{ (v.reload_url or '')|e }}"{% endif %}>
+
+	<div class="pr-mark{% if v.kind == 'success' %} pr-ring{% endif %}" role="img" aria-label="{{ (v.title)|e }}">
+		{% if v.kind == "success" or v.kind == "refunded" %}
+		<svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M11 23.5l8 8L33.5 14" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		{% elif v.kind == "pending" or v.kind == "unconfirmed" or v.kind == "released" %}
+		<svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="14" stroke="#A16207" stroke-width="3.2"/><path d="M20 12v8.5l5.5 3.2" stroke="#A16207" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		{% elif v.kind == "failed" or v.kind == "error" %}
+		<svg width="36" height="36" viewBox="0 0 34 34" fill="none" aria-hidden="true"><path d="M10 10l14 14M24 10L10 24" stroke="#9C2920" stroke-width="3.6" stroke-linecap="round"/></svg>
+		{% elif v.kind == "canceled" %}
+		<svg width="36" height="36" viewBox="0 0 34 34" fill="none" aria-hidden="true"><path d="M20 8l-9 9 9 9" stroke="#525252" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		{% else %}
+		<svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="17" cy="17" r="10" stroke="#525252" stroke-width="3.2"/><path d="M25 25l9 9" stroke="#525252" stroke-width="3.2" stroke-linecap="round"/></svg>
+		{% endif %}
+	</div>
+
+	<h1 class="pr-title" id="pr-title">{{ (v.title)|e }}</h1>
+	<p class="pr-text" id="pr-text">{{ (v.text)|e }}</p>
+
+	{% if s and v.kind in ("success", "pending", "unconfirmed") %}
+	<div class="pr-card">
+		<div class="pr-head"><h2>{{ (s.title)|e }}</h2>{% if v.kind == "success" %}<span class="pr-pill"><i></i>{{ _("Confirmed") }}</span>{% endif %}</div>
+		{% if s.when %}<div class="pr-when">{{ (s.when)|e }}</div>{% endif %}
+		{% for step in s.steps or [] %}
+		<div class="pr-step">
+			{% if step.pause %}
+			<span class="pr-t">{{ (step.time or "")|e }}</span><span class="pr-pause">{{ (step.pause)|e }}</span>
+			{% else %}
+			<span class="pr-t">{{ (step.time)|e }}</span><span>{{ (step.label)|e }}{% if step.person %} <span style="color:#525252">· {{ (step.person)|e }}</span>{% endif %}</span>
+			{% endif %}
+		</div>
+		{% endfor %}
+		{% if (s.paid or s.rest) and v.kind == "success" %}
+		<div class="pr-money">
+			{% if s.paid %}<div><span>{% if s.rest %}{{ _("Down payment paid") }}{% else %}{{ _("Paid") }}{% endif %}</span><b class="pr-paid">{{ (s.paid)|e }}</b></div>{% endif %}
+			{% if s.rest %}<div><span>{{ _("Left to pay at the salon") }}</span><b>{{ (s.rest)|e }}</b></div>{% endif %}
+		</div>
+		{% endif %}
+	</div>
+	{% if s.email and v.kind == "success" %}
+	<div class="pr-mail">
+		<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 7.5l8 6 8-6"/></svg>
+		<span>{{ _("A confirmation email was sent to {0}.").format(s.email|e) }}</span>
+	</div>
+	{% endif %}
+	{% elif v.amount and v.kind in ("success", "pending", "unconfirmed", "refunded") %}
+	<div class="pr-card" style="max-width:520px">
+		<div class="pr-line"><span>{{ _("Amount") }}</span><b>{{ (v.amount)|e }}</b></div>
+		{% if v.reference %}<div class="pr-line"><span>{{ _("Reference") }}</span><b style="font-variant-numeric:tabular-nums">{{ (v.reference)|e }}</b></div>{% endif %}
+	</div>
+	{% endif %}
+
+	{% if v.todo %}
+	<div class="pr-card">
+		<span class="pr-label">{{ _("What to do") }}</span>
+		<div class="pr-todo">
+			{% for item in v.todo %}<div><span class="pr-n">{{ (loop.index)|e }}</span><span><b>{{ (item.lead)|e }}</b> {{ (item.text)|e }}</span></div>{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+
+	{% if v.hold_seconds and v.hold_seconds > 0 %}
+	<div class="pr-hold" id="pr-hold" data-seconds="{{ (v.hold_seconds)|e }}"><span>{{ _("Your time is held for another") }}</span><b id="pr-hold-time">--:--</b></div>
+	{% endif %}
+
+	{% if v.note %}<div class="pr-note" id="pr-note">{{ (v.note)|e }}</div>{% endif %}
+	{% if v.kind == "pending" %}
+	<div class="pr-slow" id="pr-slow" data-title="{{ (v.slow_title)|e }}" data-text="{{ (v.slow_text)|e }}" data-note="{{ (v.slow_note)|e }}"></div>
+	{% endif %}
+	{% if v.detail and v.kind in ("failed", "error") %}<div class="pr-detail">{{ (v.detail)|e }}</div>{% endif %}
+
+	{% if v.primary or v.secondary %}
+	<div class="pr-actions">
+		{% if v.primary %}<a href="{{ (v.primary.url)|e }}" class="btn btn-primary">{{ (v.primary.label)|e }}</a>{% endif %}
+		{% if v.secondary %}<a href="{{ (v.secondary.url)|e }}" class="btn btn-outline-secondary">{{ (v.secondary.label)|e }}</a>{% endif %}
+	</div>
+	{% endif %}
+
+	{% if v.foot %}<div class="pr-note">{{ (v.foot)|e }}</div>{% endif %}
+	{% if v.reference and v.kind in ("failed", "error", "not_found", "unconfirmed", "released") and v.kind != "not_found" %}<div class="pr-ref">{{ _("Reference") }} : {{ (v.reference)|e }}</div>{% endif %}
+</div>
+
+<script>
+(function () {
+	/* The confetti: once, when a payment that arrived is shown; never twice for the same payment, never when the visitor asks for less motion */
+	var box = document.getElementById("pr-confetti");
+	if (box) {
+		var ref = box.getAttribute("data-ref") || "payment", skip = false;
+		try {
+			if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) skip = true;
+			if (sessionStorage.getItem("pr-confetti-" + ref)) skip = true;
+			else sessionStorage.setItem("pr-confetti-" + ref, "1");
+		} catch (e) { /* no storage: it plays, once per load */ }
+		if (skip || !box.animate) { box.remove(); }
+		else {
+			var mark = document.querySelector(".pr-mark"), r = mark ? mark.getBoundingClientRect() : { left: window.innerWidth / 2, top: 160, width: 0, height: 0 };
+			var ox = r.left + r.width / 2, oy = r.top + r.height / 2;
+			var theme = document.querySelector(".pr-actions .btn-primary"), main = theme ? getComputedStyle(theme).backgroundColor : "#637365";
+			var colors = ["#137949", "#4CAF6A", "#8FD3A8", "#171717", "#B8B8B8", main, "#E3B04B"];
+			for (var i = 0; i < 48; i++) {
+				var s = document.createElement("span"), round = Math.random() < 0.32, w = round ? 9 : 8 + Math.round(Math.random() * 3), h = round ? 9 : 13 + Math.round(Math.random() * 5);
+				var dx = (Math.random() < 0.5 ? -1 : 1) * (90 + Math.random() * 420), up = -(70 + Math.random() * 210), dy = 240 + Math.random() * 460, rot = (Math.random() - 0.5) * 1100;
+				s.style.cssText = "left:" + ox + "px;top:" + oy + "px;width:" + w + "px;height:" + h + "px;background:" + colors[i % colors.length] + ";border-radius:" + (round ? "50%" : "2px");
+				s.animate([
+					{ transform: "translate(0,0) rotate(0deg) scale(.3)", opacity: 0 },
+					{ transform: "translate(" + dx * 0.55 + "px," + up + "px) rotate(" + rot * 0.3 + "deg) scale(1)", opacity: 1, offset: 0.12 },
+					{ transform: "translate(" + dx + "px," + dy + "px) rotate(" + rot + "deg) scale(1)", opacity: 0 }
+				], { duration: 2400, delay: Math.random() * 300, easing: "cubic-bezier(.18,.72,.3,1)", fill: "both" });
+				box.appendChild(s);
+			}
+			setTimeout(function () { box.remove(); }, 3200);
+		}
+	}
+
+	/* The hold: a countdown; at zero the page reloads and says the time is no longer held */
+	var hold = document.getElementById("pr-hold");
+	if (hold) {
+		var left = parseInt(hold.getAttribute("data-seconds"), 10), out = document.getElementById("pr-hold-time");
+		var draw = function () { var m = Math.floor(left / 60), sec = left % 60; out.textContent = (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec; };
+		draw();
+		var timer = setInterval(function () { left -= 1; if (left <= 0) { clearInterval(timer); window.location.reload(); } else draw(); }, 1000);
+	}
+
+	/* Waiting: the page reloads itself every three seconds; after thirty it says it takes longer than expected, and keeps going */
+	var page = document.getElementById("pr-page");
+	if (page && page.hasAttribute("data-reload")) {
+		var url = page.getAttribute("data-reload"), started = Date.now();
+		var waitKey = "pr-wait-" + (page.getAttribute("data-ref") || "payment");
+		try { started = parseInt(sessionStorage.getItem(waitKey) || started, 10); sessionStorage.setItem(waitKey, started); } catch (e) { /* no storage */ }
+		var slow = document.getElementById("pr-slow");
+		if (slow && Date.now() - started > 30000) {
+			document.getElementById("pr-title").textContent = slow.getAttribute("data-title");
+			document.getElementById("pr-text").textContent = slow.getAttribute("data-text");
+			var note = document.getElementById("pr-note");
+			if (note) note.textContent = slow.getAttribute("data-note");
+		}
+		setTimeout(function () { if (url) window.location.href = url; else window.location.reload(); }, 3000);
+	}
+})();
+</script>

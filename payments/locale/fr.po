@@ -4268,3 +4268,171 @@ msgstr ""
 "{3}\n"
 "\n"
 "À faire : vérifiez chaque ligne dans le tableau de bord de {0}, puis enregistrez le paiement, ou remboursez le client si la vente a été encaissée une seconde fois."
+
+#: payments/templates/includes/payment_return.html:101
+#, python-brace-format
+msgid "A confirmation email was sent to {0}."
+msgstr "Un courriel de confirmation a été envoyé à {0}."
+
+#: payments/utils/payment_return.py:142
+msgid "Back to the site"
+msgstr "Retour au site"
+
+#: payments/utils/payment_return.py:220
+msgid "Choose another time"
+msgstr "Choisir un autre créneau"
+
+#: payments/utils/payment_return.py:263
+msgid "Did you not pay?"
+msgstr "Vous n'avez pas payé ?"
+
+#: payments/utils/payment_return.py:253
+msgid "Did you pay?"
+msgstr "Vous avez payé ?"
+
+#: payments/utils/payment_return.py:176
+msgid "Do not close this page: it updates by itself."
+msgstr "Ne fermez pas cette page : elle se met à jour toute seule."
+
+#: payments/utils/payment_return.py:181 payments/utils/payment_return.py:188
+msgid "If you have already paid, do not pay a second time: wait for that email."
+msgstr "Si vous avez déjà payé, ne payez pas une seconde fois : attendez ce courriel."
+
+#: payments/utils/payment_return.py:218
+msgid "If your payment arrived after that, it is given back to you automatically: you receive an email."
+msgstr "Si votre paiement arrive après ce délai, il vous est rendu automatiquement : vous recevrez un courriel."
+
+#: payments/utils/payment_return.py:230
+msgid "It goes back to the card or the account that paid, and can take a few days to show at your bank."
+msgstr "Il revient sur la carte ou le compte qui a payé ; son affichage à votre banque peut prendre quelques jours."
+
+#: payments/templates/includes/payment_return.html:94
+msgid "Left to pay at the salon"
+msgstr "Reste à régler au salon"
+
+#: payments/utils/payment_return.py:254
+msgid "Look in your inbox: a confirmation email arrives. Check your junk mail too."
+msgstr "Consultez votre boîte de réception : un courriel de confirmation y arrive. Pensez aussi à vérifier vos indésirables."
+
+#: payments/utils/payment_return.py:204
+msgid "No amount has been taken."
+msgstr "Aucun montant n'a été débité."
+
+#: payments/utils/payment_return.py:257
+msgid "Nothing after ten minutes?"
+msgstr "Rien après dix minutes ?"
+
+#: payments/utils/payment_return.py:264
+msgid "Nothing has been charged. Start your booking again."
+msgstr "Rien n'a été débité. Recommencez votre prise de rendez-vous."
+
+#: payments/api/payment_return.py:39
+msgid "Nothing to add to a calendar."
+msgstr "Rien à ajouter à votre agenda."
+
+#: payments/utils/payment_return.py:225
+msgid "Payment refunded"
+msgstr "Paiement remboursé"
+
+#: payments/utils/payment_return.py:206
+msgid "Resume the payment"
+msgstr "Reprendre le paiement"
+
+#: payments/utils/payment_return.py:159
+msgid "Something in the way? Reply to the confirmation email: the salon moves or cancels your appointment."
+msgstr "Un contretemps ? Répondez au courriel de confirmation : le salon déplacera ou annulera votre rendez-vous."
+
+#: payments/utils/payment_return.py:239
+msgid "Something went wrong after the payment. Please write to us with the reference below: we will find your payment."
+msgstr "Un problème est survenu après le paiement. Écrivez-nous avec la référence ci-dessous : nous retrouverons votre paiement."
+
+#: payments/utils/payment_return.py:151
+#, python-brace-format
+msgid "Thank you {0}, your payment has arrived."
+msgstr "Merci {0}, votre paiement est bien arrivé."
+
+#: payments/utils/payment_return.py:153 payments/utils/payment_return.py:167
+msgid "Thank you, your payment has arrived."
+msgstr "Merci, votre paiement est bien arrivé."
+
+#: payments/utils/payment_return.py:165
+#, python-brace-format
+msgid "Thank you, your payment of {0} has arrived."
+msgstr "Merci, votre paiement de {0} est bien arrivé."
+
+#: payments/utils/payment_return.py:195
+msgid "The payment did not go through"
+msgstr "Le paiement n'a pas abouti"
+
+#: payments/utils/payment_return.py:196
+msgid "The payment was not completed. Nothing has been charged."
+msgstr "Le paiement n'a pas été finalisé. Rien n'a été débité."
+
+#: payments/utils/payment_return.py:214
+msgid "The time to pay ran out and the time slot was given back."
+msgstr "Le délai de paiement est écoulé et le créneau a été libéré."
+
+#: payments/utils/payment_return.py:177 payments/utils/payment_return.py:186
+msgid "This is taking longer than expected"
+msgstr "Cela prend plus de temps que prévu"
+
+#: payments/utils/payment_return.py:249
+msgid "This link only works in the browser where the payment was made. That does not mean nothing was paid."
+msgstr "Ce lien ne fonctionne que dans le navigateur où le paiement a été effectué. Cela ne signifie pas que rien n'a été payé."
+
+#: payments/utils/payment_return.py:213
+msgid "This time is no longer held"
+msgstr "Ce créneau n'est plus réservé pour vous"
+
+#: payments/utils/payment_return.py:174
+msgid "We are confirming your payment"
+msgstr "Nous confirmons votre paiement"
+
+#: payments/utils/payment_return.py:247
+msgid "We cannot find this payment here"
+msgstr "Nous ne retrouvons pas ce paiement ici"
+
+#: payments/utils/payment_return.py:237
+msgid "We could not finish your order"
+msgstr "Nous n'avons pas pu finaliser votre commande"
+
+#: payments/utils/payment_return.py:143
+msgid "Write to us"
+msgstr "Écrivez-nous"
+
+#: payments/utils/payment_return.py:259
+msgid "Write to us with the time of the payment: we will find your payment and your appointment."
+msgstr "Écrivez-nous en indiquant l'heure du paiement : nous retrouverons votre paiement et votre rendez-vous."
+
+#: payments/utils/payment_return.py:179 payments/utils/payment_return.py:187
+msgid "You can close this page. As soon as the payment is confirmed you receive an email."
+msgstr "Vous pouvez fermer cette page. Dès que le paiement est confirmé, vous recevez un courriel."
+
+#: payments/utils/payment_return.py:203
+msgid "You left the payment"
+msgstr "Vous avez quitté le paiement"
+
+#: payments/utils/payment_return.py:150
+msgid "Your appointment is confirmed"
+msgstr "Votre rendez-vous est confirmé"
+
+#: payments/utils/payment_return.py:205
+msgid "Your appointment is not confirmed yet."
+msgstr "Votre rendez-vous n'est pas encore confirmé."
+
+#: payments/utils/payment_return.py:175
+msgid "Your bank has answered. All that is left is to record it: it takes a few seconds."
+msgstr "Votre banque a répondu. Il ne reste plus qu'à l'enregistrer : cela prend quelques secondes."
+
+#: payments/utils/payment_return.py:215 payments/utils/payment_return.py:228
+msgid "Your payment has been given back to you."
+msgstr "Votre paiement vous a été remboursé."
+
+#: payments/utils/payment_return.py:226
+#, python-brace-format
+msgid "Your payment of {0} has been given back to you."
+msgstr "Votre paiement de {0} vous a été remboursé."
+
+#: payments/templates/includes/payment_return.html:121
+msgid "Your time is held for another"
+msgstr "Horaire tenu encore"

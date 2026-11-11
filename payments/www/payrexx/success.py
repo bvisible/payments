@@ -114,6 +114,27 @@ def _refresh_status(intent_doc) -> None:
 
 
 def get_context(context):  # noqa: ANN001
+	"""Decide as before, then let the shared return view say it (payments/utils/payment_return.py)."""
+	from urllib.parse import urlencode
+
+	from payments.utils.payment_return import present
+
+	_decide(context)
+	intent = context.get("intent")
+	check_url = None
+	if intent and context.get("status") == "unconfirmed":
+		check_url = "/payrexx/success?" + urlencode(
+			{
+				"payment_intent": intent.name,
+				"access_token": frappe.form_dict.get("access_token") or "",
+				"try": 0,
+			}
+		)
+	present(context, reload_url=context.get("retry_url"), check_url=check_url)
+	return context
+
+
+def _decide(context):  # noqa: ANN001
 	intent_name = frappe.form_dict.get("payment_intent")
 	_debug(f"START payment_intent={intent_name}")
 
@@ -216,18 +237,6 @@ def get_context(context):  # noqa: ANN001
 		context.retry_url = "/payrexx/success?" + urlencode(
 			{"payment_intent": intent_name, "access_token": access_token or "", "try": attempt + 1}
 		)
-
-	# The page is reached by all three return URLs, so its title has to follow the
-	# state rather than the route. Leaving it as "Success" printed that word above
-	# "Paiement non reçu", which reads as a contradiction to the one person it
-	# matters to.
-	context.title = {
-		"success": _("Payment Successful"),
-		"failed": _("Payment Error"),
-		"unconfirmed": _("Payment not received"),
-	}.get(context.status, _("Payment Processing"))
-	if context.error:
-		context.title = _("Payment Error")
 
 	_debug(f"END status={context.status} error={context.error}")
 	return context
