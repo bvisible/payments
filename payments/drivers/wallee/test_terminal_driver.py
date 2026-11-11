@@ -20,7 +20,7 @@ import hashlib
 import hmac
 import json
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, create_autospec, patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -137,11 +137,18 @@ def _build_driver() -> WalleeTerminalDriver:
 	return WalleeTerminalDriver.from_docs(provider_doc, channel_doc, binding_doc)
 
 
+def _a_refunds_service():
+	"""The service the SDK really has, not a mock that answers to any name: a call the SDK does not know fails here, as it does for a customer."""
+	from wallee.service.refunds_service import RefundsService
+
+	return create_autospec(RefundsService, instance=True)
+
+
 def _patch_services(tx_mock=None, terminals_mock=None, refunds_mock=None):
 	"""Return a context manager that patches WalleeTerminalDriver._services."""
 	tx_mock = tx_mock or MagicMock(name="TransactionsService")
 	terminals_mock = terminals_mock or MagicMock(name="PaymentTerminalsService")
-	refunds_mock = refunds_mock or MagicMock(name="RefundsService")
+	refunds_mock = refunds_mock or _a_refunds_service()
 	return patch.object(
 		WalleeTerminalDriver,
 		"_services",
@@ -354,13 +361,13 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		tx_service.get_payment_transactions_id.return_value = _wallee_tx(
 			tx_id=12345, state="COMPLETED", authorization_amount=15.0, completed_amount=12.0
 		)
-		refunds = MagicMock()
-		refunds.refund.return_value = _wallee_refund(state="SUCCESSFUL")
+		refunds = _a_refunds_service()
+		refunds.post_payment_refunds.return_value = _wallee_refund(state="SUCCESSFUL")
 		with _patch_services(tx_mock=tx_service, refunds_mock=refunds):
 			result = driver.refund("12345")  # full refund
 
-		refunds.refund.assert_called_once()
-		space, rc = refunds.refund.call_args.args
+		refunds.post_payment_refunds.assert_called_once()
+		space, rc = refunds.post_payment_refunds.call_args.args
 		self.assertEqual(space, 100)
 		self.assertEqual(rc.transaction, 12345)
 		self.assertEqual(rc.amount, 12.0)
@@ -373,12 +380,12 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		tx_service.get_payment_transactions_id.return_value = _wallee_tx(
 			tx_id=12345, state="COMPLETED", authorization_amount=9.5
 		)
-		refunds = MagicMock()
-		refunds.refund.return_value = _wallee_refund(state="SUCCESSFUL")
+		refunds = _a_refunds_service()
+		refunds.post_payment_refunds.return_value = _wallee_refund(state="SUCCESSFUL")
 		with _patch_services(tx_mock=tx_service, refunds_mock=refunds):
 			result = driver.refund("12345")
 
-		self.assertEqual(refunds.refund.call_args.args[1].amount, 9.5)
+		self.assertEqual(refunds.post_payment_refunds.call_args.args[1].amount, 9.5)
 		self.assertEqual(result.status, "refunded")
 
 	def test_refund_full_of_a_transaction_that_says_no_amount_is_refused_and_asks_wallee_nothing(
@@ -389,12 +396,12 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		tx_service.get_payment_transactions_id.return_value = _wallee_tx(
 			tx_id=12345, state="COMPLETED", authorization_amount=None
 		)
-		refunds = MagicMock()
+		refunds = _a_refunds_service()
 		with _patch_services(tx_mock=tx_service, refunds_mock=refunds):
 			result = driver.refund("12345")
 
 		self.assertEqual((result.status, result.error_code), ("failed", "invalid_amount"))
-		refunds.refund.assert_not_called()
+		refunds.post_payment_refunds.assert_not_called()
 
 	def test_the_driver_reads_amounts_that_the_sdks_transaction_has(self):
 		"""The contract with the SDK: a field the driver reads must exist on the model, or a mock can invent it and hide the error."""
@@ -416,17 +423,17 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 
 	def test_refund_partial_uses_minor_amount(self):
 		driver = _build_driver()
-		refunds = MagicMock()
-		refunds.refund.return_value = _wallee_refund(state="SUCCESSFUL")
+		refunds = _a_refunds_service()
+		refunds.post_payment_refunds.return_value = _wallee_refund(state="SUCCESSFUL")
 		with _patch_services(refunds_mock=refunds):
 			result = driver.refund("12345", amount=500)  # 5.00 CHF
-		self.assertEqual(refunds.refund.call_args.args[1].amount, 5.0)
+		self.assertEqual(refunds.post_payment_refunds.call_args.args[1].amount, 5.0)
 		self.assertEqual(result.status, "refunded")
 
 	def test_refund_pending_returns_processing(self):
 		driver = _build_driver()
-		refunds = MagicMock()
-		refunds.refund.return_value = _wallee_refund(state="PENDING")
+		refunds = _a_refunds_service()
+		refunds.post_payment_refunds.return_value = _wallee_refund(state="PENDING")
 		with _patch_services(refunds_mock=refunds):
 			result = driver.refund("12345", amount=500)
 		self.assertEqual(result.status, "processing")
@@ -511,8 +518,8 @@ class TestWalleeWebDriverRefund(FrappeTestCase):
 
 		tx_service = MagicMock()
 		tx_service.get_payment_transactions_id.return_value = tx
-		refunds = MagicMock()
-		refunds.refund.return_value = _wallee_refund(state="SUCCESSFUL")
+		refunds = _a_refunds_service()
+		refunds.post_payment_refunds.return_value = _wallee_refund(state="SUCCESSFUL")
 		with patch.object(WalleeWebDriver, "_services", return_value=(tx_service, refunds)):
 			result = self._driver().refund("12345", amount=amount)
 		return result, refunds
@@ -523,22 +530,22 @@ class TestWalleeWebDriverRefund(FrappeTestCase):
 		)
 
 		self.assertEqual(result.status, "refunded")
-		self.assertEqual(refunds.refund.call_args.args[1].amount, 12.0)
+		self.assertEqual(refunds.post_payment_refunds.call_args.args[1].amount, 12.0)
 
 	def test_a_full_refund_of_an_authorized_transaction_gives_back_what_was_authorized(self):
 		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED", authorization_amount=9.5))
 
 		self.assertEqual(result.status, "refunded")
-		self.assertEqual(refunds.refund.call_args.args[1].amount, 9.5)
+		self.assertEqual(refunds.post_payment_refunds.call_args.args[1].amount, 9.5)
 
 	def test_a_transaction_with_no_amount_is_refused_and_nothing_is_asked_of_wallee(self):
 		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED", authorization_amount=None))
 
 		self.assertEqual((result.status, result.error_code), ("failed", "invalid_amount"))
-		refunds.refund.assert_not_called()
+		refunds.post_payment_refunds.assert_not_called()
 
 	def test_a_partial_refund_names_its_amount_and_reads_nothing(self):
 		result, refunds = self._refund_with(_wallee_tx(state="COMPLETED"), amount=500)
 
 		self.assertEqual(result.status, "refunded")
-		self.assertEqual(refunds.refund.call_args.args[1].amount, 5.0)
+		self.assertEqual(refunds.post_payment_refunds.call_args.args[1].amount, 5.0)

@@ -394,7 +394,9 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				external_id=f"pi_{provider_intent_id}_rf_{int(refund_amount * 100)}",
 				type="MERCHANT_INITIATED_ONLINE",
 			)
-			response = refunds.refund(self._wallee_provider.space_id, refund_create)
+			# //// Neoffice — the SDK this app pins (wallee>=6.4.0,<7) names the call `post_payment_refunds`: `refund` is no
+			# //// method of its RefundsService, and every refund of a Wallee payment failed on it (maintenance#2520).
+			response = refunds.post_payment_refunds(self._wallee_provider.space_id, refund_create)
 		except Exception as exc:  # noqa: BLE001
 			return DriverResponse(
 				status="failed",
