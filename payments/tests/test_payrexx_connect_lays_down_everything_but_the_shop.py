@@ -35,6 +35,14 @@ def _client():
 	return client
 
 
+def _a_provider():
+	"""The probe reads the Payrexx provider before it builds its client: a fresh site (the CI's) has none.
+
+	Staged in the test's own transaction, which its cleanup rolls back; the client stays the test's mock."""
+	if not frappe.db.exists("Payment Provider", payrexx_setup.PROVIDER):
+		payrexx_setup._stage_credentials("_t-shop", "_t-secret")
+
+
 class TestPayrexxConnect(FrappeTestCase):
 	def setUp(self):
 		self._commit = patch.object(frappe.db, "commit")
@@ -86,6 +94,7 @@ class TestPayrexxConnect(FrappeTestCase):
 			)
 
 	def test_the_test_page_says_what_a_shopper_is_offered(self):
+		_a_provider()
 		client = _client()
 		with (
 			patch("payments.drivers.payrexx._common.build_client", return_value=client),
@@ -100,6 +109,7 @@ class TestPayrexxConnect(FrappeTestCase):
 		client.gateway.delete.assert_called_once_with(4242)
 
 	def test_the_test_page_is_deleted_even_when_reading_it_fails(self):
+		_a_provider()
 		client = _client()
 		with (
 			patch("payments.drivers.payrexx._common.build_client", return_value=client),
@@ -126,6 +136,7 @@ class TestPayrexxConnect(FrappeTestCase):
 		self.commit.assert_not_called()
 
 	def test_an_unreadable_page_keeps_the_last_good_reading(self):
+		_a_provider()
 		good = {"checked_at": "x", "methods": ["visa"], "card": True, "twint": False}
 		client = _client()
 		with (
