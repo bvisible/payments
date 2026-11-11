@@ -92,7 +92,7 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		frappe.delete_doc("Sales Invoice", self.si.name, force=True, ignore_permissions=True)
 		frappe.db.commit()
 
-	def _paid_by_card(self, amount, session_user=None):
+	def _paid_by_card(self, amount, session_user=None, metadata=None):
 		out = intent_api.create_intent(
 			provider="mock",
 			channel="terminal",
@@ -100,7 +100,7 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 			currency=self.si.currency,
 			reference_doctype="Sales Invoice",
 			reference_name=self.si.name,
-			metadata={"mode_of_payment": self.mop.parent},
+			metadata=metadata if metadata is not None else {"mode_of_payment": self.mop.parent},
 		)
 		self.intents.append(out["intent_name"])
 		intent = frappe.get_doc("Payment Intent", out["intent_name"])
@@ -154,3 +154,70 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		self.assertEqual(
 			flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0
 		)
+
+	# ---- a payment with no mode of payment, by the gateway account the customer chose (maintenance#2528) ----
+
+	def _a_gateway_account(self, company=None):
+		"""A gateway account of the invoice's company, paying into the account of the mode of payment this test uses."""
+		if not frappe.db.exists("Payment Gateway", "_Test Reconciliation Gateway"):
+			frappe.get_doc(
+				{"doctype": "Payment Gateway", "gateway": "_Test Reconciliation Gateway"}
+			).insert(ignore_permissions=True)
+		account = frappe.get_doc(
+			{
+				"doctype": "Payment Gateway Account",
+				"payment_gateway": "_Test Reconciliation Gateway",
+				"payment_account": self.mop.default_account,
+				"currency": frappe.db.get_value("Account", self.mop.default_account, "account_currency"),
+				"company": company or self.mop.company,
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(self._forget_the_gateway_account, account.name)
+		return account
+
+	@staticmethod
+	def _forget_the_gateway_account(name):
+		frappe.delete_doc("Payment Gateway Account", name, force=True, ignore_permissions=True)
+		frappe.db.commit()
+
+	def test_with_no_mode_of_payment_the_gateway_account_the_customer_chose_takes_the_money(self):
+		account = self._a_gateway_account()
+		owed = flt(self.si.outstanding_amount)
+		intent = self._paid_by_card(owed, metadata={"gateway_account": account.name})
+		pe = frappe.db.get_value(
+			"Payment Entry",
+			{"reference_no": intent.provider_intent_id, "docstatus": 1},
+			["name", "paid_to", "paid_amount"],
+			as_dict=True,
+		)
+		self.assertTrue(pe, f"the succeeded intent booked no payment. {_last_error()}")
+		self.assertEqual(
+			pe.paid_to, self.mop.default_account, "through the account of the gateway the customer chose"
+		)
+		self.assertEqual(flt(pe.paid_amount), owed)
+		self.assertEqual(
+			flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0
+		)
+
+	def test_a_gateway_account_that_is_not_the_invoices_companys_is_no_reason_to_book_anything(self):
+		other = frappe.db.get_value("Company", {"name": ["!=", self.mop.company]}, "name")
+		if not other:
+			self.skipTest("a second company is needed")
+		account = self._a_gateway_account(company=other)
+		intent = self._paid_by_card(
+			self.si.outstanding_amount, metadata={"gateway_account": account.name}
+		)
+		self.assertEqual(
+			frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 0
+		)
+		intent.reload()
+		self.assertEqual(
+			intent.get_metadata().get("reconciliation_action"), "skipped_no_mode_of_payment"
+		)
+
+	def test_an_unknown_gateway_account_or_none_books_nothing_as_before(self):
+		for metadata in ({"gateway_account": "No such gateway - CHF"}, {}):
+			intent = self._paid_by_card(self.si.outstanding_amount, metadata=metadata)
+			self.assertEqual(
+				frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 0
+			)

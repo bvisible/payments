@@ -115,7 +115,11 @@ def reconcile_payment_intent(intent_name: str, commit: bool = True) -> dict[str,
 
 def _reconcile_pos_invoice(intent, name: str, mode_of_payment: str | None) -> dict[str, Any]:
 	if not frappe.db.exists("POS Invoice", name):
-		return {"action": "skipped_missing_target", "reference_doctype": "POS Invoice", "reference_name": name}
+		return {
+			"action": "skipped_missing_target",
+			"reference_doctype": "POS Invoice",
+			"reference_name": name,
+		}
 
 	pos_doc = frappe.get_doc("POS Invoice", name)
 	# If already paid for the same provider_intent_id, skip.
@@ -170,7 +174,11 @@ def _reconcile_sales_invoice(intent, name: str, mode_of_payment: str | None) -> 
 	if si.docstatus == 1:
 		return _payment_entry(intent, si, mode_of_payment)
 	if si.docstatus == 2:
-		return {"action": "skipped_cancelled_target", "reference_doctype": "Sales Invoice", "reference_name": name}
+		return {
+			"action": "skipped_cancelled_target",
+			"reference_doctype": "Sales Invoice",
+			"reference_name": name,
+		}
 	# Skip if already paid via this provider_intent_id.
 	for row in si.get("payments") or []:
 		if (row.get("reference_no") or "") == (intent.provider_intent_id or ""):
@@ -235,11 +243,18 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 	"""The payment of a submitted Sales Invoice: a Payment Entry against it, at the intent's amount, through the
 	mode of payment's account, with the provider's id as its reference — and never twice for one intent."""
 	reference = intent.provider_intent_id or intent.name
-	existing = frappe.db.get_value("Payment Entry", {"reference_no": reference, "docstatus": ["<", 2]}, "name")
+	existing = frappe.db.get_value(
+		"Payment Entry", {"reference_no": reference, "docstatus": ["<", 2]}, "name"
+	)
 	if existing:
 		return {"action": "skipped_already_paid", "reference_no": reference, "payment_entry": existing}
 	mop = mode_of_payment or _default_mode_of_payment(si)
-	if not mop:
+	# //// Neoffice — a Sales Invoice that is no sale of a till (a booking paid on the web page) has no POS profile to
+	# //// read a mode of payment from: its payment was never booked (« skipped_no_mode_of_payment », the intent
+	# //// stamped as done, maintenance#2528). The one who opened the payment may say which gateway account the customer
+	# //// chose (`metadata.gateway_account`), and its account takes the money.
+	gateway_account = None if mop else _account_of_the_gateway(intent, si.company)
+	if not mop and not gateway_account:
 		return {"action": "skipped_no_mode_of_payment"}
 	if flt(si.outstanding_amount) <= 0:
 		# paid meanwhile, by another way: the money is there, the office reconciles it
@@ -265,7 +280,7 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 			reference_date=nowdate(),
 			reference_no=reference,
 			mode_of_payment=mop,
-			paid_to=get_bank_cash_account(mop, si.company)["account"],
+			paid_to=gateway_account or get_bank_cash_account(mop, si.company)["account"],
 		)
 		pe.flags.ignore_permissions = True
 		pe.insert()
@@ -283,6 +298,22 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 # ----------------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------------
+
+
+def _account_of_the_gateway(intent, company: str) -> str | None:
+	"""The account of the Payment Gateway Account the intent says the customer paid by (`metadata.gateway_account`), when it is a gateway
+	of this company with an account; else None."""
+	name = (
+		(intent.get_metadata() or {}).get("gateway_account") if hasattr(intent, "get_metadata") else None
+	)
+	if not name:
+		return None
+	return (
+		frappe.db.get_value(
+			"Payment Gateway Account", {"name": name, "company": company}, "payment_account"
+		)
+		or None
+	)
 
 
 def _default_mode_of_payment(invoice_doc) -> str | None:
