@@ -67,7 +67,7 @@ fact table for every transaction whatever the PSP.
 | `payments/payments/doctype/payment_intent/payment_intent.json` | Payment Intent | the fact table, 26 fields: `status` FSM, `amount`/`currency`, `provider`/`channel`/`device`, `provider_intent_id`, `reference_doctype`/`reference_name`, next-action payload, `metadata_json` |
 | `payments/payments/doctype/payment_event/payment_event.json` | Payment Event | the FSM audit trail: `intent`, `from_status`, `to_status`, `event_source`, `payload_excerpt` |
 | `payments/payments/doctype/payment_device/payment_device.json` | Payment Device | a physical reader: `provider_device_id`, `device_type`, `serial_number`, `status`, `last_seen_at`. Upstream has no notion of hardware at all |
-| `payments/payments/doctype/webhook_event_log/webhook_event_log.json` | Webhook Event Log | webhook de-duplication and forensics: `event_id` (the natural key), `signature_valid`, `raw_payload`, `received_at`/`processed_at` |
+| `payments/payments/doctype/webhook_event_log/webhook_event_log.json` | Webhook Event Log | webhook de-duplication and forensics: `event_id` (the natural key), `signature_valid`, `raw_payload`, `received_at`/`processed_at`; `retries`/`alerted_at`, the count and the report of the Stripe sweep (`webhook_common.retry_unfinished_events`, maintenance#2296 audit Q11) |
 | `payments/payments/doctype/customer_payment_link/customer_payment_link.json` | Customer Payment Link | ties an ERPNext Customer to its PSP-side customer id, so a returning shopper is recognised |
 
 All eight founded by `e32ecf5` (2026-05-13, *"Phase 1 — unified payment driver layer

@@ -104,6 +104,37 @@ def handle() -> str:  # permission-check: ok the caller is the provider, its sig
 	return "ok"
 
 
+# //// Neoffice — maintenance#2296 (audit Q11): every five minutes (hooks.py), a row its job never finished is queued
+# //// again, five times at most, then reported as a payment Stripe took and the ERP did not record
+# //// (webhook_common.retry_unfinished_events). Stripe Terminal has no poll to make up for a lost job.
+def retry_lost_events() -> dict:
+	"""Scheduler: queue again the Stripe events left « Queued » or « Failed » for ten minutes, then report them."""
+	from payments.api.webhook_common import retry_unfinished_events
+
+	return retry_unfinished_events(
+		_STRIPE_DRIVERS, _PROCESS_EVENT, _JOB_PREFIX, "Stripe", describe=_described
+	)
+
+
+def _described(row) -> str:  # noqa: ANN001
+	"""A line of the report: the Payment Intent the stored event names, its amount, and Stripe's id of the object."""
+	obj = (json.loads(row.raw_payload or "{}").get("data") or {}).get("object") or {}
+	said = []
+	name = (obj.get("metadata") or {}).get("frappe_intent_name")
+	intent = name and frappe.db.get_value(
+		"Payment Intent", name, ["name", "amount", "currency"], as_dict=True
+	)
+	amount, currency = obj.get("amount_received") or obj.get("amount"), obj.get("currency")
+	if intent:
+		said.append(f"Payment Intent {intent.name}")
+		amount, currency = intent.amount, intent.currency
+	if isinstance(amount, int) and amount:
+		said.append(f"{amount / 100:.2f} {(currency or '').upper()}".strip())
+	if obj.get("id"):
+		said.append(str(obj["id"]))
+	return " — ".join(said)
+
+
 def _capture_after_action_succeeded(log, driver) -> None:  # noqa: ANN001
 	"""Trigger Stripe PaymentIntent.capture after a successful reader action.
 

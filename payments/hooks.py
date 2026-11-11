@@ -186,7 +186,7 @@ scheduler_events = {
 	},
 }
 
-# //// ▼▼▼ Neoffice — the four blocks below have no upstream equivalent: upstream
+# //// ▼▼▼ Neoffice — the five blocks below have no upstream equivalent: upstream
 # //// ends scheduler_events at the dict above. Each one is a fallback for a PSP that
 # //// cannot be trusted to tell us on its own, in a fork where a lost notification
 # //// means a paid order that never becomes a Sales Order.
@@ -198,6 +198,8 @@ scheduler_events = {
 # ////     Payrexx rate-limits at ~600 requests / 5 min per account.
 # ////   * TWINT cert expiry — cf61f54, 2026-06-21: TWINT certificates last ~3 years
 # ////     and expire in silence, taking the till's card payments down with them.
+# ////   * Stripe retry — maintenance#2296 (audit Q11), 2026-11-11: a Stripe event whose job
+# ////     never finished is queued again every 5 min, 5 times at most, then reported.
 # //// ▲▲▲ block ends at the `# Testing` divider below.
 # TWINT has no webhook stream, so we poll the bridge each minute for any
 # Payment Intent in qr_bridge channel still in requires_action/processing.
@@ -222,6 +224,11 @@ scheduler_events["cron"]["* * * * *"].append(
 scheduler_events["cron"]["*/5 * * * *"].append(
 	"payments.api.webhook_payrexx.poll_pending_payrexx_transactions"
 )
+
+# //// Neoffice — Stripe: the webhook is the only channel, and a delivery Stripe was answered « ok » for is never sent
+# //// again. A row its job never finished (a restart, a queue emptied) is queued again every five minutes, five times
+# //// at most, then reported (maintenance#2296, audit Q11). Idempotent.
+scheduler_events["cron"]["*/5 * * * *"].append("payments.api.webhook_stripe.retry_lost_events")
 
 # TWINT: daily certificate-expiry check → reminder email in the 45 days before
 # the cert's notAfter (TWINT certs last ~3 years and expire silently).
