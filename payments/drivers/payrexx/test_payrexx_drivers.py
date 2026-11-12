@@ -303,6 +303,70 @@ class TestPayrexxWebDriver(FrappeTestCase):
 
 		self.assertEqual(response.status, "processing")
 
+	# ------------------------------------------------------------------ refund
+
+	def _refund(self, client, amount=None):
+		with (
+			patch.object(PayrexxWebDriver, "_client", return_value=client),
+			patch("payments.drivers.payrexx.web_driver._reference_of", return_value="PI-TEST-0009"),
+		):
+			return self.driver.refund("36085448", amount)
+
+	def test_a_refund_targets_the_payment_the_gateway_carries(self):
+		"""A refused attempt and the payment after it sit on one gateway: the paid one goes back.
+
+		Without asking the account's list, whose unsorted page is its oldest one.
+		"""
+		client = _client_stub()
+		attempts = [
+			{"id": 701, "status": "declined"},
+			{"id": 702, "status": "confirmed"},
+			{"id": 700, "status": "expired"},
+		]
+		client.gateway.retrieve.return_value = _fake_gateway(
+			status="confirmed", raw={"invoices": [{"transactions": attempts}]}
+		)
+		client.transaction.refund.return_value = MagicMock(status="refunded", raw={})
+
+		response = self._refund(client, 560)
+
+		client.transaction.refund.assert_called_once_with(702, amount=560)
+		client.transaction.list.assert_not_called()
+		client.transaction.find_by_reference.assert_not_called()
+		self.assertEqual(response.status, "refunded")
+
+	def test_a_gone_gateway_is_found_in_the_newest_page_of_the_account(self):
+		"""Unsorted, Payrexx answers its oldest page: the fallback asks for the newest first."""
+		client = _client_stub()
+		client.gateway.retrieve.side_effect = RuntimeError("No Gateway found (HTTP 404)")
+		client.transaction.list.return_value = [
+			MagicMock(id=910, status="confirmed", reference_id="PI-OTHER"),
+			MagicMock(id=905, status="confirmed", reference_id="PI-TEST-0009"),
+			MagicMock(id=903, status="expired", reference_id="PI-TEST-0009"),
+		]
+		client.transaction.refund.return_value = MagicMock(status="refunded", raw={})
+
+		response = self._refund(client)
+
+		self.assertEqual(client.transaction.list.call_args.kwargs.get("order_by_time"), "DESC")
+		client.transaction.refund.assert_called_once_with(905, amount=None)
+		self.assertEqual(response.status, "refunded")
+
+	def test_a_payment_with_no_paid_transaction_is_said_and_nothing_goes_back(self):
+		client = _client_stub()
+		client.gateway.retrieve.return_value = _fake_gateway(
+			raw={"invoices": [{"transactions": [{"id": 700, "status": "expired"}]}]}
+		)
+		client.transaction.list.return_value = [
+			MagicMock(id=700, status="expired", reference_id="PI-TEST-0009")
+		]
+
+		response = self._refund(client)
+
+		client.transaction.refund.assert_not_called()
+		self.assertEqual(response.status, "failed")
+		self.assertEqual(response.error_code, "transaction_not_found")
+
 
 class TestPayrexxTerminalDriver(FrappeTestCase):
 	def setUp(self):

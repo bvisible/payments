@@ -6,6 +6,7 @@
 # //// referenceId mint two gateways (verified live), hence the id persisted at once.
 # //// Commits: 4c05756 2026-08-11 "feat(payrexx): add Payrexx as a third payment provider"
 # ////          c842654 2026-08-31 "fix(payrexx): prefill the contact details the hosted page refuses to do without"
+# ////          2026-11-12 a refund reads the paid transaction on the gateway itself, the account's list newest first
 # Copyright (c) 2026, Neoffice and contributors
 # License: MIT. See LICENSE
 """Payrexx Web driver — hosted payment page (``POST /Gateway/``).
@@ -216,16 +217,15 @@ class PayrexxWebDriver(PaymentDriverBase):
 		"""Refund the transaction behind this gateway.
 
 		The gateway id is not the transaction id: a refund targets the transaction
-		Payrexx created when the shopper paid. It is looked up by ``referenceId``,
-		which carries our Payment Intent name.
+		Payrexx created when the shopper paid. The gateway lists its own transactions,
+		so it is read first; the account's list, searched by ``referenceId`` (our
+		Payment Intent name), is only the fallback (see ``_paid_transaction_id``).
 		"""
 		try:
 			with self._client() as client:
-				reference = frappe.db.get_value(
-					"Payment Intent", {"provider_intent_id": provider_intent_id}, "name"
-				)
-				transactions = client.transaction.find_by_reference(reference) if reference else []
-				if not transactions:
+				reference = _reference_of(provider_intent_id)
+				target_id = _paid_transaction_id(client, provider_intent_id, reference)
+				if not target_id:
 					return DriverResponse(
 						status="failed",
 						provider_intent_id=provider_intent_id,
@@ -234,11 +234,7 @@ class PayrexxWebDriver(PaymentDriverBase):
 							reference or provider_intent_id
 						),
 					)
-
-				# Newest first: a reference can legitimately carry several
-				# transactions, since Payrexx does not enforce uniqueness on it.
-				target = max(transactions, key=lambda t: t.id or 0)
-				refunded = client.transaction.refund(target.id, amount=amount)
+				refunded = client.transaction.refund(target_id, amount=amount)
 		except Exception as exc:  # noqa: BLE001
 			return error_response(exc, provider_intent_id=provider_intent_id)
 
@@ -259,3 +255,51 @@ class PayrexxWebDriver(PaymentDriverBase):
 		from payments.api.webhook_payrexx import parse_delivery
 
 		return parse_delivery(payload, headers, signing_key=self._payrexx_provider.webhook_signing_key)
+
+
+#: A transaction Payrexx still holds money for: what a refund can target.
+REFUNDABLE_STATUSES = ("confirmed", "partially-refunded")
+
+#: How deep the fallback looks into the account's transactions, newest first.
+NEWEST_PAGE = 100
+
+
+def _reference_of(provider_intent_id: str) -> str | None:
+	"""Our Payment Intent name for a gateway: the ``referenceId`` Payrexx carries back."""
+	return frappe.db.get_value("Payment Intent", {"provider_intent_id": provider_intent_id}, "name")
+
+
+def _paid_transaction_id(client, gateway_id: str, reference: str | None) -> int | None:
+	"""The newest transaction of this payment that still holds money, or None.
+
+	The gateway answers with its own transactions (``invoices[].transactions[]``): a
+	declined or expired attempt and the payment that followed it on the same page
+	both appear there, so only a paid one is kept. A gateway Payrexx no longer has
+	(deleted once paid, or by hand) falls back to the account's transactions — asked
+	**newest first**: unsorted, Payrexx answers its OLDEST page, and the library's
+	``find_by_reference`` searched only that page, so a payment made after the
+	account's tenth transaction was never found and its refund failed with
+	``transaction_not_found`` (seen on a live account, 2026-11-12).
+	"""
+	try:
+		gateway = client.gateway.retrieve(gateway_id)
+		rows = [
+			tx
+			for invoice in (gateway.raw or {}).get("invoices") or []
+			for tx in invoice.get("transactions") or []
+		]
+	except Exception:  # noqa: BLE001 - a gateway that is gone leaves the account's list to ask
+		rows = []
+	paid = [tx for tx in rows if tx.get("id") and str(tx.get("status")) in REFUNDABLE_STATUSES]
+	if paid:
+		return max(paid, key=lambda tx: int(tx["id"]))["id"]
+	if not reference:
+		return None
+	# A reference can legitimately carry several transactions, since Payrexx does
+	# not enforce uniqueness on it: the newest paid one is the payment.
+	found = [
+		tx
+		for tx in client.transaction.list(order_by_time="DESC", limit=NEWEST_PAGE)
+		if tx.reference_id == reference and str(tx.status) in REFUNDABLE_STATUSES
+	]
+	return max(found, key=lambda tx: tx.id or 0).id if found else None
