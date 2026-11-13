@@ -26,12 +26,12 @@ app_license = "MIT"
 # namespace consumed by `webshop/templates/payments/twint.html`.
 # //// Neoffice — `?v=` busts the browser's copy when the dialog changes: /assets is cached an hour, and a dialog
 # //// older than its server breaks the checkout (maintenance#1731: the poll and the cancel now send a token;
-# //// maintenance#1732: the test-mode simulator too).
+# //// maintenance#1732: the test-mode simulator too; maintenance#2669: the poll brings the order's page back).
 web_include_css = "/assets/payments/css/twint_dialog.css"
-web_include_js = "/assets/payments/js/twint_dialog.js?v=3"
+web_include_js = "/assets/payments/js/twint_dialog.js?v=4"
 app_include_css = "/assets/payments/css/twint_dialog.css"
 # //// Neoffice — the same `?v=` on the desk's copy of the dialog (maintenance#1731).
-app_include_js = "/assets/payments/js/twint_dialog.js?v=3"
+app_include_js = "/assets/payments/js/twint_dialog.js?v=4"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "pay/public/scss/website"

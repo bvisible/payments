@@ -1046,7 +1046,8 @@ frappe.provide('frappe.twint');
                             args: { intent_name: order_uuid, access_token: paymentDialog.accessToken },
                             callback: function(r) {
                                 if (!r.message) return;
-                                _applyStatus(r.message.status, null, r.message.error_message);
+                                // maintenance#2669: the poll names the paid order's page, as the realtime event does.
+                                _applyStatus(r.message.status, r.message.redirect_to || null, r.message.error_message);
                             }
                         });
                     }, 5000);

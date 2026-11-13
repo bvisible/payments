@@ -233,3 +233,59 @@ class TestThePayrexxReturnPageServesOnlyTheBrowserSentBackToIt(FrappeTestCase):
 		query = parse_qs(urlparse(context.retry_url).query)
 		self.assertEqual(query["access_token"], [token])
 		self.assertEqual(query["payment_intent"], [self.payrexx])
+
+
+class TestThePollBringsThePaidOrdersPage(FrappeTestCase):
+	"""maintenance#2669: the dialog's fallback poll names the page of the order the buyer just paid."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_ensure_channels()
+
+	def setUp(self):
+		self.intent = _intent("twint_web")
+		self.request = frappe.generate_hash(length=10)
+		self.order = frappe.generate_hash(length=10)
+		frappe.set_user("Guest")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete("Payment Event", {"intent": self.intent})
+		frappe.db.delete("Payment Intent", {"name": self.intent})
+
+	def _state(self, request=None, order_docstatus=None):
+		frappe.db.set_value(
+			"Payment Intent", self.intent,
+			{"status": "succeeded", "reference_doctype": "Payment Request", "reference_name": self.request},
+		)
+		values = {
+			("Payment Request", self.request): frappe._dict(
+				reference_doctype="Sales Order", reference_name=self.order
+			) if request is None else request,
+			("Sales Order", self.order): order_docstatus,
+		}
+		real = frappe.db.get_value
+
+		def get_value(doctype, name=None, *args, **kwargs):
+			if (doctype, name) in values:
+				return values[(doctype, name)]
+			return real(doctype, name, *args, **kwargs)
+
+		with patch("frappe.db.get_value", side_effect=get_value):
+			return twint_web.get_intent_state(self.intent, access_token=web_access_token(self.intent))
+
+	def test_a_paid_and_submitted_order_is_named(self):
+		self.assertEqual(self._state(order_docstatus=1)["redirect_to"], f"/thank-you?sales_order={self.order}")
+
+	def test_an_order_not_submitted_yet_is_not(self):
+		self.assertIsNone(self._state(order_docstatus=0)["redirect_to"])
+
+	def test_a_request_for_something_else_is_not(self):
+		other = frappe._dict(reference_doctype="Sales Invoice", reference_name="X")
+		self.assertIsNone(self._state(request=other, order_docstatus=1)["redirect_to"])
+
+	def test_an_intent_still_waiting_names_nothing(self):
+		state = twint_web.get_intent_state(self.intent, access_token=web_access_token(self.intent))
+		self.assertEqual(state["status"], "requires_action")
+		self.assertIsNone(state["redirect_to"])

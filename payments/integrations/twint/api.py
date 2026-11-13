@@ -181,7 +181,28 @@ def get_intent_state(intent_name: str, access_token: str | None = None) -> dict[
 		"status": pi.status,
 		"error_code": pi.error_code,
 		"error_message": pi.error_message,
+		# maintenance#2669: without it the dialog sent a buyer who had just paid to an address the thank-you page
+		# cannot read (`?payment_intent=`), which said "order unavailable".
+		"redirect_to": _paid_order_page(pi),
 	}
+
+
+def _paid_order_page(pi) -> str | None:
+	"""The thank-you page of the order a succeeded webshop intent paid, once that order is submitted.
+
+	The intent pays a Payment Request, which is made for the order (renamed on submit, the request follows). The page
+	itself decides who may read the order; this only names it, to the browser holding the intent's token.
+	"""
+	if pi.status != "succeeded" or pi.reference_doctype != "Payment Request" or not pi.reference_name:
+		return None
+	ref = frappe.db.get_value(
+		"Payment Request", pi.reference_name, ["reference_doctype", "reference_name"], as_dict=True
+	)
+	if not ref or ref.reference_doctype != "Sales Order" or not ref.reference_name:
+		return None
+	if frappe.db.get_value("Sales Order", ref.reference_name, "docstatus") != 1:
+		return None
+	return f"/thank-you?sales_order={ref.reference_name}"
 
 
 # Canonical list of Swiss bank-issued TWINT app URL schemes (iOS only).
