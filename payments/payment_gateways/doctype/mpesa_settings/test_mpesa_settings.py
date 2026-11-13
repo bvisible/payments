@@ -239,9 +239,16 @@ class TestMpesaSettings(FrappeTestCase):
 		replayed_response = get_payment_callback_payload(
 			Amount=500, CheckoutRequestID=integration_req_id, MpesaReceiptNumber="FAKE12345"
 		)
-		verify_callback(replayed_response, callback_tokens[integration_req_id])
+		# //// Neoffice — a replay of a settled request is REFUSED here (403, _mpesa_request: an open request only), where
+		# //// upstream returns without a word; the request stays as it was either way, which is what is checked below.
+		self.assertRaises(
+			frappe.PermissionError, verify_callback, replayed_response, callback_tokens[integration_req_id]
+		)
 		replayed_response["Body"]["stkCallback"]["ResultCode"] = 1032
-		verify_callback(replayed_response, callback_tokens[integration_req_id])
+		# //// Neoffice — refused as well, see above.
+		self.assertRaises(
+			frappe.PermissionError, verify_callback, replayed_response, callback_tokens[integration_req_id]
+		)
 		self.assertEqual(
 			frappe.db.get_value("Integration Request", integration_req_id, "status"), "Completed"
 		)

@@ -80,10 +80,14 @@ def http_call(path: str, **kwargs):
 
 
 @contextmanager
-def a_request(body: bytes = b"", headers=None, cookie=None, ip=None, form=None):
-	"""A POST in flight, with its raw body, its headers and its cookie; yields the response."""
+def a_request(body: bytes = b"", headers=None, cookie=None, ip=None, form=None, query=None):
+	"""A POST in flight, with its raw body, its headers, its cookie and its query string; yields the response."""
 	builder = EnvironBuilder(
-		method="POST", data=body, headers=headers or {}, content_type="application/json"
+		method="POST",
+		data=body,
+		headers=headers or {},
+		content_type="application/json",
+		query_string=query,
 	)
 	environ = builder.get_environ()
 	if cookie:
@@ -1243,7 +1247,17 @@ class TestRazorpayWhenItIsConfigured(_WithIntegrationRequests):
 		self.assertEqual(frappe.db.get_value("Integration Request", name, "status"), "Queued")
 
 
+# The token M-Pesa's callback URL carries since upstream's version-15 of 2026-11-05: the request keeps its hash, the
+# callback brings it back in the query string (mpesa_settings.validate_callback_token).
+MPESA_TOKEN = "auditp2-callback-token"
+
+
 class TestTheMpesaCallbacks(_WithIntegrationRequests):
+	def mpesa_request(self, data, status: str = "Queued") -> str:
+		"""An M-Pesa request this site made, holding the hash of the token its callback URL carried."""
+		data = dict(data, callback_token_hash=hashlib.sha256(MPESA_TOKEN.encode()).hexdigest())
+		return self.integration_request("Mpesa", data, status=status)
+
 	def setUp(self):
 		super().setUp()
 		if not frappe.db.exists("Mpesa Settings", {"consumer_key": ["is", "set"]}):
@@ -1280,12 +1294,12 @@ class TestTheMpesaCallbacks(_WithIntegrationRequests):
 			}
 		}
 
-	def send(self, **kwargs):
+	def send(self, token=MPESA_TOKEN, **kwargs):
 		with (
 			patch("frappe.model.document.Document.run_method") as run_method,
 			patch("frappe.publish_realtime"),
 			as_role("Guest"),
-			a_request(form={"cmd": f"{MPESA}.verify_transaction"}),
+			a_request(form={"cmd": f"{MPESA}.verify_transaction"}, query={"token": token} if token else None),
 		):
 			http_call(f"{MPESA}.verify_transaction", **kwargs)
 		return run_method
@@ -1297,18 +1311,18 @@ class TestTheMpesaCallbacks(_WithIntegrationRequests):
 		self.assertEqual(frappe.db.get_value("Integration Request", name, "status"), "Queued")
 
 	def test_a_real_mpesa_request_is_concluded(self):
-		name = self.integration_request("Mpesa", {"payment_reference": "x", "request_amount": 500})
+		name = self.mpesa_request({"payment_reference": "x", "request_amount": 500})
 		run_method = self.send(**self.callback(name))
 		self.assertEqual(authorized(run_method), 1)
 		self.assertEqual(frappe.db.get_value("Integration Request", name, "status"), "Completed")
 
 	def test_the_amount_is_what_this_site_asked_for(self):
-		name = self.integration_request("Mpesa", {"payment_reference": "x", "request_amount": 10})
+		name = self.mpesa_request({"payment_reference": "x", "request_amount": 10})
 		run_method = self.send(**self.callback(name, amount=500))
 		self.assertEqual(authorized(run_method), 0)
 
 	def test_a_concluded_request_is_not_replayed(self):
-		name = self.integration_request("Mpesa", {"payment_reference": "x"}, status="Completed")
+		name = self.mpesa_request({"payment_reference": "x"}, status="Completed")
 		with self.assertRaises(frappe.PermissionError):
 			self.send(**self.callback(name))
 
@@ -1336,11 +1350,21 @@ class TestTheMpesaCallbacks(_WithIntegrationRequests):
 		self.assertEqual(frappe.db.get_value("Integration Request", name, "status"), "Queued")
 
 	def test_a_real_balance_callback_passes(self):
-		name = self.integration_request("Mpesa", {})
+		name = self.mpesa_request({})
 		result = {"Result": {"ConversationID": name, "ResultCode": 1}}
-		with as_role("Guest"), a_request(form={"cmd": f"{MPESA}.process_balance_info"}):
+		with (
+			as_role("Guest"),
+			a_request(form={"cmd": f"{MPESA}.process_balance_info"}, query={"token": MPESA_TOKEN}),
+		):
 			http_call(f"{MPESA}.process_balance_info", **result)
 		self.assertEqual(frappe.db.get_value("Integration Request", name, "status"), "Failed")
+
+	def test_a_callback_without_the_token_of_its_request_is_refused(self):
+		name = self.mpesa_request({"payment_reference": "x", "request_amount": 500})
+		for token in (None, "not-the-token"):
+			with self.subTest(token=token), self.assertRaises(frappe.AuthenticationError):
+				self.send(token=token, **self.callback(name))
+		self.assertEqual(frappe.db.get_value("Integration Request", name, "status"), "Queued")
 
 
 class TestPayPalWhenItIsConfigured(_WithIntegrationRequests):
