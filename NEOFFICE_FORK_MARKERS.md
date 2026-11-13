@@ -13,13 +13,33 @@ grep -rn "////" .          # every divergence that lives in code
 cat NEOFFICE_FORK_MARKERS.md   # everything that could not carry a comment
 ```
 
-Base of the divergence: `a682448a63d59ecf9288cfafa29cdad215ddf0ff`
-(`refactor: inline immediately returned variable (backport #163) (#172)`, 2025-09-15),
-the merge-base of `bvisible/payments@version-15` and `frappe/payments@version-15`.
+Base of the divergence: **`2e0d45a2b04805171c370a86d7d7020ed6af7cbf`**, the tip of `frappe/payments@version-15`
+of 2026-11-05, merged on 2026-11-13 (204 upstream commits; before it: `a682448`, 2025-09-15).
 
 ---
 
 ## payments
+
+### The merge of upstream version-15 (2026-11-13)
+
+14 conflicts, all in gateways no instance of ours uses (M-Pesa, PayPal, Razorpay, Stripe, Braintree, GoCardless) or
+in pages we rewrote; every guard of ours kept, upstream's fixes taken beside them (M-Pesa callback tokens, the
+Razorpay order created before checkout, `order_id` out of Razorpay's `prefill`). Upstream's history re-import of
+March 2026 moved no module our code imports (only `.github/helper/flake8.conf` was deleted). New upstream gateway:
+**Paymob** (Egypt), taken as is except a write right asked in `update_paymob_settings` and the reasons the
+whitelist check reads. Two upstream changes were **not** taken, each marked in place and held by a contract below:
+
+- `hooks.py`: upstream's version-15 line declares the Web Form class with `extend_doctype_class` (7665c57), a hook
+  only frappe v16 reads. On our frappe v15 the payment class of a Web Form would silently stop applying, so we keep
+  `override_doctype_class` (PaymentWebForm subclasses WebForm). Take upstream's at v16.
+- `pyproject.toml`: upstream pins `setuptools==84.2.1` as a runtime dependency. 84 ships no `pkg_resources`, which
+  passlib and razorpay 1.x import at the top of a module (osiris, 13.11.2026), and a runtime pin moves setuptools
+  for every app of the bench. Razorpay goes to upstream's `~=2.0.0`, which no longer needs it.
+
+| Contract | Rule | Pattern | Why |
+| --- | --- | --- | --- |
+| `payments/hooks.py` | present | `^override_doctype_class = \{"Web Form": "payments\.overrides\.payment_webform\.PaymentWebForm"\}` | merge of 13.11.2026: `extend_doctype_class` is read by frappe v16 only; on v15 the Web Form payment class would stop applying. |
+| `pyproject.toml` | absent | `^\s*"setuptools==` | merge of 13.11.2026: a runtime setuptools pin moves the whole bench's setuptools, and 84 no longer ships `pkg_resources` (passlib, razorpay 1.x). |
 
 ### The one fact that matters at merge time
 
@@ -36,7 +56,7 @@ nothing to reconcile field by field: take upstream's wholesale.
 > is for. `CHANGES_NEOSERVICE.md` is stale in several other places too; this file and the
 > `////` markers are the current map.
 
-### The one add/add collision
+### The one add/add collision (before the 2026-11-13 merge)
 
 Of the ~190 files this fork adds, exactly **one** now also exists upstream:
 **`payments/tests/__init__.py`**, created upstream by `6b288b9` (2026-03-25, *"resolve

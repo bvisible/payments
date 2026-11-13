@@ -1,8 +1,10 @@
+from contextlib import contextmanager
+
 import click
 import frappe
 from frappe import _
-from contextlib import contextmanager
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.utils.data import cint
 
 # //// Neoffice — added imports: `require_text`, `safe_redirect_to` and the limit on `get_checkout_url`.
 from frappe.rate_limiter import rate_limit
@@ -217,6 +219,8 @@ def make_custom_fields():
 		}
 
 		create_custom_fields(custom_fields)
+
+		frappe.clear_cache(doctype="Web Form")
 
 
 def delete_custom_fields():

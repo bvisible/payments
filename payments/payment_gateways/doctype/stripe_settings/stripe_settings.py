@@ -20,6 +20,7 @@
 # //// Each call site below carries the upstream form it replaces. Sites marked
 # //// TO REVIEW change behaviour, not just the log line — read them before merging.
 # //// ═══════════════════════════════════════════════════════════════════════════
+from types import MappingProxyType
 from urllib.parse import urlencode
 
 import frappe
@@ -40,9 +41,27 @@ from payments.utils.all_or_nothing import all_or_nothing
 # //// Neoffice — see get_gateway_controller.
 from payments.utils.utils import require_text
 
+currency_wise_minimum_charge_amount = {
+	"JPY": 50,
+	"MXN": 10,
+	"DKK": 2.50,
+	"HKD": 4.00,
+	"NOK": 3.00,
+	"SEK": 3.00,
+	"USD": 0.50,
+	"AUD": 0.50,
+	"BRL": 0.50,
+	"CAD": 0.50,
+	"CHF": 0.50,
+	"EUR": 0.50,
+	"GBP": 0.30,
+	"NZD": 0.50,
+	"SGD": 0.50,
+}
+
 
 class StripeSettings(Document):
-	supported_currencies = [
+	supported_currencies = (
 		"AED",
 		"ALL",
 		"ANG",
@@ -157,25 +176,9 @@ class StripeSettings(Document):
 		"XPF",
 		"YER",
 		"ZAR",
-	]
+	)
 
-	currency_wise_minimum_charge_amount = {
-		"JPY": 50,
-		"MXN": 10,
-		"DKK": 2.50,
-		"HKD": 4.00,
-		"NOK": 3.00,
-		"SEK": 3.00,
-		"USD": 0.50,
-		"AUD": 0.50,
-		"BRL": 0.50,
-		"CAD": 0.50,
-		"CHF": 0.50,
-		"EUR": 0.50,
-		"GBP": 0.30,
-		"NZD": 0.50,
-		"SGD": 0.50,
-	}
+	currency_wise_minimum_charge_amount = MappingProxyType(currency_wise_minimum_charge_amount)
 
 	def on_update(self):
 		create_payment_gateway(
@@ -257,7 +260,7 @@ class StripeSettings(Document):
 				receipt_email=self.data.payer_email,
 			)
 
-			if charge.captured == True:
+			if charge.captured is True:
 				self.integration_request.db_set("status", "Completed", update_modified=False)
 				self.flags.status_changed_to = "Completed"
 				# //// Neoffice — the receipt: what STRIPE answered, kept on the charge's Integration Request and bound
@@ -334,9 +337,7 @@ class StripeSettings(Document):
 				if custom_redirect_to:
 					redirect_to = custom_redirect_to
 
-				redirect_url = "payment-success?doctype={}&docname={}".format(
-					self.data.reference_doctype, self.data.reference_docname
-				)
+				redirect_url = f"payment-success?doctype={self.data.reference_doctype}&docname={self.data.reference_docname}"
 
 			if self.redirect_url:
 				redirect_url = self.redirect_url
@@ -344,13 +345,13 @@ class StripeSettings(Document):
 		else:
 			redirect_url = "payment-failed"
 
-		if redirect_to and "?" in redirect_url:
-			redirect_url += "&" + urlencode({"redirect_to": redirect_to})
-		else:
-			redirect_url += "?" + urlencode({"redirect_to": redirect_to})
+		if redirect_to:
+			redirect_url += ("&" if "?" in redirect_url else "?") + urlencode({"redirect_to": redirect_to})
 
 		if redirect_message:
-			redirect_url += "&" + urlencode({"redirect_message": redirect_message})
+			redirect_url += ("&" if "?" in redirect_url else "?") + urlencode(
+				{"redirect_message": redirect_message}
+			)
 
 		return {"redirect_to": redirect_url, "status": status}
 

@@ -43,7 +43,7 @@ def get_context(context):
 			payment_details["subscription_id"] if payment_details.get("subscription_id") else ""
 		)
 
-	except Exception as e:
+	except Exception:
 		frappe.redirect_to_message(
 			_("Invalid Token"),
 			_("Seems token you are using is invalid!"),
@@ -63,8 +63,18 @@ def get_api_key():
 	return api_key
 
 
-@frappe.whitelist(allow_guest=True)
-def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname, token):
+# Guest checkout: buyers pay without a site account.
+# //// Neoffice — the reason the whitelist check of neoffice-ci reads: create_request binds the call to its own open
+# //// Integration Request (_razorpay_request in razorpay_settings.py), refused when Razorpay is not set up.
+# permission-check: ok a public door: a buyer's payment link; create_request settles only its own open request
+@frappe.whitelist(allow_guest=True)  # nosemgrep
+def make_payment(
+	razorpay_payment_id: str,
+	options: str | dict,
+	reference_doctype: str,
+	reference_docname: str,
+	token: str,
+):
 	data = {}
 
 	if isinstance(options, str):
@@ -80,5 +90,6 @@ def make_payment(razorpay_payment_id, options, reference_doctype, reference_docn
 	)
 
 	data = frappe.get_doc("Razorpay Settings").create_request(data)
-	frappe.db.commit()
+	# Also reachable over GET, which Frappe does not commit, and the payment must be recorded.
+	frappe.db.commit()  # nosemgrep
 	return data

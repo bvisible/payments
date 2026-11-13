@@ -384,6 +384,12 @@ class RazorpaySettings(Document):
 		# //// Neoffice — refused on a site with no Razorpay: guest `get_checkout_url` wrote a row per call
 		# //// here.
 		_require_razorpay()
+		# create a razorpay order unless a valid razorpay order id is already provided
+		if not str(kwargs.get("order_id") or "").startswith("order_"):
+			kwargs.setdefault("receipt", kwargs.get("order_id"))
+			order = self.create_order(**kwargs)
+			kwargs.update({"order_id": order.get("id")})
+
 		integration_request = create_request_log(kwargs, service_name="Razorpay")
 		return get_url(f"./razorpay_checkout?token={integration_request.name}")
 
@@ -391,7 +397,7 @@ class RazorpaySettings(Document):
 		# Creating Orders https://razorpay.com/docs/api/orders/
 
 		# convert rupees to paisa
-		kwargs["amount"] *= 100
+		kwargs["amount"] = int(kwargs["amount"] * 100)
 
 		# Create integration log
 		integration_request = create_request_log(kwargs, service_name="Razorpay")
@@ -465,8 +471,8 @@ class RazorpaySettings(Document):
 
 	def authorize_payment(self):
 		"""
-		An authorization is performed when user’s payment details are successfully authenticated by the bank.
-		The money is deducted from the customer’s account, but will not be transferred to the merchant’s account
+		An authorization is performed when user's payment details are successfully authenticated by the bank.
+		The money is deducted from the customer's account, but will not be transferred to the merchant's account
 		until it is explicitly captured by merchant.
 		"""
 		data = json.loads(self.integration_request.data)
@@ -539,8 +545,8 @@ class RazorpaySettings(Document):
 				if custom_redirect_to:
 					redirect_to = custom_redirect_to
 
-			redirect_url = "payment-success?doctype={}&docname={}".format(
-				self.data.reference_doctype, self.data.reference_docname
+			redirect_url = (
+				f"payment-success?doctype={self.data.reference_doctype}&docname={self.data.reference_docname}"
 			)
 		else:
 			redirect_url = "payment-failed"
@@ -574,7 +580,7 @@ class RazorpaySettings(Document):
 		settings = self.get_settings({})
 
 		try:
-			resp = make_post_request(
+			make_post_request(
 				f"https://api.razorpay.com/v1/subscriptions/{subscription_id}/cancel",
 				auth=(settings.api_key, settings.api_secret),
 			)
@@ -635,7 +641,16 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 
 				if resp.get("status") == "authorized":
 					resp = make_post_request(
-						"https://api.razorpay.com/v1/payments/{}/capture".format(data.get("razorpay_payment_id")),
+						"https://api.razorpay.com/v1/payments/{}/capture".format(
+							data.get("razorpay_payment_id")
+						),
+						auth=(settings.api_key, settings.api_secret),
+						data={"amount": data.get("amount")},
+					)
+
+				if resp.get("status") == "authorized":
+					resp = make_post_request(
+						f"https://api.razorpay.com/v1/payments/{data.get('razorpay_payment_id')}/capture",
 						auth=(settings.api_key, settings.api_secret),
 						data={"amount": data.get("amount")},
 					)

@@ -35,14 +35,12 @@ expected_keys = (
 
 def get_context(context):
 	context.no_cache = 1
-
 	# all these keys exist in form_dict
 	if not (set(expected_keys) - set(list(frappe.form_dict))):
 		# //// Neoffice — these go to `frappe.get_doc` and `frappe.db.*`: see `require_text`.
 		require_text(*(frappe.form_dict[key] for key in expected_keys))
 		for key in expected_keys:
 			context[key] = frappe.form_dict[key]
-
 		gateway_controller = get_gateway_controller(
 			context.reference_doctype, context.reference_docname, context.payment_gateway
 		)
@@ -70,11 +68,10 @@ def get_context(context):
 			recurrence = frappe.db.get_value("Payment Plan", payment_plan, "recurrence")
 
 			context["amount"] = context["amount"] + " " + _(recurrence)
-
 	else:
 		frappe.log_error(
 			"Missing keys in form_dict",
-			"Expected keys: {}," "Received keys: {}".format(expected_keys, list(frappe.form_dict)),
+			f"Expected keys: {expected_keys},Received keys: {list(frappe.form_dict)}",
 		)
 		frappe.redirect_to_message(
 			_("Some information is missing"),
@@ -137,7 +134,8 @@ def make_payment(
 	else:
 		data = frappe.get_doc("Stripe Settings", gateway_controller).create_request(data)
 
-	frappe.db.commit()
+	# Also reachable over GET, which Frappe does not commit, and the payment must be recorded.
+	frappe.db.commit()  # nosemgrep
 	return data
 
 

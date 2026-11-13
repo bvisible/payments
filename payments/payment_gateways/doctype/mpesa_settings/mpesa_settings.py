@@ -4,8 +4,8 @@
 
 # //// ═══════════════════════════════════════════════════════════════════════════
 # //// Neoffice — every `frappe.log_error(...)` call in this file is ours (7b99cbf,
-# //// 2025-02-28 "update error log and stripe version"). Nothing else in the file
-# //// diverges from upstream.
+# //// 2025-02-28 "update error log and stripe version"). The other divergences of
+# //// this file are marked where they stand.
 # ////
 # //// Why: Frappe v15 signs it `log_error(title, message)` and writes the title to
 # //// `Error Log.method` — a **Data** field, so cut at 140 characters — while the
@@ -18,6 +18,8 @@
 # //// Each call site below carries the upstream form it replaces. Sites marked
 # //// TO REVIEW change behaviour, not just the log line — read them before merging.
 # //// ═══════════════════════════════════════════════════════════════════════════
+import hashlib
+import hmac
 from json import dumps, loads
 
 import frappe
@@ -35,7 +37,7 @@ from payments.utils import erpnext_app_import_guard
 
 
 class MpesaSettings(Document):
-	supported_currencies = ["KES"]
+	supported_currencies = ("KES",)
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
@@ -60,27 +62,23 @@ class MpesaSettings(Document):
 			"payment_gateway_enabled", gateway="Mpesa-" + self.payment_gateway_name, payment_channel="Phone"
 		)
 
-		# //// Neoffice — maintenance#2296: upstream committed here « to fetch the bank account details from the payment
-		# //// gateway account ». The read below is in the same transaction, so it sees that account without a commit,
-		# //// and the commit ended the save half-way: a Mode of Payment that failed left the settings, the gateway
-		# //// and its account written, with no version, and the next save of the form said « duplicate ».
+		# //// Neoffice — maintenance#2296: upstream commits « to fetch the bank account details from the payment
+		# //// gateway account » (after the Mode of Payment since its 2026 version-15 line). The read below is in
+		# //// the same transaction, so it sees that account without a commit, and the commit ended the save
+		# //// half-way: a Mode of Payment that failed left the settings, the gateway and its account written,
+		# //// with no version, and the next save of the form said « duplicate ».
 		create_mode_of_payment("Mpesa-" + self.payment_gateway_name, payment_type="Phone")
 
 	def request_for_payment(self, **kwargs):
 		args = frappe._dict(kwargs)
 		request_amounts = self.split_request_amount_according_to_transaction_limit(args)
 
-		for i, amount in enumerate(request_amounts):
+		for _i, amount in enumerate(request_amounts):
 			args.request_amount = amount
-			if frappe.flags.in_test:
-				from payments.payment_gateways.doctype.mpesa_settings.test_mpesa_settings import (
-					get_payment_request_response_payload,
-				)
-
-				response = frappe._dict(get_payment_request_response_payload(amount))
-			else:
-				response = frappe._dict(generate_stk_push(**args))
-
+			# Mpesa callbacks are unsigned, so a secret token in the callback url authenticates them
+			callback_token = frappe.generate_hash()
+			args.callback_token_hash = get_callback_token_hash(callback_token)
+			response = frappe._dict(generate_stk_push(callback_token=callback_token, **args))
 			self.handle_api_response("CheckoutRequestID", args, response)
 
 	def split_request_amount_according_to_transaction_limit(self, args):
@@ -105,26 +103,23 @@ class MpesaSettings(Document):
 
 	@frappe.whitelist()
 	def get_account_balance_info(self):
+		callback_token = frappe.generate_hash()
 		payload = dict(
-			reference_doctype="Mpesa Settings", reference_docname=self.name, doc_details=vars(self)
+			reference_doctype="Mpesa Settings",
+			reference_docname=self.name,
+			doc_details=vars(self),
+			callback_token_hash=get_callback_token_hash(callback_token),
 		)
 
-		if frappe.flags.in_test:
-			from payments.payment_gateways.doctype.mpesa_settings.test_mpesa_settings import (
-				get_test_account_balance_response,
-			)
-
-			response = frappe._dict(get_test_account_balance_response())
-		else:
-			response = frappe._dict(get_account_balance(payload))
+		response = frappe._dict(get_account_balance(payload, callback_token=callback_token))
 
 		self.handle_api_response("ConversationID", payload, response)
 
 	def handle_api_response(self, global_id, request_dict, response):
 		"""Response received from API calls returns a global identifier for each transaction, this code is returned during the callback."""
 		# check error response
-		if getattr(response, "requestId"):
-			req_name = getattr(response, "requestId")
+		if response.requestId:
+			req_name = response.requestId
 			error = response
 		else:
 			# global checkout id used as request name
@@ -135,7 +130,7 @@ class MpesaSettings(Document):
 			create_request_log(request_dict, "Host", "Mpesa", req_name, error)
 
 		if error:
-			frappe.throw(_(getattr(response, "errorMessage")), title=_("Transaction Error"))
+			frappe.throw(_(response.errorMessage), title=_("Transaction Error"))
 
 
 def generate_stk_push(**kwargs):
@@ -145,6 +140,7 @@ def generate_stk_push(**kwargs):
 		callback_url = (
 			get_request_site_address(True)
 			+ "/api/method/payments.payment_gateways.doctype.mpesa_settings.mpesa_settings.verify_transaction"
+			+ f"?token={args.callback_token}"
 		)
 
 		mpesa_settings = frappe.get_doc("Mpesa Settings", args.payment_gateway[6:])
@@ -200,6 +196,12 @@ def verify_transaction(**kwargs):
 	# //// Neoffice — a guest callback: refused when M-Pesa is not set up, and bound to its own open request and amount.
 	integration_request = _mpesa_request(checkout_id)
 	transaction_data = frappe._dict(loads(integration_request.data))
+	validate_callback_token(transaction_data.callback_token_hash)
+
+	# a callback replayed after the transaction is settled must not change it
+	if integration_request.status != "Queued":
+		return
+
 	total_paid = 0  # for multiple integration request made against a pos invoice
 	success = False  # for reporting successfull callback to point of sale ui
 
@@ -220,7 +222,7 @@ def verify_transaction(**kwargs):
 				)
 
 				total_paid = amount + sum(completed_payments)
-				mpesa_receipts = ", ".join(mpesa_receipts + [mpesa_receipt])
+				mpesa_receipts = ", ".join([*mpesa_receipts, mpesa_receipt])
 
 				if total_paid >= pr.grand_total:
 					pr.run_method("on_payment_authorized", "Completed")
@@ -250,6 +252,20 @@ def verify_transaction(**kwargs):
 	)
 
 
+def get_callback_token_hash(token):
+	return hashlib.sha256(token.encode()).hexdigest()
+
+
+def validate_callback_token(token_hash):
+	"""Reject a callback that does not carry the token sent in the callback url of its request."""
+	request = getattr(frappe.local, "request", None)
+	# the callback body is json, so the query string is not part of form_dict
+	token = request.args.get("token") if request else None
+
+	if not (token and token_hash and hmac.compare_digest(get_callback_token_hash(token), token_hash)):
+		frappe.throw(_("Invalid callback token"), frappe.AuthenticationError)
+
+
 def get_completed_integration_requests_info(reference_doctype, reference_docname, checkout_id):
 	output_of_other_completed_requests = frappe.get_all(
 		"Integration Request",
@@ -275,7 +291,7 @@ def get_completed_integration_requests_info(reference_doctype, reference_docname
 	return mpesa_receipts, completed_payments
 
 
-def get_account_balance(request_payload):
+def get_account_balance(request_payload, callback_token):
 	"""Call account balance API to send the request to the Mpesa Servers."""
 	try:
 		mpesa_settings = frappe.get_doc("Mpesa Settings", request_payload.get("reference_docname"))
@@ -289,6 +305,7 @@ def get_account_balance(request_payload):
 		callback_url = (
 			get_request_site_address(True)
 			+ "/api/method/payments.payment_gateways.doctype.mpesa_settings.mpesa_settings.process_balance_info"
+			+ f"?token={callback_token}"
 		)
 
 		return connector.get_balance(
@@ -318,11 +335,11 @@ def process_balance_info(**kwargs):
 
 	# //// Neoffice — a guest callback: refused when M-Pesa is not set up, and bound to its own open request and amount.
 	request = _mpesa_request(conversation_id, also=("Completed",))
+	transaction_data = frappe._dict(loads(request.data))
+	validate_callback_token(transaction_data.callback_token_hash)
 
 	if request.status == "Completed":
 		return
-
-	transaction_data = frappe._dict(loads(request.data))
 
 	if account_balance_response["ResultCode"] == 0:
 		try:
@@ -343,10 +360,7 @@ def process_balance_info(**kwargs):
 			)
 		except Exception:
 			request.handle_failure(account_balance_response)
-			# //// Neoffice — cosmetic only. Upstream already passed the right pair, by
-			# //// keyword and over three lines (`title=…, message=account_balance_response`);
-			# //// this is the same call written positionally on one line. No behaviour change.
-			frappe.log_error("Mpesa Account Balance Processing Error", account_balance_response)
+			frappe.log_error(title="Mpesa Account Balance Processing Error", message=account_balance_response)
 	else:
 		request.handle_failure(account_balance_response)
 

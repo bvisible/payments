@@ -8,6 +8,8 @@ from payments.utils.utils import require_text, safe_redirect_to
 
 no_cache = True
 
+no_cache = True
+
 
 def get_context(context):
 	token = frappe.local.form_dict.token

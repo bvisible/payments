@@ -20,7 +20,8 @@ def get_context(context):
 	require_text(token)
 	if token:
 		frappe.db.set_value("Integration Request", {"name": token, "status": "Queued"}, "status", "Cancelled")
-		frappe.db.commit()
+		# A page render is a GET, which Frappe does not commit.
+		frappe.db.commit()  # nosemgrep
 
 	# //// Neoffice — see payment-cancel.html.
 	context.redirect_to = safe_redirect_to(frappe.local.form_dict.redirect_to)

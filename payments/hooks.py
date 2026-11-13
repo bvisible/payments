@@ -122,8 +122,11 @@ before_uninstall = "payments.utils.delete_custom_fields"
 
 # DocType Class
 # ---------------
-# Override standard doctype classes
+# Extend standard doctype classes
 
+# //// Neoffice — upstream's version-15 line moved this to `extend_doctype_class` (7665c57, #164), a hook only frappe v16
+# //// reads: on our frappe v15 the Web Form payment class would silently stop applying (no amount check, no payment
+# //// link). PaymentWebForm still subclasses WebForm, so the override is right on v15. Take upstream's at v16.
 override_doctype_class = {"Web Form": "payments.overrides.payment_webform.PaymentWebForm"}
 
 # Document Events

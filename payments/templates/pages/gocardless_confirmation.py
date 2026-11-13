@@ -61,7 +61,7 @@ def confirm_payment(redirect_flow_id: str, reference_doctype: str, reference_doc
 
 		try:
 			create_mandate(data)
-		except Exception as e:
+		except Exception:
 			frappe.log_error("GoCardless Mandate Registration Error")
 
 		gateway_controller = get_gateway_controller(reference_docname)
@@ -69,7 +69,7 @@ def confirm_payment(redirect_flow_id: str, reference_doctype: str, reference_doc
 
 		return {"redirect_to": confirmation_url}
 
-	except Exception as e:
+	except Exception:
 		frappe.log_error("GoCardless Payment Error")
 		return {"redirect_to": "payment-failed"}
 

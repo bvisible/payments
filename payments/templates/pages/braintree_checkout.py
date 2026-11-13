@@ -47,9 +47,7 @@ def get_context(context):
 		context["currency"] = payment_request.currency
 
 		gateway_controller = get_gateway_controller(context.reference_docname)
-		context["header_img"] = frappe.db.get_value(
-			"Braintree Settings", gateway_controller, "header_img"
-		)
+		context["header_img"] = frappe.db.get_value("Braintree Settings", gateway_controller, "header_img")
 
 	else:
 		frappe.redirect_to_message(
@@ -97,5 +95,6 @@ def make_payment(payload_nonce: str, data: str, reference_doctype: str, referenc
 
 	gateway_controller = get_gateway_controller(reference_docname)
 	data = frappe.get_doc("Braintree Settings", gateway_controller).create_payment_request(data)
-	frappe.db.commit()
+	# Also reachable over GET, which Frappe does not commit, and the payment must be recorded.
+	frappe.db.commit()  # nosemgrep
 	return data

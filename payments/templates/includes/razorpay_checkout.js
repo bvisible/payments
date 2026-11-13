@@ -10,6 +10,7 @@ $(document).ready(function(){
 			"name": {{ title | tojson }},
 			"description": {{ description | tojson }},
 			"subscription_id": {{ subscription_id | tojson }},
+			"order_id": {{ order_id | tojson }},
 			"handler": function (response){
 				//// Neoffice — printed raw into a script: a value from the link could close the string.
 				razorpay.make_payment_log(
@@ -20,8 +21,7 @@ $(document).ready(function(){
 			"prefill": {
 				//// Neoffice — printed raw into a script: a value from the link could close the string.
 				"name": {{ payer_name | tojson }},
-				"email": {{ payer_email | tojson }},
-				"order_id": {{ order_id | tojson }}
+				"email": {{ payer_email | tojson }}
 			},
 			//// Neoffice — printed raw into a script: a value from the link could close the string.
 			"notes": {{ frappe.form_dict | tojson }}
