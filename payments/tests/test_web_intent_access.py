@@ -267,10 +267,12 @@ class TestThePollBringsThePaidOrdersPage(FrappeTestCase):
 		}
 		real = frappe.db.get_value
 
-		def get_value(doctype, name=None, *args, **kwargs):
-			if (doctype, name) in values:
-				return values[(doctype, name)]
-			return real(doctype, name, *args, **kwargs)
+		# Answers only its own two keys, called as frappe.db.get_value(doctype, name, …); every other call, filters
+		# passed by name included, goes to the real one untouched.
+		def get_value(*args, **kwargs):
+			if len(args) >= 2 and isinstance(args[1], str) and (args[0], args[1]) in values:
+				return values[(args[0], args[1])]
+			return real(*args, **kwargs)
 
 		with patch("frappe.db.get_value", side_effect=get_value):
 			return twint_web.get_intent_state(self.intent, access_token=web_access_token(self.intent))
