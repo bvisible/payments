@@ -152,6 +152,28 @@ class TestEachProviderBooksToItsOwnClearingAccount(FrappeTestCase):
 		# Nothing already booked moves
 		self.assertEqual(frappe.db.count("GL Entry", {"account": stripes}), entries)
 
+	def test_the_note_on_a_moved_gateway_is_in_the_language_of_the_site(
+		self,
+	):  # role-check: ok a patch runs as Administrator inside bench migrate
+		# bench migrate runs in English whatever the site speaks: the bookkeeper reads the site's language
+		lang = frappe.db.get_single_value("System Settings", "language") or "en"
+		source = "Clearing account changed from {0} to {1}: each payment provider books to an account of its own."
+		if frappe._(source, lang=lang) == source:
+			self.skipTest("the note has no translation in the language of this site")
+		was = frappe.local.lang
+		frappe.local.lang = "en"
+		self.addCleanup(setattr, frappe.local, "lang", was)
+		stripes = self.account("Stripe card clearing")
+		self.gateway("Stripe", stripes)
+		payrexx = self.gateway("Payrexx", stripes)
+
+		self.separate()
+
+		note = frappe.db.get_value(
+			"Comment", {"reference_doctype": GATEWAY, "reference_name": payrexx}, "content"
+		)
+		self.assertEqual(note, frappe._(source, lang=lang).format(stripes, self.booked(payrexx)))
+
 	def test_a_provider_on_an_account_of_its_own_is_left_where_it_is(
 		self,
 	):  # role-check: ok a patch runs as Administrator inside bench migrate

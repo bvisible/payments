@@ -315,8 +315,11 @@ def separate(dry_run: bool = False, only: list[str] | None = None) -> list[dict]
 
 
 def _move(move: dict, target: str, currency: str | None) -> None:
+	# In the site's language: bench migrate runs in English, the bookkeeper reads the note in theirs
+	lang = frappe.db.get_single_value("System Settings", "language") or "en"
 	note = _(
-		"Clearing account changed from {0} to {1}: each payment provider books to an account of its own."
+		"Clearing account changed from {0} to {1}: each payment provider books to an account of its own.",
+		lang=lang,
 	).format(move["from"], target)
 	if move["doctype"] == GATEWAY:
 		values = {"payment_account": target}
