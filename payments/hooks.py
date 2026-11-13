@@ -28,10 +28,10 @@ app_license = "MIT"
 # //// older than its server breaks the checkout (maintenance#1731: the poll and the cancel now send a token;
 # //// maintenance#1732: the test-mode simulator too; maintenance#2669: the poll brings the order's page back).
 web_include_css = "/assets/payments/css/twint_dialog.css"
-web_include_js = "/assets/payments/js/twint_dialog.js?v=4"
+web_include_js = "/assets/payments/js/twint_dialog.js?v=5"
 app_include_css = "/assets/payments/css/twint_dialog.css"
 # //// Neoffice — the same `?v=` on the desk's copy of the dialog (maintenance#1731).
-app_include_js = "/assets/payments/js/twint_dialog.js?v=4"
+app_include_js = "/assets/payments/js/twint_dialog.js?v=5"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "pay/public/scss/website"
