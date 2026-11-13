@@ -4436,3 +4436,20 @@ msgstr "Votre paiement de {0} vous a été remboursé."
 #: payments/templates/includes/payment_return.html:121
 msgid "Your time is held for another"
 msgstr "Horaire tenu encore"
+
+#: payments/setup/clearing_accounts.py:318
+#, python-brace-format
+msgid "Clearing account changed from {0} to {1}: each payment provider books to an account of its own."
+msgstr "Compte d'attente modifié de {0} à {1} : chaque prestataire de paiement comptabilise sur un compte qui lui est propre."
+
+#: payments/setup/clearing_accounts.py:72
+msgid "PayPal clearing account"
+msgstr "Compte d'attente PayPal"
+
+#: payments/setup/clearing_accounts.py:70
+msgid "Stripe clearing account"
+msgstr "Compte d'attente Stripe"
+
+#: payments/setup/clearing_accounts.py:71
+msgid "TWINT clearing account"
+msgstr "Compte d'attente TWINT"

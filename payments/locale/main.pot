@@ -3985,3 +3985,22 @@ msgid ""
 "To do: check each line in the {0} dashboard, then record the payment, or "
 "refund the customer if the sale was taken again."
 msgstr ""
+
+#: payments/setup/clearing_accounts.py:70
+msgid "Stripe clearing account"
+msgstr ""
+
+#: payments/setup/clearing_accounts.py:71
+msgid "TWINT clearing account"
+msgstr ""
+
+#: payments/setup/clearing_accounts.py:72
+msgid "PayPal clearing account"
+msgstr ""
+
+#: payments/setup/clearing_accounts.py:318
+#, python-brace-format
+msgid ""
+"Clearing account changed from {0} to {1}: each payment provider books to an "
+"account of its own."
+msgstr ""

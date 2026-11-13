@@ -49,3 +49,7 @@ payments.patches.v15_14.copy_legacy_payment_records_into_intents
 # //// Neoffice — v15_15 (2026-11-11, neoffice-maintenance#2556): a deployed TWINT certificate with no end date is
 # //// read again from the copy the instance keeps, so the expiry reminder and the hub's check can see it.
 payments.patches.v15_15.read_the_missing_certificate_expiry
+# //// Neoffice — v15_16 (2026-11-13): one clearing account per payment provider. Payrexx and Wallee booked to the Stripe
+# //// account; each company gets « Compte d'attente Payrexx » / « Wallee » beside the others, and only what booked to another
+# //// provider's account (or to one it shared) moves. Nothing already booked moves.
+payments.patches.v15_16.give_each_payment_provider_its_own_clearing_account

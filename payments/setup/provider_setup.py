@@ -106,18 +106,25 @@ def ensure_clearing_account(company: str, label: str, gateway: str | None = None
 	the site's language, so a site whose language changed would otherwise get a second
 	account under another name.
 
-	A new one goes under the parent of an existing clearing account in the company's
-	currency (TWINT first), with the first free number after it — on a Swiss chart that is
-	103x under « Trésorerie », next to the accounts the bookkeeper already knows. Without
-	such an anchor it goes under the parent of the company's first bank account. A
-	company with no bank account at all gets none (``None``): a setup page lays down the
-	others rather than stop on it.
+	A gateway already wired to an account that is not its provider's own (Payrexx on
+	« 1031 Stripe », 13.11) does not keep it: what the bookkeeper reconciles is one payout
+	per provider (``clearing_accounts``).
+
+	A new one goes beside the clearing accounts the chart already has (``clearing_slot``):
+	on a Swiss chart, the first free 103x number under « Trésorerie » (1032 after 1030 and
+	1031), next to the accounts the bookkeeper already knows. A company with no bank
+	account at all gets none (``None``): a setup page lays down the others rather than stop
+	on it.
 	"""
 	if gateway:
+		from payments.setup import clearing_accounts
+
 		wired = frappe.db.get_value(
 			"Payment Gateway Account", {"payment_gateway": gateway, "company": company}, "payment_account"
 		)
-		if wired:
+		if wired and clearing_accounts.belongs_to(
+			company, wired, clearing_accounts.provider_named_first(gateway)
+		):
 			return wired
 	existing = frappe.db.get_value(
 		"Account", {"company": company, "account_name": label, "is_group": 0}, "name"
@@ -125,37 +132,18 @@ def ensure_clearing_account(company: str, label: str, gateway: str | None = None
 	if existing:
 		return existing
 
-	currency = frappe.get_cached_value("Company", company, "default_currency")
-	base = {"company": company, "is_group": 0, "account_type": "Bank"}
-	if currency:
-		base["account_currency"] = ["in", [currency, "", None]]
-	anchor = None
-	for hint in _ANCHOR_HINTS:
-		anchor = frappe.db.get_value(
-			"Account",
-			{**base, "account_name": ["like", f"%{hint}%"]},
-			["parent_account", "account_number", "account_currency"],
-			as_dict=True,
-		)
-		if anchor:
-			break
-	if not anchor:
-		anchor = frappe.db.get_value(
-			"Account", base, ["parent_account", "account_number", "account_currency"], as_dict=True
-		)
-	if not anchor:
+	slot = clearing_slot(company)
+	if not slot:
 		return None
-
-	number = _free_number(company, anchor.account_number)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Account",
 			"account_name": label,
-			"account_number": number,
-			"parent_account": anchor.parent_account,
+			"account_number": slot["account_number"],
+			"parent_account": slot["parent_account"],
 			"company": company,
 			"account_type": "Bank",
-			"account_currency": currency or anchor.account_currency,
+			"account_currency": slot["account_currency"],
 			"is_group": 0,
 		}
 	)
@@ -163,12 +151,47 @@ def ensure_clearing_account(company: str, label: str, gateway: str | None = None
 	return doc.name
 
 
-def _free_number(company: str, after: str | None) -> str | None:
+def clearing_slot(company: str, taken: set[str] | None = None) -> dict[str, Any] | None:
+	"""Where a new clearing account of the company goes: its parent, its number, its currency.
+
+	Beside the clearing account of the chart with the lowest number (« 1030 Compte d'attente
+	carte de crédit » on a Swiss chart, before « 1036 Twint »), with the first number after
+	it that the company does not use and that is not in ``taken`` (the numbers a plan has
+	already given). Without such an account, beside the company's first bank account; with
+	no bank account at all, nowhere (``None``).
+	"""
+	currency = frappe.get_cached_value("Company", company, "default_currency")
+	base = {"company": company, "is_group": 0, "account_type": "Bank"}
+	if currency:
+		base["account_currency"] = ["in", [currency, "", None]]
+	fields = ["parent_account", "account_number", "account_currency"]
+	anchors = []
+	for hint in _ANCHOR_HINTS:
+		anchors += frappe.get_all(
+			"Account", filters={**base, "account_name": ["like", f"%{hint}%"]}, fields=fields
+		)
+	numbered = [a for a in anchors if str(a.account_number or "").isdigit()]
+	if numbered:
+		anchor = min(numbered, key=lambda a: int(a.account_number))
+	else:
+		anchor = anchors[0] if anchors else frappe.db.get_value("Account", base, fields, as_dict=True)
+	if not anchor:
+		return None
+	return {
+		"parent_account": anchor.parent_account,
+		"account_number": _free_number(company, anchor.account_number, taken),
+		"account_currency": currency or anchor.account_currency,
+	}
+
+
+def _free_number(company: str, after: str | None, taken: set[str] | None = None) -> str | None:
 	"""The first account number after ``after`` that the company does not use, else none."""
 	if not after or not str(after).isdigit():
 		return None
 	start = int(after)
 	for candidate in range(start + 1, start + 60):
+		if taken and str(candidate) in taken:
+			continue
 		if not frappe.db.exists("Account", {"company": company, "account_number": str(candidate)}):
 			return str(candidate)
 	return None
