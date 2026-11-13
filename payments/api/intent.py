@@ -382,6 +382,21 @@ def _set_device_status(device: str | None, status: str) -> None:
 
 
 # //// Neoffice — not an HTTP entry any more (maintenance#1732): see create_intent.
+def _refund_amount(amount) -> int | None:
+	"""The amount to refund, in the smallest unit, or None for a full refund.
+
+	maintenance#1310: ``int(amount) if amount else None`` read a form's "0" as 0 while it was a string, and as a FULL
+	refund once the endpoint's annotation casts it to 0. Nothing but an absent or empty amount means « everything »
+	now, and an amount that is not positive is refused instead of being guessed.
+	"""
+	if amount is None or amount == "":
+		return None
+	value = int(amount)
+	if value <= 0:
+		frappe.throw(_("A refund amount must be greater than zero"))
+	return value
+
+
 def refund_intent(intent_name: str, amount: int | None = None) -> dict[str, Any]:
 	"""Refund a settled Payment Intent. ``amount=None`` means full refund."""
 	# //// Neoffice — maintenance#2296: under lock, before the provider is asked. Two refunds of one intent (a second
@@ -398,7 +413,7 @@ def refund_intent(intent_name: str, amount: int | None = None) -> dict[str, Any]
 		frappe.throw(_("Payment Intent has no provider_intent_id; cannot refund"))
 
 	driver = resolve_driver(intent_doc.provider, intent_doc.channel)
-	response = driver.refund(intent_doc.provider_intent_id, amount=int(amount) if amount else None)
+	response = driver.refund(intent_doc.provider_intent_id, amount=_refund_amount(amount))
 
 	# Only record a refund the provider actually performed. Transitioning on the call
 	# merely returning would mark money as returned that never left — and a customer
