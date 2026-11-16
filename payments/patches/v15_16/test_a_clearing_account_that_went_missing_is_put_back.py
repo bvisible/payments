@@ -2,6 +2,7 @@
 import os
 
 import frappe
+from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
 from payments.patches.v15_16.test_each_provider_books_to_its_own_clearing_account import (
@@ -118,6 +119,38 @@ class TestAClearingAccountThatWentMissingIsPutBack(FrappeTestCase):
 		)
 		self.assertTrue(any(payrexx_account in (text or "") for text in said), said)
 		self.assertEqual(clearing_accounts.missing(self.company), [])
+		if reports[0]["providers"]["Payrexx"]["created"]:
+			on_the_account = frappe.get_all(
+				"Comment", filters={"reference_doctype": "Account", "reference_name": target}, pluck="content"
+			)
+			self.assertTrue(any("Payrexx" in (text or "") for text in on_the_account), on_the_account)
+
+	def test_a_missing_account_named_after_its_provider_is_not_kept_as_its_own(
+		self,
+	):  # role-check: ok a patch runs as Administrator inside bench migrate
+		gone = self.account("Payrexx card clearing")
+		payrexx = self.gateway("Payrexx", gone)
+		self.removed_outside_frappe(gone)
+
+		clearing_accounts.separate(only=[self.company])
+
+		self.assertTrue(
+			frappe.db.exists("Account", self.booked(payrexx)),
+			"the separation kept a link to an account that does not exist, because its name says Payrexx",
+		)
+
+	def test_connect_never_answers_an_account_that_does_not_exist(self):
+		gone = self.account("Payrexx card clearing")
+		self.gateway("Payrexx", gone)
+		self.removed_outside_frappe(gone)
+
+		with as_role("head_accountant"):
+			account = provider_setup.ensure_clearing_account(
+				self.company, "_T Payrexx clearing", gateway="Payrexx"
+			)
+
+		self.assertNotEqual(account, gone)
+		self.assertTrue(frappe.db.exists("Account", account))
 
 	def test_a_second_run_changes_nothing(
 		self,

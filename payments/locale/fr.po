@@ -4457,3 +4457,11 @@ msgstr "Compte d'attente TWINT"
 #: payments/setup/clearing_accounts.py
 msgid "Clearing account {0} no longer existed: {1} was put back in its place."
 msgstr "Le compte d'attente {0} n'existait plus : {1} a été remis à sa place."
+
+#: payments/setup/clearing_accounts.py
+msgid "Clearing account put back: {0} still booked to an account of this name after it had been removed."
+msgstr "Compte d'attente recréé : {0} était encore comptabilisé sur un compte portant ce nom après sa suppression."
+
+#: payments/api/reconciliation.py
+msgid "The clearing account of {0} was missing. {1} was put back and the payment of invoice {2} was booked to it."
+msgstr "Le compte d'attente de {0} manquait. {1} a été recréé et le paiement de la facture {2} y a été comptabilisé."

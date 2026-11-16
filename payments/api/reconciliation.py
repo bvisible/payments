@@ -267,6 +267,17 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 	from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 	from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 
+	# //// Neoffice — neoffice-maintenance#2747: the clearing account a gateway or a till mode books to can be gone
+	# //// (removed outside frappe on one site): the payment was refused (« is not permitted under Payment Entry »), its
+	# //// invoice stayed unpaid with one line in the Error Log. The account is put back by the rule of the repair
+	# //// sequence (clearing_accounts.put_back), the payment books to it, and the accountants are told.
+	paid_to = gateway_account or get_bank_cash_account(mop, si.company)["account"]
+	put_back = []
+	if paid_to and not frappe.db.exists("Account", paid_to):
+		put_back = _put_back_the_clearing_accounts(si.company)
+		gateway_account = None if mop else _account_of_the_gateway(intent, si.company)
+		paid_to = gateway_account or get_bank_cash_account(mop, si.company)["account"]
+
 	major_amount = flt(intent.amount) / 100.0
 	# The mode of payment's account for the invoice's company (it says so when it has none), the provider's id as
 	# the reference: Neoffice's ERPNext takes both (get_payment_entry, its `//// Neoffice` arguments).
@@ -280,11 +291,13 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 			reference_date=nowdate(),
 			reference_no=reference,
 			mode_of_payment=mop,
-			paid_to=gateway_account or get_bank_cash_account(mop, si.company)["account"],
+			paid_to=paid_to,
 		)
 		pe.flags.ignore_permissions = True
 		pe.insert()
 		pe.submit()
+	if put_back:
+		_tell_the_accountants(put_back, si)
 	return {
 		"action": "payment_entry_submitted",
 		"target_doctype": "Sales Invoice",
@@ -314,6 +327,70 @@ def _account_of_the_gateway(intent, company: str) -> str | None:
 		)
 		or None
 	)
+
+
+#: Who is told that a clearing account was put back: the company's accountants (frappe.tests.roles « accountant »,
+#: « head_accountant »).
+ACCOUNTANT_ROLES = ("Accounts Manager", "Accounts User")
+
+
+def _put_back_the_clearing_accounts(company: str) -> list[dict]:
+	"""The company's clearing accounts that went missing, put back by the repair's own rule (never by hand)."""
+	from payments.setup import clearing_accounts
+
+	with _system_rights():
+		return clearing_accounts.put_back(only=[company])
+
+
+def _accountants_of(company: str) -> list[str]:
+	"""The enabled desk users with an accounting role who may see this company (no user permission keeps them out)."""
+	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+
+	users = set(
+		frappe.get_all(
+			"Has Role", filters={"parenttype": "User", "role": ["in", ACCOUNTANT_ROLES]}, pluck="parent"
+		)
+	)
+	out = []
+	for user in sorted(users - {"Administrator", "Guest"}):
+		row = frappe.db.get_value("User", user, ["enabled", "user_type"], as_dict=True)
+		if not row or not row.enabled or row.user_type != "System User":
+			continue
+		allowed = get_user_permissions(user).get("Company")
+		if allowed and company not in {entry.get("doc") for entry in allowed}:
+			continue
+		out.append(user)
+	return out
+
+
+def _tell_the_accountants(reports: list[dict], si) -> None:  # noqa: ANN001 - a Sales Invoice
+	"""Never in silence: each accountant of the company is told the clearing account was missing, put back, and took
+	the invoice's payment; with no accountant to tell, the Error Log says it."""
+	from frappe.desk.doctype.notification_log.notification_log import make_notification_logs
+
+	lang = frappe.db.get_single_value("System Settings", "language") or "en"
+	users = _accountants_of(si.company)
+	for report in reports:
+		for provider, entry in report["providers"].items():
+			if not entry.get("target"):
+				continue
+			subject = _(
+				"The clearing account of {0} was missing. {1} was put back and the payment of invoice {2} was booked to it.",
+				lang=lang,
+			).format(provider, entry["target"], si.name)
+			if not users:
+				frappe.log_error("A clearing account was put back and no accountant was told", subject)
+				continue
+			make_notification_logs(
+				{
+					"subject": subject,
+					"type": "Alert",
+					"document_type": "Sales Invoice",
+					"document_name": si.name,
+					"from_user": "Administrator",
+				},
+				users,
+			)
 
 
 def _default_mode_of_payment(invoice_doc) -> str | None:

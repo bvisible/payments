@@ -177,9 +177,15 @@ def _account_names(account: str) -> set[str]:
 
 
 def is_own(account: str, provider: str | None, users: list[Booker]) -> bool:
-	"""Whether ``account`` is ``provider``'s own, given everything (``users``) that books to it."""
+	"""Whether ``account`` is ``provider``'s own, given everything (``users``) that books to it.
+
+	An account that does not exist is nobody's own (neoffice-maintenance#2747): a link to « 1032 - Compte d'attente
+	Payrexx » after the account was removed still says « Payrexx », and was kept as Payrexx's own, never repaired.
+	"""
 	if not provider:
 		return True
+	if not frappe.db.exists("Account", account):
+		return False
 	named = _account_names(account)
 	if named:
 		return provider in named
@@ -304,7 +310,8 @@ def separate(dry_run: bool = False, only: list[str] | None = None) -> list[dict]
 			target = entry["target"] or provider_setup.ensure_clearing_account(
 				company, entry["create"]["account_name"]
 			)
-			if not target:
+			# Never a link to an account not seen to exist (neoffice-maintenance#2747)
+			if not target or not frappe.db.exists("Account", target):
 				continue
 			entry["target"] = target
 			currency = frappe.db.get_value("Account", target, "account_currency")
@@ -360,18 +367,35 @@ def put_back(dry_run: bool = False, only: list[str] | None = None) -> list[dict]
 		if dry_run:
 			continue
 		for provider, entry in report["providers"].items():
-			target = _named_alone(company, provider) or provider_setup.ensure_clearing_account(
-				company, label(provider)
+			found = _named_alone(company, provider)
+			before = found or frappe.db.get_value(
+				"Account", {"company": company, "account_name": label(provider), "is_group": 0}, "name"
 			)
-			if not target:
+			target = found or provider_setup.ensure_clearing_account(company, label(provider))
+			# Never a link to an account not seen to exist
+			if not target or not frappe.db.exists("Account", target):
 				report["blocked"].append(provider)
 				continue
 			entry["target"] = target
+			entry["created"] = not before
 			currency = frappe.db.get_value("Account", target, "account_currency")
 			for move in entry["moves"]:
 				_move(move, target, currency, went_missing=True)
+			if entry["created"]:
+				_say_it_was_put_back(target, entry["moves"])
 			_follow_setup_state(provider, company, target)
 	return reports
+
+
+def _say_it_was_put_back(account: str, moves: list[dict]) -> None:
+	"""On the account made again: what still booked to its name after it had been removed."""
+	lang = frappe.db.get_single_value("System Settings", "language") or "en"
+	names = ", ".join(sorted({move["name"] for move in moves}))
+	note = _(
+		"Clearing account put back: {0} still booked to an account of this name after it had been removed.",
+		lang=lang,
+	).format(names)
+	frappe.get_doc("Account", account).add_comment("Info", note)
 
 
 def _move(move: dict, target: str, currency: str | None, went_missing: bool = False) -> None:

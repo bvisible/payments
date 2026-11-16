@@ -180,6 +180,131 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		frappe.delete_doc("Payment Gateway Account", name, force=True, ignore_permissions=True)
 		frappe.db.commit()
 
+	def _an_accountant(self):
+		"""A desk user with the accounting role; told in the desk only, no mail sent from a test."""
+		from frappe.desk.doctype.notification_settings.notification_settings import (
+			create_notification_settings,
+		)
+
+		email = "_t-accountant-2747@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "_T Accountant",
+					"user_type": "System User",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Accounts User"}],
+				}
+			).insert(ignore_permissions=True)
+		create_notification_settings(email)
+		frappe.db.set_value("Notification Settings", email, "enable_email_notifications", 0)
+		self.addCleanup(self._forget_the_accountant, email)
+		return email
+
+	@staticmethod
+	def _forget_the_gateway(name):
+		frappe.delete_doc("Payment Gateway", name, force=True, ignore_permissions=True)
+		frappe.db.commit()
+
+	@staticmethod
+	def _forget_the_accountant(email):
+		frappe.db.delete("Notification Log", {"for_user": email})
+		frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+		frappe.db.commit()
+
+	def _forget_what_was_put_back(self, company, accounts_before, gateway):
+		"""After tearDown has taken the payment and the invoice away: the account made again, the notes, the notices."""
+		for account in (
+			set(frappe.get_all("Account", filters={"company": company}, pluck="name")) - accounts_before
+		):
+			frappe.db.delete("Comment", {"reference_doctype": "Account", "reference_name": account})
+			frappe.delete_doc("Account", account, force=True, ignore_permissions=True)
+		frappe.db.delete(
+			"Comment", {"reference_doctype": "Payment Gateway Account", "reference_name": gateway}
+		)
+		frappe.db.delete(
+			"Notification Log", {"document_type": "Sales Invoice", "document_name": self.si.name}
+		)
+		frappe.db.commit()
+
+	def test_a_gateway_whose_clearing_account_went_missing_has_it_put_back_and_the_accountants_are_told(
+		self,
+	):  # role-check: ok the provider's webhook books the payment as the system, no person acts
+		# neoffice-maintenance#2747: on one site the account a gateway booked to was removed outside frappe; the payment
+		# was refused and the invoice stayed unpaid, with one line in the Error Log.
+		from payments.setup import provider_setup
+
+		accountant = self._an_accountant()
+		company = self.mop.company
+		currency = frappe.db.get_value("Account", self.mop.default_account, "account_currency")
+		gone = (
+			frappe.get_doc(
+				{
+					"doctype": "Account",
+					"account_name": "_T Wallee clearing 2747",
+					"parent_account": frappe.db.get_value(
+						"Account", self.mop.default_account, "parent_account"
+					),
+					"company": company,
+					"account_type": "Bank",
+					"account_currency": currency,
+					"is_group": 0,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+		provider_setup.ensure_gateway("_T Wallee 2747")
+		self.addCleanup(self._forget_the_gateway, "_T Wallee 2747")
+		gateway = frappe.get_doc(
+			{
+				"doctype": "Payment Gateway Account",
+				"payment_gateway": "_T Wallee 2747",
+				"payment_account": gone,
+				"currency": currency,
+				"company": company,
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(self._forget_the_gateway_account, gateway.name)
+		# removed outside frappe: no trash, the link left as it was
+		frappe.db.delete("Account", {"name": gone})
+		accounts_before = set(frappe.get_all("Account", filters={"company": company}, pluck="name"))
+		self.addCleanup(self._forget_what_was_put_back, company, accounts_before, gateway.name)
+		frappe.db.commit()
+		owed = flt(self.si.outstanding_amount)
+
+		intent = self._paid_by_card(owed, metadata={"gateway_account": gateway.name})
+
+		pe = frappe.db.get_value(
+			"Payment Entry",
+			{"reference_no": intent.provider_intent_id, "docstatus": 1},
+			["name", "paid_to", "paid_amount"],
+			as_dict=True,
+		)
+		self.assertTrue(pe, f"the payment was not booked. {_last_error()}")
+		self.assertTrue(frappe.db.exists("Account", pe.paid_to))
+		self.assertEqual(
+			frappe.db.get_value("Payment Gateway Account", gateway.name, "payment_account"), pe.paid_to
+		)
+		self.assertEqual(flt(pe.paid_amount), owed)
+		self.assertEqual(flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0)
+		told = frappe.get_all(
+			"Notification Log",
+			filters={"for_user": accountant, "document_type": "Sales Invoice", "document_name": self.si.name},
+			pluck="subject",
+		)
+		self.assertEqual(len(told), 1, "the accountant was not told")
+		self.assertIn(pe.paid_to, told[0])
+		self.assertIn(self.si.name, told[0])
+		said = frappe.get_all(
+			"Comment",
+			filters={"reference_doctype": "Payment Gateway Account", "reference_name": gateway.name},
+			pluck="content",
+		)
+		self.assertTrue(any(gone in (text or "") for text in said), said)
+
 	def test_with_no_mode_of_payment_the_gateway_account_the_customer_chose_takes_the_money(self):
 		account = self._a_gateway_account()
 		owed = flt(self.si.outstanding_amount)

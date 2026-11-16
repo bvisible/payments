@@ -122,8 +122,11 @@ def ensure_clearing_account(company: str, label: str, gateway: str | None = None
 		wired = frappe.db.get_value(
 			"Payment Gateway Account", {"payment_gateway": gateway, "company": company}, "payment_account"
 		)
-		if wired and clearing_accounts.belongs_to(
-			company, wired, clearing_accounts.provider_named_first(gateway)
+		# never an account that does not exist, whatever its name says (neoffice-maintenance#2747)
+		if (
+			wired
+			and frappe.db.exists("Account", wired)
+			and clearing_accounts.belongs_to(company, wired, clearing_accounts.provider_named_first(gateway))
 		):
 			return wired
 	existing = frappe.db.get_value(
