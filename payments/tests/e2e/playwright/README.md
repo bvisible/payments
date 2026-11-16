@@ -47,7 +47,14 @@ after each rebuild:
 - the test keys copied into the clone's `site_config.json` (`bench --site prodclone.local set-config …`):
   `e2e_test_customer`, `e2e_test_user_email`, `e2e_test_user_password`, `enable_e2e_simulators` (TWINT test);
 - the PSP tests (`psp_*`) need the PSP's sandbox settings on the clone, and the hosted-page ones (Wallee, Payrexx)
-  a return URL the PSP can reach: without them, run `-m "not psp_wallee and not psp_payrexx"`.
+  a return URL the PSP can reach: without them, run `-m "not psp_wallee and not psp_payrexx"`. Wallee: the clone
+  needs the `authentication_key` of the Wallee Settings row whose Payment Provider is in test mode, copied from
+  osiris after each rebuild; `fill_wallee_redirect_card` then pays with a card of Wallee's own Simulation panel
+  (its sandbox declines any other test card, Stripe's 4242… included). The return to the shop is a browser
+  redirect, so the clone's name is enough;
+- the checkout steps need the site's assets: the bench's gunicorn on `:8000` serves no `/assets/`, so the
+  checkout script never loads (`wait_checkout_ready` times out). Serve the clone with its assets on a loopback port
+  (Frappe's `application_with_statics`) and pass `--base-url http://prodclone.local:<port>`.
 
 Another test site: `pytest --base-url=http://<name>.local:8000`.
 

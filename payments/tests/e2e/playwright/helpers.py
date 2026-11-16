@@ -10,7 +10,7 @@
 Each function is a building block reused by multiple tests. They take a
 Playwright ``Page`` (assumed authenticated) and the ``base_url``.
 
-Theme notes (osiris — "Le Tapissier" / Builder.io theme):
+Theme notes (osiris — the Builder.io shop theme):
 - The 4-step checkout is single-page; steps are ``.step-section`` divs that
   toggle an ``active`` / ``hidden`` class. ``checkout_manager`` (global JS
   object) drives the transitions.
@@ -23,6 +23,8 @@ Theme notes (osiris — "Le Tapissier" / Builder.io theme):
 """
 
 from __future__ import annotations
+
+import os
 
 from playwright.sync_api import Page, expect
 
@@ -328,18 +330,17 @@ def stripe_iframe_visible(page: Page) -> bool:
 
 def fill_wallee_redirect_card(
 	page: Page,
-	card: str = "4242424242424242",
-	exp_month: str = "12",
-	exp_year: str = "30",
-	cvc: str = "123",
+	card: str | None = None,
+	exp_month: str | None = None,
+	exp_year: str | None = None,
+	cvc: str | None = None,
 ) -> None:
-	"""On the Wallee hosted (sandbox) page, pay with a test card.
+	"""On the Wallee hosted (sandbox) page, pay with one of WALLEE's test cards.
 
-	Wallee's sandbox page shows a "Simulation" panel with ready-to-use test
-	cards behind ``Use`` buttons — clicking the first one auto-fills a valid
-	card. This is far more robust than typing into the split MM/YY fields
-	(which auto-tab and re-render). Falls back to manual entry if no Use
-	button is present (production page).
+	Wallee's sandbox page shows a "Simulation" panel with its own test cards, each behind a ``Use`` button that fills
+	the form. The helper clicks the one for the card accepted without 3-D Secure (no challenge page to drive). Only
+	when no such button fills the form does it type a card: the one the caller passes, else ``WALLEE_TEST_CARD`` /
+	``WALLEE_TEST_EXP_MONTH`` / ``WALLEE_TEST_EXP_YEAR`` / ``WALLEE_TEST_CVC`` from the environment.
 	"""
 	page.wait_for_load_state("domcontentloaded")
 	page.wait_for_timeout(3_000)
@@ -354,29 +355,43 @@ def fill_wallee_redirect_card(
 		except Exception:
 			pass
 
-	# 2. Click an EXACT "Use" button (get_by_role exact avoids matching the
-	#    Simulation header which also contains the substring "use").
+	# 2. Click the "Use" button of a card accepted without 3-D Secure.
 	#
-	# //// Neoffice — this shortcut STOPPED FILLING ANYTHING (measured 2026-09-22 on
-	# //// the sandbox). Five buttons whose text is "Use" are in the DOM, none of them
-	# //// is exposed to the accessibility tree under that exact name, and clicking one
-	# //// by its text leaves every card field empty. The fallback below then typed the
-	# //// card the caller passes — Stripe's 4242… by default — which Wallee answers
-	# //// with "The authorization is declined": Wallee has its OWN test cards, listed
-	# //// in that panel. The run showed none of this: the test waited for a redirect
-	# //// that was never coming and died on a timeout naming nothing.
-	use_btn = page.get_by_role("button", name="Use", exact=True).first
-	if use_btn.count() > 0:
-		use_btn.click()
+	# //// Neoffice — the old lookup, get_by_role("button", name="Use", exact=True), found nothing (2026-09-22): each
+	# //// button reads "Use" on screen but its accessible name is its aria-label, "Use <card>" ("Use MasterCard
+	# //// Test", "Use Visa Test Card 3-D Secure", …; class `btn-use`, measured on the sandbox page 2026-11-16). The
+	# //// fallback then typed Stripe's 4242… card, which Wallee declines: its sandbox only takes ITS cards (#637).
+	filled_by = None
+	buttons = page.locator("button.btn-use")
+	for i in range(buttons.count()):
+		label = buttons.nth(i).get_attribute("aria-label") or ""
+		if "3-D Secure" in label or not buttons.nth(i).is_visible():
+			continue
+		buttons.nth(i).click()
 		page.wait_for_timeout(2_500)
+		if _card_fields_filled(page):
+			filled_by = label
+			break
 
-	if not _card_fields_filled(page):
-		# The shortcut did not fill: type the card the caller asked for.
+	if filled_by is None:
+		# //// Neoffice — no Stripe card as a default any more (#637): a card from the caller or the environment.
+		card = card or os.environ.get("WALLEE_TEST_CARD")
+		assert card, (
+			"No Use button of Wallee's Simulation panel filled the card form, and no card was given "
+			"(argument or WALLEE_TEST_CARD): the hosted page changed shape again."
+		)
 		page.locator("input[name='ccnumber']").first.fill(card)
-		page.locator("input[id$='expiryDate-month']").first.fill(exp_month)
-		page.locator("input[id$='expiryDate-year']").first.fill(exp_year)
-		page.locator("input[id$='cardVerificationCode-input']").first.fill(cvc)
+		page.locator("input[id$='expiryDate-month']").first.fill(
+			exp_month or os.environ.get("WALLEE_TEST_EXP_MONTH", "12")
+		)
+		page.locator("input[id$='expiryDate-year']").first.fill(
+			exp_year or os.environ.get("WALLEE_TEST_EXP_YEAR", "30")
+		)
+		page.locator("input[id$='cardVerificationCode-input']").first.fill(
+			cvc or os.environ.get("WALLEE_TEST_CVC", "123")
+		)
 		page.wait_for_timeout(1_000)
+		filled_by = f"typed card {card[:4]}…{card[-4:]}"
 
 	assert _card_fields_filled(page), (
 		"Wallee's card form is still empty after both the Simulation shortcut and the "
@@ -394,7 +409,7 @@ def fill_wallee_redirect_card(
 	refus = page.get_by_text("declined", exact=False)
 	if refus.count() > 0:
 		raise AssertionError(
-			f"Wallee declined the card {card[:4]}…{card[-4:]}: "
+			f"Wallee declined the card ({filled_by}): "
 			f"{refus.first.inner_text().strip()[:120]}. Its sandbox only accepts ITS own "
 			"test cards, listed in the Simulation panel of the hosted page."
 		)
