@@ -426,7 +426,7 @@ def process_event(log_name: str) -> None:
 			log.status = "Processed"
 		else:
 			# A status our FSM has no state for. Do not guess.
-			_record_needs_human(intent, result)
+			_record_needs_human(intent, result, log.name)
 			log.status = "Processed"
 			log.error = _("Status {0} recorded without an FSM transition").format(
 				result.error_code or "unknown"
@@ -536,7 +536,7 @@ def _finalize_webshop_sales_order(intent) -> str | None:  # noqa: ANN001
 	return None
 
 
-def _record_needs_human(intent, result: WebhookResult) -> None:  # noqa: ANN001
+def _record_needs_human(intent, result: WebhookResult, webhook_event_log: str | None = None) -> None:  # noqa: ANN001
 	"""Log a status that must not drive a transition, and alert if it is serious.
 
 	``chargeback`` and ``disputed`` mean money is being taken back and someone has
@@ -546,15 +546,18 @@ def _record_needs_human(intent, result: WebhookResult) -> None:  # noqa: ANN001
 	"""
 	status = result.error_code or "unknown"
 
+	# //// Neoffice — maintenance#2722: the Payment Event's link is `intent` (mandatory), and it has no `event_type`. The
+	# //// row was written with `payment_intent` and refused, so the delivery that needed a human (a chargeback, a
+	# //// dispute) ended « Failed » with no trace on its intent. The Payrexx status opens the excerpt instead.
 	frappe.get_doc(
 		{
 			"doctype": "Payment Event",
-			"payment_intent": intent.name,
-			"event_type": f"payrexx.{status}",
+			"intent": intent.name,
 			"from_status": intent.status,
 			"to_status": intent.status,
 			"event_source": "webhook",
-			"payload_excerpt": result.payload_excerpt,
+			"webhook_event_log": webhook_event_log,
+			"payload_excerpt": f"payrexx.{status}\n{result.payload_excerpt or ''}",
 		}
 	).insert(ignore_permissions=True)
 
