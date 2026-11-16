@@ -314,13 +314,79 @@ def separate(dry_run: bool = False, only: list[str] | None = None) -> list[dict]
 	return reports
 
 
-def _move(move: dict, target: str, currency: str | None) -> None:
+def missing(company: str, modes: dict[str, str] | None = None) -> list[Booker]:
+	"""The gateways and the till modes of the company booked to an account that no longer exists."""
+	return [b for b in bookers(company, modes) if not frappe.db.exists("Account", b.account)]
+
+
+def put_back(dry_run: bool = False, only: list[str] | None = None) -> list[dict]:
+	"""Put back a provider's clearing account that went missing, and book what pointed to it there again.
+
+	A gateway or a till mode booked to an account that no longer exists cannot be reconciled: a payment made
+	through it stays unpaid, with one line in the error log. On osiris (neoffice-maintenance#2747) the two
+	accounts ``separate`` made on 13.11 were removed outside frappe afterwards (no Deleted Document, a hole in
+	the tree of accounts), and the Payrexx and Wallee gateways and till modes were left on names that no longer
+	existed.
+
+	The provider's account is found again (one named after it alone), else made beside the others under its
+	label (``provider_setup.ensure_clearing_account``: the first free number, so 1032 again when it is free);
+	each gateway and till mode of that provider books to it again, and the change is said on the document. A
+	till mode named after no provider is left as it is and named in the report: nothing says whose account it
+	was. Nothing already booked moves. Idempotent; a site where every account exists changes nothing.
+
+	Returns one report per company where something was missing: ``{"company", "providers": {provider:
+	{"target", "moves"}}, "left": [{"doctype", "name", "account"}], "blocked": [provider]}``.
+	"""
+	from payments.setup import provider_setup
+
+	modes = till_modes()
+	reports = []
+	for company in only or companies():
+		lost = missing(company, modes)
+		if not lost:
+			continue
+		report = {"company": company, "providers": {}, "left": [], "blocked": []}
+		for booker in lost:
+			if not booker.provider:
+				report["left"].append(
+					{"doctype": booker.doctype, "name": booker.name, "account": booker.account}
+				)
+				continue
+			entry = report["providers"].setdefault(booker.provider, {"target": None, "moves": []})
+			entry["moves"].append(
+				{"doctype": booker.doctype, "row": booker.row, "name": booker.name, "from": booker.account}
+			)
+		reports.append(report)
+		if dry_run:
+			continue
+		for provider, entry in report["providers"].items():
+			target = _named_alone(company, provider) or provider_setup.ensure_clearing_account(
+				company, label(provider)
+			)
+			if not target:
+				report["blocked"].append(provider)
+				continue
+			entry["target"] = target
+			currency = frappe.db.get_value("Account", target, "account_currency")
+			for move in entry["moves"]:
+				_move(move, target, currency, went_missing=True)
+			_follow_setup_state(provider, company, target)
+	return reports
+
+
+def _move(move: dict, target: str, currency: str | None, went_missing: bool = False) -> None:
 	# In the site's language: bench migrate runs in English, the bookkeeper reads the note in theirs
 	lang = frappe.db.get_single_value("System Settings", "language") or "en"
-	note = _(
-		"Clearing account changed from {0} to {1}: each payment provider books to an account of its own.",
-		lang=lang,
-	).format(move["from"], target)
+	if went_missing:
+		note = _(
+			"Clearing account {0} no longer existed: {1} was put back in its place.",
+			lang=lang,
+		).format(move["from"], target)
+	else:
+		note = _(
+			"Clearing account changed from {0} to {1}: each payment provider books to an account of its own.",
+			lang=lang,
+		).format(move["from"], target)
 	if move["doctype"] == GATEWAY:
 		values = {"payment_account": target}
 		if currency:
@@ -358,5 +424,23 @@ def said(report: dict) -> str:
 	for provider in report["blocked"]:
 		lines.append(
 			f"{report['company']}: {provider}: no bank account to put a clearing account beside, nothing moved"
+		)
+	return "\n".join(lines)
+
+
+def said_put_back(report: dict) -> str:
+	"""One line per provider put back, and one per till mode left, for the migration's log."""
+	lines = []
+	for provider, entry in report["providers"].items():
+		moved = ", ".join("{} ({})".format(m["name"], m["from"]) for m in entry["moves"])
+		lines.append(f"{report['company']}: {provider} put back on {entry['target']}: {moved}")
+	for provider in report.get("blocked") or []:
+		lines.append(
+			f"{report['company']}: {provider}: no bank account to put a clearing account beside, nothing moved"
+		)
+	for row in report["left"]:
+		lines.append(
+			f"{report['company']}: {row['name']} books to {row['account']}, which no longer exists; "
+			"it names no provider, left as it is"
 		)
 	return "\n".join(lines)

@@ -4453,3 +4453,7 @@ msgstr "Compte d'attente Stripe"
 #: payments/setup/clearing_accounts.py:71
 msgid "TWINT clearing account"
 msgstr "Compte d'attente TWINT"
+
+#: payments/setup/clearing_accounts.py
+msgid "Clearing account {0} no longer existed: {1} was put back in its place."
+msgstr "Le compte d'attente {0} n'existait plus : {1} a été remis à sa place."
