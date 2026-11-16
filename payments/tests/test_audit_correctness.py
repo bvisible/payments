@@ -63,20 +63,12 @@ class TestACardBookedWholeOrNotAtAll(FrappeTestCase):
 			),
 			None,
 		)
-		customers = frappe.get_all(
-			"Customer",
-			filters={"disabled": 0},
-			or_filters=[["default_currency", "is", "not set"], ["default_currency", "=", currency]]
-			if currency
-			else None,
-			pluck="name",
-			order_by="name",
-			limit=1,
-		)
-		item = frappe.db.get_value(
-			"Item", {"disabled": 0, "is_stock_item": 0, "is_sales_item": 1, "has_variants": 0}, "name"
-		)
-		if not (self.mop and customers and item):
+		# The test's own customer and service item (maintenance#2451): « the first » of the site was whatever the site
+		# held, on the shared clone a customer of another suite and the deposit item, whose invoice made a Customer
+		# Deposit this test never took away.
+		customer = self.its_customer(currency)
+		item = self.its_item()
+		if not (self.mop and customer and item):
 			self.skipTest("a mode of payment with an account, a customer and a service item are needed")
 		self.intents = []
 		# The office raises and sends the invoice; the card is taken later, at the handover.
@@ -85,7 +77,7 @@ class TestACardBookedWholeOrNotAtAll(FrappeTestCase):
 				{
 					"doctype": "Sales Invoice",
 					"company": self.mop.company,
-					"customer": customers[0],
+					"customer": customer,
 					"posting_date": nowdate(),
 					"due_date": nowdate(),
 					"items": [{"item_code": item, "qty": 1, "rate": 100}],
@@ -107,11 +99,82 @@ class TestACardBookedWholeOrNotAtAll(FrappeTestCase):
 		for name in self.intents:
 			frappe.db.delete("Payment Event", {"intent": name})
 			frappe.delete_doc("Payment Intent", name, force=True, ignore_permissions=True)
+		# A deposit an app made of the invoice when it was submitted (neoffice_theme's Customer Deposit) names it: it goes
+		# with it, or it is left committed, pointing at a name the series gives to the next invoice (maintenance#2451).
+		if frappe.db.exists("DocType", "Customer Deposit"):
+			for name in frappe.get_all(
+				"Customer Deposit", filters={"deposit_invoice": self.si.name}, pluck="name"
+			):
+				frappe.delete_doc("Customer Deposit", name, force=True, ignore_permissions=True)
 		self.si.reload()
 		if self.si.docstatus == 1:
 			self.si.cancel()
 		frappe.delete_doc("Sales Invoice", self.si.name, force=True, ignore_permissions=True)
 		frappe.db.commit()
+
+	@staticmethod
+	def its_customer(currency):
+		"""The test's own customer, made once and kept (its invoices are taken away, not its ledger).
+
+		Found by its label: a site may name its customers by series."""
+		label = f"_Test {MARK} Card Customer"
+		existing = frappe.db.get_value("Customer", {"customer_name": label}, "name")
+		if existing:
+			return existing
+		group = frappe.db.get_value("Customer Group", {"is_group": 0}, "name")
+		territory = frappe.db.get_value("Territory", {"is_group": 0}, "name") or frappe.db.get_value(
+			"Territory", {}, "name"
+		)
+		if not group:
+			return None
+		customer = frappe.get_doc(
+			{
+				"doctype": "Customer",
+				"customer_name": label,
+				"customer_type": "Company",
+				"customer_group": group,
+				"territory": territory,
+				"default_currency": currency,
+			}
+		)
+		customer.flags.ignore_mandatory = True
+		return customer.insert(ignore_permissions=True).name
+
+	@staticmethod
+	def its_item():
+		"""The test's own service item, made once and kept: no app gives it a meaning of its own (a deposit, a card).
+
+		Found by its label: a site may name its items by series."""
+		label = f"_TEST-{MARK.upper()}-CARD-SERVICE"
+		existing = frappe.db.get_value("Item", {"item_name": label}, "name")
+		if existing:
+			return existing
+		# a group that hands no default rows to its items (two defaults for one company are refused)
+		with_defaults = set(
+			frappe.get_all("Item Default", filters={"parenttype": "Item Group"}, pluck="parent")
+		)
+		groups = frappe.get_all("Item Group", filters={"is_group": 0}, pluck="name", order_by="name")
+		group = next((name for name in groups if name not in with_defaults), None) or (
+			groups[0] if groups else None
+		)
+		uom = frappe.db.get_single_value("Stock Settings", "stock_uom") or frappe.db.get_value(
+			"UOM", {}, "name"
+		)
+		if not (group and uom):
+			return None
+		item = frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": label,
+				"item_name": label,
+				"item_group": group,
+				"stock_uom": uom,
+				"is_stock_item": 0,
+				"is_sales_item": 1,
+				"include_item_in_manufacturing": 0,
+			}
+		)
+		return item.insert(ignore_permissions=True).name
 
 	def an_intent(self):
 		out = intent_api.create_intent(
