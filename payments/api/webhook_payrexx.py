@@ -689,6 +689,16 @@ def poll_pending_payrexx_transactions() -> None:
 				response = driver.get_status(row.provider_intent_id, device_id=row.device)
 			else:
 				response = driver.get_status(row.provider_intent_id)
+			# //// Neoffice — maintenance#2721: a read that failed is no answer. The drivers report any error as
+			# //// `failed` with an error_code, and the sweep took it as Payrexx's word: a timeout, a refused connection or
+			# //// a 5xx closed an intent the buyer may have paid. Only Payrexx's own status closes one; an unanswered
+			# //// read leaves it for the next pass. One error is an answer: the hosted page's gateway that Payrexx no
+			# //// longer has (404) takes no payment, so its intent is canceled (as the webhook reads it, #2579).
+			if response.error_code:
+				if row.channel == "payrexx_web" and response.error_code == "NotFoundError":
+					response.status = "canceled"
+				else:
+					continue
 			if response.status in ("succeeded", "failed", "canceled", "refunded"):
 				intent = frappe.get_doc("Payment Intent", row.name)
 				intent.transition_to(
