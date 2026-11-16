@@ -57,7 +57,7 @@ from payments.drivers.base import (
 	PaymentDriverBase,
 	WebhookResult,
 )
-from payments.drivers.payrexx._common import build_client, error_response, map_status
+from payments.drivers.payrexx._common import build_client, error_response, find_by_reference, map_status
 from payments.drivers.payrexx.provider import PayrexxProvider
 
 CHANNEL = "payrexx_tap_to_pay"
@@ -116,7 +116,9 @@ class PayrexxTapToPayDriver(PaymentDriverBase):
 		with self._client() as client:
 			if handle.isdigit():
 				return client.transaction.retrieve(handle)
-			matches = client.transaction.find_by_reference(handle)
+			# //// Neoffice — among the account's newest transactions: the library's own lookup reads the oldest
+			# //// page (maintenance#2579).
+			matches = find_by_reference(client, handle)
 			if not matches:
 				return None
 			return max(matches, key=lambda t: t.id or 0)

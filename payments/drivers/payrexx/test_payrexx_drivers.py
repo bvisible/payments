@@ -477,3 +477,91 @@ class TestPayrexxTerminalDriver(FrappeTestCase):
 		self.assertEqual(result["currency"], "CHF")
 		self.assertTrue(result["has_tipping"])
 		client.ecr.pair.assert_called_once()
+
+
+# ---------------------------------------------------------------------------------------------- maintenance#2579
+class _Account:
+	"""A Payrexx account's transactions as the API serves them: unsorted, its OLDEST page; ``orderByTime=DESC``,
+	its newest. ``find_by_reference`` is the library's own, which filters the unsorted list."""
+
+	PAGE = 10
+
+	def __init__(self, rows):
+		self.rows = rows  # oldest first
+
+	def list(self, *, limit=None, order_by_time=None, **_filters):
+		rows = list(reversed(self.rows)) if order_by_time == "DESC" else list(self.rows)
+		return rows[: limit or self.PAGE]
+
+	def find_by_reference(self, reference_id):
+		return [tx for tx in self.list() if tx.reference_id == reference_id]
+
+
+def _an_account_with(newest):
+	"""120 older transactions of other payments, then `newest`."""
+	from types import SimpleNamespace
+
+	older = [
+		SimpleNamespace(
+			id=1000 + n,
+			reference_id=f"PI-OLD-{n}",
+			pos_serial_number="SN-OTHER",
+			amount=700,
+			status="confirmed",
+		)
+		for n in range(120)
+	]
+	client = _client_stub()
+	client.transaction = _Account([*older, newest])
+	return client
+
+
+class TestAPayrexxLookupReadsTheNewestTransactions(FrappeTestCase):
+	"""The terminal's refund and the Tap to Pay lookup found a payment only among the account's oldest transactions."""
+
+	def setUp(self):
+		_ensure_fixtures()
+		self.terminal = PayrexxTerminalDriver.from_docs(
+			frappe.get_doc("Payment Provider", PROVIDER_NAME),
+			frappe.get_doc("Payment Channel", TERMINAL_CHANNEL),
+			frappe.get_doc(
+				"Provider Channel Settings",
+				frappe.db.get_value(
+					"Provider Channel Settings",
+					{"provider": PROVIDER_NAME, "channel": TERMINAL_CHANNEL},
+					"name",
+				),
+			),
+		)
+
+	def _paid(self, reference):
+		from types import SimpleNamespace
+
+		return SimpleNamespace(
+			id=5000, reference_id=reference, pos_serial_number=SERIAL, amount=1500, status="confirmed"
+		)
+
+	def test_the_terminal_finds_its_payment_by_reference(self):
+		client = _an_account_with(self._paid("PI-TERM-NEW"))
+		intent = {"name": "PI-TERM-NEW", "device": _device_name(), "amount": 1500}
+		found = self.terminal._locate_transaction(client, intent, "pay_unit_new")
+		self.assertIsNotNone(found)
+		self.assertEqual(found.id, 5000)
+
+	def test_the_terminal_finds_its_payment_by_serial_and_amount(self):
+		# a POS-Terminal delivery carries no reference: the serial and the amount are what is left
+		client = _an_account_with(self._paid(""))
+		intent = {"name": "PI-TERM-NEW", "device": _device_name(), "amount": 1500}
+		found = self.terminal._locate_transaction(client, intent, "pay_unit_new")
+		self.assertIsNotNone(found)
+		self.assertEqual(found.id, 5000)
+
+	def test_tap_to_pay_finds_its_payment_by_reference(self):
+		from payments.drivers.payrexx.tap_to_pay_driver import PayrexxTapToPayDriver
+
+		client = _an_account_with(self._paid("PI-TAP-NEW"))
+		driver = object.__new__(PayrexxTapToPayDriver)  # only its client is used here
+		with patch.object(PayrexxTapToPayDriver, "_client", return_value=client):
+			found = driver._find_transaction("PI-TAP-NEW")
+		self.assertIsNotNone(found)
+		self.assertEqual(found.id, 5000)

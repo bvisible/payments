@@ -71,7 +71,13 @@ from payments.drivers.base import (
 	PaymentDriverBase,
 	WebhookResult,
 )
-from payments.drivers.payrexx._common import build_client, error_response, map_status
+from payments.drivers.payrexx._common import (
+	build_client,
+	error_response,
+	find_by_reference,
+	map_status,
+	newest_transactions,
+)
 from payments.drivers.payrexx.provider import PayrexxProvider
 
 class PayrexxCancelUnconfirmed(Exception):
@@ -598,8 +604,11 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		one amount, within the lifetime of a single intent — but it is a heuristic,
 		and it is why the reference question is worth pressing with Payrexx.
 		"""
+		# //// Neoffice — both reads are of the account's NEWEST transactions (maintenance#2579): the library's
+		# //// find_by_reference and an unsorted list(limit=50) read its oldest page, so a payment made after the
+		# //// account's first transactions was never found and its refund failed.
 		if intent:
-			by_reference = client.transaction.find_by_reference(intent["name"])
+			by_reference = find_by_reference(client, intent["name"])
 			if by_reference:
 				return max(by_reference, key=lambda t: t.id or 0)
 
@@ -607,7 +616,7 @@ class PayrexxTerminalDriver(PaymentDriverBase):
 		amount = (intent or {}).get("amount")
 		candidates = [
 			t
-			for t in client.transaction.list(limit=50)
+			for t in newest_transactions(client, limit=50)
 			if t.pos_serial_number == serial and (amount is None or t.amount == amount)
 		]
 		if not candidates:

@@ -118,6 +118,28 @@ def map_status(payrexx_status: str | None) -> str | None:
 	return _STATUS_TO_FSM.get(str(payrexx_status).strip().lower())
 
 
+#: How deep a lookup looks into the account's transactions, newest first.
+NEWEST_PAGE = 100
+
+
+# //// Neoffice — maintenance#2579: the account's transactions are read newest first, never by the library's default.
+def newest_transactions(client, limit: int = NEWEST_PAGE) -> list:  # noqa: ANN001
+	"""The account's transactions, newest first.
+
+	Unsorted, Payrexx answers its OLDEST page, and a payment made after the account's first page of transactions was
+	never found (seen on a live account, 2026-11-12).
+	"""
+	return client.transaction.list(order_by_time="DESC", limit=limit)
+
+
+def find_by_reference(client, reference: str, limit: int = NEWEST_PAGE) -> list:  # noqa: ANN001
+	"""Every transaction carrying ``reference`` among the account's newest.
+
+	Stands in for the library's ``transaction.find_by_reference``, which filters the unsorted list: the oldest page.
+	"""
+	return [tx for tx in newest_transactions(client, limit) if tx.reference_id == reference]
+
+
 def instance_name(value: str | None) -> str:
 	"""The bare account name, whatever form the merchant pasted it in.
 

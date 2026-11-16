@@ -398,6 +398,24 @@ def process_event(log_name: str) -> None:
 
 		log.intent = intent.name
 
+		# //// Neoffice — on the hosted page, a transaction is one attempt and the gateway (the link) is the intent: an
+		# //// attempt that expired or was cancelled ended the intent (`canceled` is final) while the link still took
+		# //// payments, so a payment made afterwards was taken by Payrexx and refused here (maintenance#2579). The
+		# //// gateway is read first; the attempt is recorded and the intent left as it is while the link is open.
+		if result.target_status == "canceled" and intent.channel == "payrexx_web":
+			gateway_status = _gateway_status(intent)
+			if gateway_status not in ("canceled", "succeeded", "failed", "refunded"):
+				_record_attempt_ended(intent, result, gateway_status)
+				log.status = "Processed"
+				log.error = _("Attempt {0} recorded: the payment link is still open").format(
+					result.event_type or "-"
+				)
+				log.processed_at = now_datetime()
+				log.save(ignore_permissions=True)
+				frappe.db.commit()
+				return
+			result.target_status = gateway_status
+
 		if result.target_status:
 			intent.transition_to(
 				result.target_status,
@@ -437,6 +455,39 @@ def process_event(log_name: str) -> None:
 		log.save(ignore_permissions=True)
 		frappe.db.commit()
 		frappe.log_error("Payrexx webhook processing failed", f"{log_name}: {frappe.get_traceback()}")
+
+
+# //// Neoffice — maintenance#2579, see process_event.
+def _gateway_status(intent) -> str | None:  # noqa: ANN001
+	"""What the gateway of a hosted-page intent says now, as an FSM status; None when it cannot be read.
+
+	A gateway Payrexx no longer has (deleted, by ``cancel_intent`` or by hand) takes no payment: ``canceled``.
+	"""
+	from payments.drivers.registry import resolve_driver
+
+	if not intent.provider_intent_id:
+		return None
+	try:
+		response = resolve_driver(intent.provider, intent.channel).get_status(intent.provider_intent_id)
+	except Exception:  # noqa: BLE001 - unknown, so the intent is not moved
+		return None
+	if response.error_code:
+		return "canceled" if response.error_code == "NotFoundError" else None
+	return response.status
+
+
+def _record_attempt_ended(intent, result: WebhookResult, gateway_status: str | None) -> None:  # noqa: ANN001
+	"""A Payment Event for an attempt that ended on a link that is still open; the intent keeps its status."""
+	frappe.get_doc(
+		{
+			"doctype": "Payment Event",
+			"intent": intent.name,
+			"from_status": intent.status,
+			"to_status": intent.status,
+			"event_source": "webhook",
+			"payload_excerpt": f"{result.event_type}; gateway {gateway_status or 'unread'}"[:140],
+		}
+	).insert(ignore_permissions=True)
 
 
 def _finalize_webshop_sales_order(intent) -> str | None:  # noqa: ANN001
