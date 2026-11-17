@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -129,6 +130,25 @@ def refuse_a_live_site(url: str) -> str | None:
 	return None
 
 
+# //// Neoffice — a server that serves no /assets/ is refused before anything runs (maintenance#2661). The bench's
+# //// gunicorn on :8000 answers the pages and the API but 404s every /assets/ file: no script loads, so every gesture
+# //// of the shop that runs in the browser does nothing (add to cart, the sign-up form, the address form, the
+# //// checkout script). Five of the eight smoke tests failed for that alone on the clone, each with its own symptom
+# //// (an empty cart, a user not created, a 60 s timeout), and were read as defects of the shop.
+def the_assets_it_does_not_serve(url: str) -> str | None:
+	"""Why the server at ``url`` cannot run the shop's scripts, or None when it serves them."""
+	try:
+		page = requests.get(f"{url}/login", timeout=60)
+	except requests.RequestException as exc:
+		return f"{url} does not answer ({exc.__class__.__name__})"
+	scripts = re.findall(r'src="(/assets/[^"?]+\.js)', page.text)
+	if not scripts:
+		return None
+	answer = requests.get(f"{url}{scripts[0]}", timeout=60, stream=True)
+	answer.close()
+	return None if answer.ok else f"{scripts[0]} answers {answer.status_code}"
+
+
 @pytest.fixture(scope="session")
 def base_url(pytestconfig) -> str:
 	url = pytestconfig.getoption("--base-url") or DEFAULT_BASE_URL
@@ -136,6 +156,15 @@ def base_url(pytestconfig) -> str:
 	if reason:
 		pytest.exit(
 			f"Refusing to run the e2e suite against {url}: {reason}. Use the test clone (README).",
+			returncode=2,
+		)
+	missing = the_assets_it_does_not_serve(url)
+	if missing:
+		pytest.exit(
+			f"The server at {url} serves no /assets/ ({missing}): no script of the shop would load, and every"
+			" test that clicks would fail for that alone. Serve the clone with its assets on a loopback port"
+			" (neoffice-devops scripts/prodclone-bench/serve_prodclone.py) and pass"
+			" --base-url http://prodclone.local:<port> (README).",
 			returncode=2,
 		)
 	return url

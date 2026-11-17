@@ -518,7 +518,23 @@ def get_test_item_for_checkout() -> dict[str, Any]:
 	could be an out-of-stock product with no add-to-cart button).
 	"""
 	e2e_only()  # //// Neoffice — who may call this (#952)
-	row = frappe.db.sql(
+	row = _a_paying_item()
+	if not row:
+		# //// Neoffice — none on the site: the suite brings its own (maintenance#2661, see _ensure_the_e2e_item)
+		_ensure_the_e2e_item()
+		row = _a_paying_item()
+	if not row:
+		frappe.throw(_("No published, addable Website Item with positive price found on this site"))
+	r = row[0]
+	return {
+		"item_code": r["item_code"],
+		"route": r.get("route") or f"products/{r['item_code']}",
+		"price": float(r["price_list_rate"]),
+	}
+
+
+def _a_paying_item():
+	return frappe.db.sql(
 		"""
 		SELECT i.name AS item_code,
 		       wi.route,
@@ -541,14 +557,52 @@ def get_test_item_for_checkout() -> dict[str, Any]:
 		""",
 		as_dict=True,
 	)
-	if not row:
-		frappe.throw(_("No published, addable Website Item with positive price found on this site"))
-	r = row[0]
-	return {
-		"item_code": r["item_code"],
-		"route": r.get("route") or f"products/{r['item_code']}",
-		"price": float(r["price_list_rate"]),
-	}
+
+
+# //// Neoffice — added (maintenance#2661). The suite brings its own item when the site has none it can sell: the
+# //// clone is rebuilt from prod.local, whose test items were cleaned (#950), and no published item with a price was
+# //// left there, so every test that buys stopped at its setup. A non-stock item (always addable), published, priced
+# //// in the shop's price list, under the suite's own name, made once and kept for the next runs.
+E2E_ITEM = "_E2E Paying Item"
+E2E_ITEM_PRICE = 10
+
+
+def _ensure_the_e2e_item() -> None:
+	price_list = frappe.db.get_single_value("Webshop Settings", "price_list") or frappe.db.get_single_value(
+		"Selling Settings", "selling_price_list"
+	)
+	if not price_list:
+		return
+	if not frappe.db.exists("Item", E2E_ITEM):
+		frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": E2E_ITEM,
+				"item_name": E2E_ITEM,
+				"item_group": frappe.db.get_value("Item Group", {"is_group": 0}, "name", order_by="lft asc"),
+				"stock_uom": frappe.db.get_single_value("Stock Settings", "stock_uom")
+				or frappe.db.get_value("UOM", {"enabled": 1}, "name"),
+				"is_stock_item": 0,
+				"include_item_in_manufacturing": 0,
+			}
+		).insert(ignore_permissions=True)
+	if not frappe.db.exists("Website Item", {"item_code": E2E_ITEM}):
+		from webshop.webshop.doctype.website_item.website_item import make_website_item
+
+		make_website_item(frappe.get_doc("Item", E2E_ITEM), save=True)
+	website_item = frappe.db.get_value("Website Item", {"item_code": E2E_ITEM}, "name")
+	if website_item and not frappe.db.get_value("Website Item", website_item, "published"):
+		frappe.get_doc("Website Item", website_item).update({"published": 1}).save(ignore_permissions=True)
+	if not frappe.db.exists("Item Price", {"item_code": E2E_ITEM, "price_list": price_list}):
+		frappe.get_doc(
+			{
+				"doctype": "Item Price",
+				"item_code": E2E_ITEM,
+				"price_list": price_list,
+				"price_list_rate": E2E_ITEM_PRICE,
+			}
+		).insert(ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep — the suite reads it over HTTP, in its next request
 
 
 # ---------------------------------------------------------------------------

@@ -52,9 +52,13 @@ after each rebuild:
   osiris after each rebuild; `fill_wallee_redirect_card` then pays with a card of Wallee's own Simulation panel
   (its sandbox declines any other test card, Stripe's 4242… included). The return to the shop is a browser
   redirect, so the clone's name is enough;
-- the checkout steps need the site's assets: the bench's gunicorn on `:8000` serves no `/assets/`, so the
-  checkout script never loads (`wait_checkout_ready` times out). Serve the clone with its assets on a loopback port
-  (Frappe's `application_with_statics`) and pass `--base-url http://prodclone.local:<port>`.
+- **every test that clicks needs the site's assets**, the smoke tests included: the bench's gunicorn on `:8000`
+  serves no `/assets/`, so no script of the shop loads and the add-to-cart button, the sign-up form, the address form
+  and the checkout script do nothing (an empty cart, a user not created, `wait_checkout_ready` timing out: 5 of the 8
+  smoke tests, maintenance #2661). Serve the clone with its assets on a loopback port and pass
+  `--base-url http://prodclone.local:<port>`; `conftest.py` stops the run at once on a server that does not:
+  `BENCH_DIR=<empty folder> BENCH_PORT=<port> env/bin/python <neoffice-devops>/scripts/prodclone-bench/serve_prodclone.py`
+  (Frappe's `application_with_statics`, bound to the loopback, socket.io refused).
 
 Another test site: `pytest --base-url=http://<name>.local:8000`.
 
