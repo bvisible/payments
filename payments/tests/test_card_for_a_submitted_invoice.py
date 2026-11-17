@@ -17,9 +17,7 @@ def _last_error() -> str:
 	"""The last row of the Error Log: reconcile_payment_intent runs in a doc_event that logs what it fails at and never
 	breaks the save, so a payment that was not booked says nothing else."""
 	rows = frappe.get_all("Error Log", fields=["method", "error"], order_by="creation desc", limit=1)
-	return (
-		f"{rows[0].method}: {(rows[0].error or '')[-1800:]}" if rows else "nothing in the Error Log"
-	)
+	return f"{rows[0].method}: {(rows[0].error or '')[-1800:]}" if rows else "nothing in the Error Log"
 
 
 class TestACardForASubmittedInvoice(FrappeTestCase):
@@ -83,6 +81,7 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 			if doc.docstatus == 1:
 				doc.cancel()
 			frappe.delete_doc("Payment Entry", pe, force=True, ignore_permissions=True)
+			self._forget_the_ledger("Payment Entry", pe)
 		for name in self.intents:
 			frappe.db.delete("Payment Event", {"intent": name})
 			frappe.delete_doc("Payment Intent", name, force=True, ignore_permissions=True)
@@ -90,13 +89,22 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		if self.si.docstatus == 1:
 			self.si.cancel()
 		frappe.delete_doc("Sales Invoice", self.si.name, force=True, ignore_permissions=True)
+		self._forget_the_ledger("Sales Invoice", self.si.name)
 		frappe.db.commit()
+
+	@staticmethod
+	def _forget_the_ledger(doctype, name):
+		"""The ledger rows of a document the test cancelled and deleted. ERPNext deletes them with the document only where
+		Accounts Settings says so (delete_linked_ledger_entries: set on osiris, off by default and on the CI site), and
+		it refuses to delete an account a GL Entry still names: the clearing account put back below, after its payment."""
+		frappe.db.delete("GL Entry", {"voucher_type": doctype, "voucher_no": name})
+		frappe.db.delete("Payment Ledger Entry", {"voucher_type": doctype, "voucher_no": name})
 
 	def _paid_by_card(self, amount, session_user=None, metadata=None):
 		out = intent_api.create_intent(
 			provider="mock",
 			channel="terminal",
-			amount=int(round(flt(amount) * 100)),
+			amount=round(flt(amount) * 100),
 			currency=self.si.currency,
 			reference_doctype="Sales Invoice",
 			reference_name=self.si.name,
@@ -124,17 +132,11 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 		self.assertTrue(pe, f"the succeeded intent booked no payment. {_last_error()}")
 		self.assertEqual(pe.mode_of_payment, self.mop.parent)
 		self.assertEqual(flt(pe.paid_amount), flt(self.si.outstanding_amount))
-		self.assertEqual(
-			flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0
-		)
+		self.assertEqual(flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0)
 		# never twice: the doc_event again, and the booking itself
 		self.assertEqual(reconcile_payment_intent(intent.name)["action"], "skipped_already_reconciled")
-		self.assertEqual(
-			_payment_entry(intent, self.si, self.mop.parent)["action"], "skipped_already_paid"
-		)
-		self.assertEqual(
-			frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 1
-		)
+		self.assertEqual(_payment_entry(intent, self.si, self.mop.parent)["action"], "skipped_already_paid")
+		self.assertEqual(frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 1)
 
 	def test_a_card_for_part_of_the_invoice_leaves_the_rest_to_pay(self):
 		before = flt(self.si.outstanding_amount)
@@ -151,18 +153,16 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 			"Payment Entry", {"reference_no": intent.provider_intent_id, "docstatus": 1}, "name"
 		)
 		self.assertTrue(pe, f"a guest session left the card unbooked. {_last_error()}")
-		self.assertEqual(
-			flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0
-		)
+		self.assertEqual(flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0)
 
 	# ---- a payment with no mode of payment, by the gateway account the customer chose (maintenance#2528) ----
 
 	def _a_gateway_account(self, company=None):
 		"""A gateway account of the invoice's company, paying into the account of the mode of payment this test uses."""
 		if not frappe.db.exists("Payment Gateway", "_Test Reconciliation Gateway"):
-			frappe.get_doc(
-				{"doctype": "Payment Gateway", "gateway": "_Test Reconciliation Gateway"}
-			).insert(ignore_permissions=True)
+			frappe.get_doc({"doctype": "Payment Gateway", "gateway": "_Test Reconciliation Gateway"}).insert(
+				ignore_permissions=True
+			)
 		account = frappe.get_doc(
 			{
 				"doctype": "Payment Gateway Account",
@@ -320,29 +320,19 @@ class TestACardForASubmittedInvoice(FrappeTestCase):
 			pe.paid_to, self.mop.default_account, "through the account of the gateway the customer chose"
 		)
 		self.assertEqual(flt(pe.paid_amount), owed)
-		self.assertEqual(
-			flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0
-		)
+		self.assertEqual(flt(frappe.db.get_value("Sales Invoice", self.si.name, "outstanding_amount")), 0)
 
 	def test_a_gateway_account_that_is_not_the_invoices_companys_is_no_reason_to_book_anything(self):
 		other = frappe.db.get_value("Company", {"name": ["!=", self.mop.company]}, "name")
 		if not other:
 			self.skipTest("a second company is needed")
 		account = self._a_gateway_account(company=other)
-		intent = self._paid_by_card(
-			self.si.outstanding_amount, metadata={"gateway_account": account.name}
-		)
-		self.assertEqual(
-			frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 0
-		)
+		intent = self._paid_by_card(self.si.outstanding_amount, metadata={"gateway_account": account.name})
+		self.assertEqual(frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 0)
 		intent.reload()
-		self.assertEqual(
-			intent.get_metadata().get("reconciliation_action"), "skipped_no_mode_of_payment"
-		)
+		self.assertEqual(intent.get_metadata().get("reconciliation_action"), "skipped_no_mode_of_payment")
 
 	def test_an_unknown_gateway_account_or_none_books_nothing_as_before(self):
 		for metadata in ({"gateway_account": "No such gateway - CHF"}, {}):
 			intent = self._paid_by_card(self.si.outstanding_amount, metadata=metadata)
-			self.assertEqual(
-				frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 0
-			)
+			self.assertEqual(frappe.db.count("Payment Entry", {"reference_no": intent.provider_intent_id}), 0)
