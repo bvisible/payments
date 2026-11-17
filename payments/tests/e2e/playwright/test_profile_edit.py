@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import re
 import urllib.parse as _url
 
 import pytest
@@ -19,15 +20,21 @@ def test_edit_address_persists(logged_in_page, backend, base_url, site_config):
 	#    (frappe.contacts get_address_list filters owner == user). Assert our
 	#    fixture address shows up — this also guards the fixture step that
 	#    reassigns the Address owner to the test user.
-	page.goto(f"{base_url}/addresses", wait_until="domcontentloaded", timeout=60_000)
+	# //// Neoffice — the shop's address book is /my-addresses (where /addresses now leads, webshop maintenance#1032):
+	# //// each address is a card, its title in the card's heading and its name in the « Modifier » button's
+	# //// editAddress('<name>'), no longer a link the test looked for (maintenance#2661).
+	page.goto(f"{base_url}/my-addresses", wait_until="domcontentloaded", timeout=60_000)
 	page.wait_for_timeout(2_000)
 	addr_title = site_config["e2e_test_customer"] + "-Billing"
-	expect(page.locator(f"a:has-text('{addr_title}')").first).to_be_visible(timeout=15_000)
+	expect(page.locator(f".card-title:has-text('{addr_title}')").first).to_be_visible(timeout=15_000)
 
 	# 2. Resolve the real Address docname (autoname differs from the title, e.g.
-	#    "...-Billing-Facturation"). The list link carries ?name=<docname>.
-	href = page.locator(f"a:has-text('{addr_title}')").first.get_attribute("href") or ""
-	addr_name = _url.unquote(href.split("name=", 1)[1]) if "name=" in href else None
+	#    "...-Billing-Facturation"). The card's « Modifier » button carries editAddress('<docname>').
+	onclick = (
+		page.locator(f"button[onclick^=\"editAddress('{addr_title}\"]").first.get_attribute("onclick") or ""
+	)
+	found = re.search(r"editAddress\('(.+?)'\)", onclick)
+	addr_name = found.group(1) if found else None
 	if not addr_name:
 		addr_name = backend.call(
 			"frappe.client.get_value", doctype="Address",
