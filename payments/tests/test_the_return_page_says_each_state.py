@@ -175,6 +175,19 @@ class TestTheViewOfEachState(FrappeTestCase):
 		for key in ("slow_title", "slow_text", "slow_note"):
 			self.assertTrue(view[key])
 
+	def test_a_payment_that_did_not_go_through_says_what_the_appointment_is_now(self):
+		"""Held until its money comes, or booked with only its payment left (maintenance#2981): never « not confirmed » of an
+		appointment that stands."""
+		held = compose(an_intent("canceled"), "failed", summary=dict(SUMMARY, confirmed=False)).view
+		self.assertIn("not confirmed yet", held["text"])
+		booked = compose(an_intent("canceled"), "failed", summary=dict(SUMMARY, confirmed=True)).view
+		self.assertIn("only its payment is left", booked["text"])
+		self.assertNotIn("not confirmed", booked["text"])
+		self.assertEqual(booked["primary"], {"label": "Resume the payment", "url": SUMMARY["retry_url"]})
+		refused = compose(an_intent("failed"), "failed", summary=dict(SUMMARY, confirmed=True)).view
+		self.assertIn("only its payment is left", refused["text"])
+		self.assertNotIn("appointment", compose(an_intent("failed"), "failed").view["text"])
+
 	def test_a_payment_still_unconfirmed_can_be_checked_again_or_paid_again(self):
 		view = compose(
 			an_intent("requires_action"), "unconfirmed", check_url="/payrexx/success?try=0"

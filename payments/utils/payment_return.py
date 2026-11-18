@@ -139,6 +139,20 @@ def present(
 	context.no_breadcrumbs = 1
 
 
+def _appointment_now(summary: dict | None) -> str:
+	"""What the appointment behind a payment that did not go through is now, as the app that knows it says (``confirmed``).
+
+	A payment left at the gateway said « not confirmed yet » of an appointment the site had confirmed at its invoice, its
+	confirmation already sent (maintenance#2981). An appointment paid online is now held until its money comes; one that stands
+	and has only its payment left (an invoice of the office paid by its link) is said booked.
+	"""
+	if not summary:
+		return ""
+	if summary.get("confirmed"):
+		return " " + _("Your appointment is booked: only its payment is left.")
+	return " " + _("Your appointment is not confirmed yet.")
+
+
 def _words(
 	kind: str, intent, summary: dict | None, amount: str | None, check_url: str | None
 ) -> dict:
@@ -197,7 +211,7 @@ def _words(
 	if kind == "failed":
 		return {
 			"title": _("The payment did not go through"),
-			"text": _("The payment was not completed. Nothing has been charged."),
+			"text": _("The payment was not completed. Nothing has been charged.") + _appointment_now(summary),
 			"primary": {"label": _("Try paying again"), "url": retry},
 			"secondary": back,
 		}
@@ -205,8 +219,7 @@ def _words(
 	if kind == "canceled":
 		return {
 			"title": _("You left the payment"),
-			"text": _("No amount has been taken.")
-			+ (" " + _("Your appointment is not confirmed yet.") if summary else ""),
+			"text": _("No amount has been taken.") + _appointment_now(summary),
 			"primary": {"label": _("Resume the payment"), "url": retry},
 			"secondary": back,
 		}
