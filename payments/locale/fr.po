@@ -4465,3 +4465,16 @@ msgstr "Compte d'attente recréé : {0} était encore comptabilisé sur un compt
 #: payments/api/reconciliation.py
 msgid "The clearing account of {0} was missing. {1} was put back and the payment of invoice {2} was booked to it."
 msgstr "Le compte d'attente de {0} manquait. {1} a été recréé et le paiement de la facture {2} y a été comptabilisé."
+
+#. Description of the 'Redirect To' (Data) field in DocType 'Paymob Settings'
+#: payments/payment_gateways/doctype/paymob_settings/paymob_settings.json:93
+msgid ""
+"Mention transaction completion page URL\n"
+"\n"
+msgstr ""
+"Indiquez l'URL de la page affichée à la fin de la transaction\n"
+"\n"
+
+#: payments/utils/payment_return.py:152
+msgid "Your appointment is booked: only its payment is left."
+msgstr "Votre rendez-vous est pris : il ne reste que son paiement."
