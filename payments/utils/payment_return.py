@@ -108,6 +108,7 @@ def present(
 	"""
 	intent = context.get("intent")
 	kind = kind_of(context)
+	came_back_paid = kind == "success"
 	summary = summary_of(intent) if intent else None
 	if (
 		summary
@@ -115,6 +116,13 @@ def present(
 		and kind in ("success", "pending", "unconfirmed", "failed", "canceled", "refunded")
 	):
 		kind = "released"
+	elif summary and summary.get("settled"):
+		# Paid by another attempt: the page of one left behind neither says it is still to pay nor offers to pay (maintenance#2981)
+		if kind in ("pending", "unconfirmed", "failed", "canceled"):
+			kind = "success"
+	elif summary and kind == "success" and summary.get("confirmed") is False:
+		# The gateway took the money and the appointment does not say so yet: never « confirmed » before it is
+		kind = "unconfirmed"
 	currency = intent.currency if intent else None
 	amount = money(flt(intent.amount) / 100, currency) if intent else None
 	view = {
@@ -124,7 +132,7 @@ def present(
 		"reference": intent.name if intent else None,
 		"summary": summary,
 		"reload_url": reload_url,
-		"celebrate": kind == "success",
+		"celebrate": kind == "success" and came_back_paid,
 		"hold_seconds": (summary or {}).get("hold_seconds")
 		if kind in ("failed", "canceled", "pending", "unconfirmed")
 		else None,
@@ -205,7 +213,10 @@ def _words(
 			"text": _("You can close this page. As soon as the payment is confirmed you receive an email."),
 			"note": _("If you have already paid, do not pay a second time: wait for that email."),
 			"primary": {"label": _("Check now"), "url": check_url} if check_url else None,
-			"secondary": {"label": _("Try paying again"), "url": retry},
+			# Never to whoever has just paid: a second payment is what this page warns against
+			"secondary": None
+			if intent is not None and intent.status == "succeeded"
+			else {"label": _("Try paying again"), "url": retry},
 		}
 
 	if kind == "failed":

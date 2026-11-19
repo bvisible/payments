@@ -188,6 +188,22 @@ class TestTheViewOfEachState(FrappeTestCase):
 		self.assertIn("only its payment is left", refused["text"])
 		self.assertNotIn("appointment", compose(an_intent("failed"), "failed").view["text"])
 
+	def test_the_page_of_a_payment_left_says_paid_once_another_attempt_has_paid(self):
+		"""It said « only its payment is left » and offered to resume an appointment paid meanwhile (maintenance#2981)."""
+		paid = dict(SUMMARY, confirmed=True, settled=True)
+		for status, state in (("failed", "failed"), ("canceled", "failed")):
+			view = compose(an_intent(status), state, summary=paid).view
+			self.assertEqual(view["kind"], "success", status)
+			self.assertFalse(view["celebrate"], "no confetti on an old page")
+			self.assertNotIn("Try paying again", str(view))
+
+	def test_money_taken_for_an_appointment_not_confirmed_yet_is_never_called_confirmed(self):
+		"""The gateway took it and nothing booked it yet: the page waits, and offers no second payment (maintenance#2981)."""
+		view = compose(an_intent(), "success", summary=dict(SUMMARY, confirmed=False, settled=False)).view
+		self.assertEqual(view["kind"], "unconfirmed")
+		self.assertIsNone(view["secondary"])
+		self.assertNotEqual(view["title"], "Your appointment is confirmed")
+
 	def test_a_payment_still_unconfirmed_can_be_checked_again_or_paid_again(self):
 		view = compose(
 			an_intent("requires_action"), "unconfirmed", check_url="/payrexx/success?try=0"
