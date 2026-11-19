@@ -201,7 +201,7 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 	driver = resolve_driver(intent_doc.provider, intent_doc.channel)
 	if intent_doc.provider_intent_id:
 		try:
-			driver.cancel_intent(intent_doc.provider_intent_id)
+			answer = driver.cancel_intent(intent_doc.provider_intent_id)
 		except Exception as exc:  # noqa: BLE001
 			# The PSP refused to cancel. The commonest reason is the one that
 			# costs money: the intent settled a moment ago and the webhook has
@@ -235,6 +235,22 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 					queue="short",
 					intent_name=intent_name,
 					enqueue_after_commit=True,
+				)
+			intent_doc.reload()
+			return _serialize_intent_for_client(intent_doc)
+
+		# //// Neoffice — maintenance#2981: a hosted payment page is closed when its provider says so. Drivers answer a refusal
+		# //// instead of raising, and the answer went unread: a Wallee page that cannot be voided was marked `canceled` while it
+		# //// still took the card, the payment made on it was refused by this state machine, and nothing gave the money back.
+		# //// The intent stays open, so that a payment made on it arrives, is booked or goes back. Tills and readers keep their
+		# //// own rule (`release_stuck_terminal`, the sweep of Payrexx terminals).
+		if intent_doc.channel.endswith("_web") and answer.status != "canceled":
+			if answer.status == "failed":
+				frappe.log_error(
+					"cancel_intent refused by PSP — status left untouched",
+					f"Intent {intent_name} (status={intent_doc.status}, "
+					f"provider_intent_id={intent_doc.provider_intent_id}): "
+					f"{answer.error_code!r} {answer.error_message!r}",
 				)
 			intent_doc.reload()
 			return _serialize_intent_for_client(intent_doc)

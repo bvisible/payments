@@ -306,27 +306,47 @@ class WalleeWebDriver(PaymentDriverBase):
 		return DriverResponse(status="processing", provider_intent_id=provider_intent_id)
 
 	def cancel_intent(self, provider_intent_id: str) -> DriverResponse:
-		"""Void a pending Wallee transaction. Idempotent (already-voided is OK)."""
+		"""Void a Wallee transaction, and say what became of it when Wallee refuses."""
 		try:
 			tx_service, _refunds = self._services()
 			response = tx_service.post_payment_transactions_id_void_online(
 				int(provider_intent_id), self._wallee_provider.space_id
 			)
 		except Exception as exc:  # noqa: BLE001
-			msg = str(exc)
-			if "already" in msg.lower() or "VOIDED" in msg or "FAILED" in msg:
-				return DriverResponse(status="canceled", provider_intent_id=provider_intent_id)
-			friendly_msg, error_code = _extract_wallee_error(exc)
+			return self._after_a_refused_void(provider_intent_id, exc)
+		return DriverResponse(
+			status="canceled",
+			provider_intent_id=provider_intent_id,
+			raw=response.to_dict() if hasattr(response, "to_dict") else {},
+		)
+
+	# //// Neoffice — maintenance#2981: Wallee voids an AUTHORIZED transaction only, and has no call that closes a PENDING one.
+	# //// Its refusal reads « can only be moved to VOIDED state when… »: the word VOIDED in that sentence passed for « already
+	# //// voided », so a page that still took the card was reported closed. The transaction's own state now answers.
+	def _after_a_refused_void(self, provider_intent_id: str, refusal: Exception) -> DriverResponse:
+		"""What a transaction Wallee would not void is now: closed, paid, or still open to a payment."""
+		try:
+			tx_service, _refunds = self._services()
+			transaction = tx_service.get_payment_transactions_id(
+				int(provider_intent_id), self._wallee_provider.space_id
+			)
+			state = _state_value(transaction.state)
+		except Exception:  # noqa: BLE001 - what is not known is not called closed
+			friendly_msg, error_code = _extract_wallee_error(refusal)
 			return DriverResponse(
 				status="failed",
 				provider_intent_id=provider_intent_id,
 				error_code=error_code or "wallee_void_failed",
 				error_message=friendly_msg,
 			)
+		target = _TX_STATE_TO_STATUS.get(state or "")
+		if target in ("canceled", "failed"):
+			return DriverResponse(status="canceled", provider_intent_id=provider_intent_id)
 		return DriverResponse(
-			status="canceled",
+			status=target or ("processing" if state == "PROCESSING" else "requires_action"),
 			provider_intent_id=provider_intent_id,
-			raw=response.to_dict() if hasattr(response, "to_dict") else {},
+			error_code="wallee_not_voidable",
+			error_message=f"Wallee keeps this transaction in state {state}",
 		)
 
 	def refund(self, provider_intent_id: str, amount: int | None = None) -> DriverResponse:
