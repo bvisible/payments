@@ -244,6 +244,15 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 		# //// still took the card, the payment made on it was refused by this state machine, and nothing gave the money back.
 		# //// The intent stays open, so that a payment made on it arrives, is booked or goes back. Tills and readers keep their
 		# //// own rule (`release_stuck_terminal`, the sweep of Payrexx terminals).
+		# //// Neoffice — maintenance#3017: a till's cancellation was recorded whatever the reader answered. The Payrexx
+		# //// reader's « the card was tapped while we cancelled » (`raced_payment`) and Tap to Pay's « this payment already
+		# //// exists » (`cancel_not_possible`) ended `canceled`, a final state: the webhook of that payment was refused by the
+		# //// state machine and money taken stayed unbooked. An answer that is neither « canceled » nor « failed » is read
+		# //// again at the provider: paid, the intent moves to `succeeded`, which books it; anything else leaves it as it is.
+		# //// A failed cancellation keeps the till's rule below.
+		if not intent_doc.channel.endswith("_web") and answer.status not in ("canceled", "failed"):
+			return _what_the_provider_says_now(intent_doc, driver, answer)
+
 		if intent_doc.channel.endswith("_web") and answer.status != "canceled":
 			if answer.status == "failed":
 				frappe.log_error(
@@ -281,6 +290,44 @@ def cancel_intent(intent_name: str, reason: str | None = None) -> dict[str, Any]
 			raise
 		return _serialize_intent_for_client(intent_doc)
 	intent_doc.reload()  # this request's own write: visible to a plain read
+	return _serialize_intent_for_client(intent_doc)
+
+
+# //// Neoffice — maintenance#3017, see `cancel_intent`.
+def _what_the_provider_says_now(intent_doc, driver, answer) -> dict[str, Any]:  # noqa: ANN001
+	"""A till's cancellation its reader did not take: the payment as the provider tells it now.
+
+	Paid: moved to `succeeded`, which books it (reconciliation), and the till reads that answer. Still open, or not
+	readable: left as it is, never cancelled and never booked on a guess; the webhook or the poll settles it, and a
+	card reader still waiting is released in the background as after a refused cancellation.
+	"""
+	kwargs = {"device_id": intent_doc.device} if intent_doc.channel == "terminal" else {}
+	try:
+		now = driver.get_status(intent_doc.provider_intent_id, **kwargs).status
+	except Exception as exc:  # noqa: BLE001 - what is not known is neither cancelled nor booked
+		now = None
+		frappe.log_error(
+			"cancel_intent: the provider's state could not be read",
+			f"Intent {intent_doc.name}: the cancellation answered {answer.status!r}, and reading the payment "
+			f"again failed: {exc!r}. Left as it is for the webhook or the poll.",
+		)
+	if now == "succeeded":
+		intent_doc = frappe.get_doc("Payment Intent", intent_doc.name, for_update=True)
+		if intent_doc.status not in ("succeeded", "canceled", "refunded"):
+			intent_doc.transition_to(
+				"succeeded",
+				event_source="api",
+				payload_excerpt=f"cancel answered {answer.status}; the provider says the payment succeeded",
+				ignore_invalid=True,
+			)
+		intent_doc.reload()
+	elif intent_doc.channel == "terminal":
+		frappe.enqueue(
+			"payments.api.intent.release_stuck_terminal",
+			queue="short",
+			intent_name=intent_doc.name,
+			enqueue_after_commit=True,
+		)
 	return _serialize_intent_for_client(intent_doc)
 
 
