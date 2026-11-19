@@ -122,6 +122,11 @@ class PaymentIntent(Document):
 
 		allowed = ALLOWED_TRANSITIONS.get(current, set())
 		if new_status not in allowed:
+			# //// Neoffice — maintenance#3019: a payment already given back keeps sending the states of its transaction
+			# //// (Wallee's FULFILL and COMPLETED after the refund): its money has gone back, nothing is lost, and each of them
+			# //// wrote a row (33 in a night of tests). `canceled -> succeeded` and the rest stay written: money nobody booked.
+			if ignore_invalid and current == "refunded" and new_status == "succeeded":
+				return False
 			if ignore_invalid:
 				# Never drop a rejected transition silently: a swallowed
 				# `succeeded` means money captured by the PSP that nobody

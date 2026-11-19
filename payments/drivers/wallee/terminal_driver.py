@@ -60,6 +60,14 @@ from payments.drivers.base import (
 from payments.drivers.wallee.provider import WalleeProvider
 
 
+class WalleeCancelUnconfirmed(Exception):
+	"""Wallee did not void a reader's transaction, and it is not closed: it may still take a card (maintenance#3017).
+
+	Raised, not returned, for the reason `PayrexxCancelUnconfirmed` gives: the intent API keeps a till's status only on an
+	exception.
+	"""
+
+
 # Wallee Transaction state → target Payment Intent FSM status.
 _TX_STATE_TO_STATUS: dict[str, str] = {
 	"AUTHORIZED": "succeeded",
@@ -340,22 +348,42 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				int(provider_intent_id), self._wallee_provider.space_id
 			)
 		except Exception as exc:  # noqa: BLE001
-			# Wallee returns 4xx if the transaction is already in a terminal
-			# state (COMPLETED/VOIDED/FAILED). Treat as canceled — the FSM
-			# transition is no-op when already in the target state.
-			msg = str(exc)
-			if "already" in msg.lower() or "VOIDED" in msg or "FAILED" in msg:
-				return DriverResponse(status="canceled", provider_intent_id=provider_intent_id)
-			return DriverResponse(
-				status="failed",
-				provider_intent_id=provider_intent_id,
-				error_code="wallee_void_failed",
-				error_message=msg,
-			)
+			return self._after_a_refused_void(provider_intent_id, exc)
 		return DriverResponse(
 			status="canceled",
 			provider_intent_id=provider_intent_id,
 			raw=response.to_dict() if hasattr(response, "to_dict") else {},
+		)
+
+	# //// Neoffice — maintenance#3017: Wallee voids an AUTHORIZED transaction only. Its refusal reads « The transaction can only
+	# //// be moved to VOIDED state when the transaction is in state AUTHORIZED. » (recorded on the sandbox, 19.11.2026): the word
+	# //// VOIDED in it passed for « already voided », and a reader still waiting for its card was reported free. The intent was
+	# //// cancelled, a card tapped afterwards was refused by the state machine, and the money stayed at Wallee (the same reading
+	# //// as the hosted page's, maintenance#2981). The transaction's own state answers now. Not proven with a real reader yet.
+	def _after_a_refused_void(self, provider_intent_id: str, refusal: Exception) -> DriverResponse:
+		"""A transaction Wallee would not void: cancelled when it can take nothing more, else raised.
+
+		Raised and not returned, as the Payrexx reader does (`PayrexxCancelUnconfirmed`): `payments.api.intent.cancel_intent`
+		marks a till's intent cancelled on any answer and keeps its status only on an exception, then `release_stuck_terminal`
+		keeps trying. A transaction still waiting for its card, being processed, paid meanwhile, or that cannot be read, is
+		never called cancelled: the webhook or the poll says how it ended.
+		"""
+		try:
+			tx_service, _terminals, _refunds = self._services()
+			transaction = tx_service.get_payment_transactions_id(
+				int(provider_intent_id), self._wallee_provider.space_id
+			)
+			state = _state_value(transaction.state)
+		except Exception as exc:  # noqa: BLE001 - what is not known is not called cancelled
+			raise WalleeCancelUnconfirmed(
+				f"Wallee refused to void transaction {provider_intent_id} ({refusal}) and its state could not be read ({exc!r}):"
+				" the reader may still take a card, so the intent must not be marked canceled"
+			) from refusal
+		if _TX_STATE_TO_STATUS.get(state or "") in ("canceled", "failed"):
+			return DriverResponse(status="canceled", provider_intent_id=provider_intent_id)
+		raise WalleeCancelUnconfirmed(
+			f"Wallee keeps transaction {provider_intent_id} in state {state} and refused to void it ({refusal}): it may still"
+			" take a card, or was paid meanwhile, so the intent must not be marked canceled"
 		)
 
 	def refund(self, provider_intent_id: str, amount: int | None = None) -> DriverResponse:
@@ -792,6 +820,10 @@ def poll_pending_transactions() -> dict[str, Any]:
 			# call when the SO already exists is a no-op.
 			if moved and target_status == "succeeded" and row.channel == "wallee_web":
 				_finalize_wallee_web_sales_order(intent_doc)
+		# //// Neoffice — maintenance#3019: the webhook moved the intent between this read and its save (two seconds apart on
+		# //// osiris, 19.11): the webhook's word stands, and the next pass finds it settled. One Error Log row per such cross.
+		except frappe.TimestampMismatchError:
+			continue
 		except Exception as exc:  # noqa: BLE001 — keep the loop alive
 			stats["errors"] += 1
 			frappe.log_error(

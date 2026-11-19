@@ -344,14 +344,51 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		self.assertEqual(result.status, "canceled")
 
 	def test_cancel_intent_tolerates_already_terminal(self):
+		"""A transaction already voided is cancelled: its state says so, never the words of the refusal."""
 		driver = _build_driver()
 		tx_service = MagicMock()
 		tx_service.post_payment_transactions_id_void_online.side_effect = RuntimeError(
 			"Transaction is already in state VOIDED"
 		)
+		tx_service.get_payment_transactions_id.return_value = _wallee_tx(state="VOIDED")
 		with _patch_services(tx_mock=tx_service):
 			result = driver.cancel_intent("12345")
 		self.assertEqual(result.status, "canceled")
+
+	def refused_void(self, state=None, unreadable=False):
+		"""What the reader's driver makes of Wallee's refusal, word for word as the sandbox gave it (19.11.2026)."""
+		driver = _build_driver()
+		tx_service = MagicMock()
+		tx_service.post_payment_transactions_id_void_online.side_effect = RuntimeError(
+			"The transaction can only be moved to VOIDED state when the transaction is in state AUTHORIZED."
+		)
+		if unreadable:
+			tx_service.get_payment_transactions_id.side_effect = RuntimeError("no answer")
+		else:
+			tx_service.get_payment_transactions_id.return_value = _wallee_tx(state=state)
+		with _patch_services(tx_mock=tx_service):
+			return driver.cancel_intent("12345")
+
+	def never_called_free(self, **case):
+		"""The till keeps the intent's status only on an exception (`cancel_intent`): any answer would cancel it."""
+		try:
+			answer = self.refused_void(**case)
+		except Exception as raised:  # noqa: BLE001 - which one is checked
+			self.assertEqual(type(raised).__name__, "WalleeCancelUnconfirmed")
+		else:
+			self.fail(f"Wallee's refusal was answered {answer.status!r}: the till would call the reader free")
+
+	def test_a_reader_still_waiting_for_its_card_is_never_called_free(self):
+		"""maintenance#3017: the word VOIDED in the refusal passed for « already voided »."""
+		for state in ("CREATE", "PENDING", "CONFIRMED", "PROCESSING", "AUTHORIZED", "COMPLETED", "FULFILL"):
+			with self.subTest(state=state):
+				self.never_called_free(state=state)
+		self.never_called_free(unreadable=True)
+
+	def test_a_transaction_that_can_take_nothing_more_is_cancelled(self):
+		for state in ("VOIDED", "FAILED", "DECLINE"):
+			with self.subTest(state=state):
+				self.assertEqual(self.refused_void(state).status, "canceled")
 
 	# --------- refund ---------
 

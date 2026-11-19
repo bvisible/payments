@@ -256,11 +256,21 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 	gateway_account = None if mop else _account_of_the_gateway(intent, si.company)
 	if not mop and not gateway_account:
 		return {"action": "skipped_no_mode_of_payment"}
-	if flt(si.outstanding_amount) <= 0:
-		# paid meanwhile, by another way: the money is there, the office reconciles it
-		frappe.log_error(
-			"Card payment for an invoice already paid",
-			f"intent={intent.name} invoice={si.name} reference={reference}",
+	# //// Neoffice — maintenance#3019: two pages of one invoice paid 1.4 s apart. The second request read the invoice
+	# //// before the first payment was saved (MariaDB's REPEATABLE READ shows a request its first snapshot), booked a
+	# //// second entry, and died on the appointment's timestamp; its money came back by a side effect, with an Error Log
+	# //// row. What is owed is read under a lock: the second waits for the first, finds the invoice paid, and books nothing.
+	owed = frappe.db.get_value("Sales Invoice", si.name, "outstanding_amount", for_update=True)
+	if flt(owed) <= 0:
+		# paid meanwhile, by another way: the money is there. Said once what may give it back has run (the booking's rule
+		# gives back an appointment's second payment): the office has a row for a payment that is still kept, and only then.
+		frappe.enqueue(
+			"payments.api.reconciliation.report_a_payment_left_over",
+			queue="short",
+			intent_name=intent.name,
+			invoice=si.name,
+			reference=reference,
+			enqueue_after_commit=True,
 		)
 		return {"action": "skipped_invoice_already_paid", "target_name": si.name}
 
@@ -311,6 +321,18 @@ def _payment_entry(intent, si, mode_of_payment: str | None) -> dict[str, Any]:
 # ----------------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------------
+
+
+def report_a_payment_left_over(intent_name: str, invoice: str, reference: str) -> None:
+	"""A card payment for an invoice already paid, still kept once the save that found it is over (maintenance#3019): the
+	office gives it back or books it. One given back meanwhile (an appointment's second payment) is no case for the office.
+	"""
+	if frappe.db.get_value("Payment Intent", intent_name, "status") == "refunded":
+		return
+	frappe.log_error(
+		"Card payment for an invoice already paid",
+		f"intent={intent_name} invoice={invoice} reference={reference}",
+	)
 
 
 def _account_of_the_gateway(intent, company: str) -> str | None:
