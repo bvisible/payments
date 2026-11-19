@@ -510,6 +510,17 @@ class TestWalleeTerminalDriver(FrappeTestCase):
 		self.assertEqual(result.intent_name, intent.name)
 		self.assertTrue(result.event_id.startswith("wallee-transaction-12345-"))
 
+	def test_webhook_transaction_failed_says_no_technical_sentence_to_the_customer(self):
+		"""The return page prints `error_message` as the gateway's words: ours was « Wallee transaction … ended in FAILED »."""
+		driver = _build_driver()
+		body = b'{"entityId":4242,"listenerEntityTechnicalName":"Transaction","state":"FAILED","spaceId":100}'
+		sig = hmac.new(b"unit-test-secret", body, hashlib.sha256).hexdigest()
+		result = driver.handle_webhook(body, {"X-Signature": sig})
+		self.assertTrue(result.signature_valid)
+		self.assertEqual(result.target_status, "failed")
+		self.assertEqual(result.error_code, "failed", "the state stays, as the code")
+		self.assertFalse(result.error_message, "no sentence of ours for the customer to read")
+
 	def test_webhook_transaction_pending_no_transition(self):
 		driver = _build_driver()
 		body = (

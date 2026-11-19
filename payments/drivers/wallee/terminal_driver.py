@@ -619,7 +619,9 @@ class WalleeTerminalDriver(PaymentDriverBase):
 				# Wallee failure_reason is on the full transaction object — we
 				# don't re-fetch here to keep webhook handling cheap; the worker
 				# can enrich if needed.
-				error_message = f"Wallee transaction {entity_id} ended in {state_value}"
+				# //// Neoffice — the return page shows `error_message` as the gateway's own words (« The card was declined »).
+				# //// The sentence written here was ours, technical and in English (« Wallee transaction … ended in FAILED »), and
+				# //// the customer read it (19.11). The state is the code, the transaction the intent's own id: nothing is lost.
 				error_code = state_value.lower() if state_value else None
 
 		elif entity_type == "Refund":
