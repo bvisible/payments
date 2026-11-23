@@ -35,6 +35,7 @@ the JS overlay can redirect without polling.
 from __future__ import annotations
 
 import json
+import re
 import time
 from datetime import timedelta
 from typing import Any
@@ -131,7 +132,11 @@ def _finalize_webshop_sales_order(doc) -> dict[str, Any] | None:
 # //// Neoffice — the end of an intent nothing can read to its end (maintenance#1734, #3259): older than 10 minutes, its order is aborted at TWINT and the intent
 # //// is canceled here, whether TWINT said « still pending » or its answer could not be read at all (an intent read again every minute for ever, 22.11.2026).
 def _cancel_when_too_old(driver, merchant_uuid: str, intent: dict[str, Any], stats: dict[str, int]) -> None:
-	ts = intent.get("created_at")
+	ts = (
+		intent.get("created_at")
+		or intent.get("creation")
+		or frappe.db.get_value("Payment Intent", intent["name"], "creation")
+	)
 	cutoff = now_datetime() - timedelta(minutes=10)
 	if not ts or ts >= cutoff:
 		return
@@ -147,6 +152,48 @@ def _cancel_when_too_old(driver, merchant_uuid: str, intent: dict[str, Any], sta
 	):
 		stats["advanced"] += 1
 		_publish_intent_update(doc, intent["channel"], "canceled")
+
+
+# //// Neoffice — TWINT's verdict leads, the reason only refines it (maintenance#3259). The reason is free text now (the engine passes on any
+# //// reason TWINT adds) and the driver's map matches words inside it: « FAILURE / PAYMENT_UNSUCCESSFUL » held « success » and closed a failed
+# //// order as paid. Only the reason that says the money was captured, spelled exactly, can turn a failure into a payment.
+_PAID_REASON = "ORDER_OK"
+_PARTIAL_REASON = "ORDER_PARTIAL_OK"  # captured for less than asked: the amount is for a person to settle
+_HOLD = "hold"
+
+
+def _target_for(mapped: str | None, order_status: str, reason: str) -> str | None:
+	"""The state an answer of TWINT leads its intent to (None: nothing to apply yet, _HOLD: a person must look)."""
+	if order_status == "FAILURE":
+		if reason == _PAID_REASON:
+			return "succeeded"  # a contradiction: the captured money is never written off
+		return mapped if mapped in ("canceled", "failed") else "failed"
+	if order_status == "SUCCESS":
+		# the verdict is final here too: a reason this code does not know does not make a captured order wait
+		return _HOLD if reason == _PARTIAL_REASON else "succeeded"
+	return mapped
+
+
+def _ended_with(reason: str) -> dict[str, str]:
+	"""The reason TWINT gave goes with the end of the intent, bounded and without anything but letters and digits:
+	it is stored in a 140-character field, and it is TWINT's text, never shown to the buyer as it is."""
+	slug = re.sub(r"[^a-z0-9]+", "_", reason.lower()).strip("_")
+	return {"error_code": ("twint_" + slug)[:100]} if slug else {}
+
+
+def _hold_a_paid_order(intent: dict[str, Any], result: dict[str, Any], stats: dict[str, int]) -> None:
+	"""An order TWINT calls SUCCESS but captured for less than asked: never cancelled (that would void money already
+	taken), never closed as paid for the full amount. One error line per six hours for a person to settle it."""
+	stats["errors"] += 1
+	key = f"twint_paid_order_held:{intent['name']}"
+	if frappe.cache.get_value(key):
+		return
+	frappe.cache.set_value(key, 1, expires_in_sec=6 * 3600)
+	frappe.log_error(
+		"TWINT captured an order for less than asked: the amount is to be settled",
+		f"intent={intent['name']} order_id={intent.get('provider_intent_id')} "
+		f"status={result.get('order_status')} reason={str(result.get('transaction_status'))[:200]}",
+	)
 
 
 def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
@@ -235,11 +282,14 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 		if (capture or {}).get("success"):
 			result = capture  # ORDER_OK / SUCCESS now
 
-	target = driver._map_status(result.get("transaction_status"))  # noqa: SLF001
 	# //// Neoffice — TWINT's own verdict (Status FAILURE) is final whatever its Reason says: a reason this code does not map
 	# //// (ISSUER_ABORT was one) used to leave the intent open and the customer waiting, read again every minute (maintenance#3259).
-	if (not target or target == "processing") and str(result.get("order_status") or "").upper() == "FAILURE":
-		target = "failed"
+	order_status = str(result.get("order_status") or "").strip().upper()
+	reason = str(result.get("transaction_status") or "").strip().upper()
+	target = _target_for(driver._map_status(result.get("transaction_status")), order_status, reason)  # noqa: SLF001
+	if target == _HOLD:
+		_hold_a_paid_order(intent, result, stats)
+		return
 	if not target or target == "processing":
 		# Timeout intents that have been pending > 10 min (cron path only;
 		# fast_poll has its own exit condition).
@@ -249,15 +299,21 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 	# Apply the transition.
 	doc = frappe.get_doc("Payment Intent", intent["name"])
 	# //// Neoffice — the reason TWINT gave goes with the end of the intent, so that a refusal can be told from a timeout (maintenance#3259)
-	ended = {}
-	if target in ("failed", "canceled") and result.get("transaction_status"):
-		ended = {
-			"error_code": "twint_" + str(result["transaction_status"]).strip().lower(),
-			"error_message": f"TWINT ended the order: {result.get('order_status') or '-'} / {result['transaction_status']}",
-		}
-	moved = doc.transition_to(target, event_source="poll", ignore_invalid=True, **ended)
+	ended = _ended_with(str(result.get("transaction_status") or "")) if target in ("failed", "canceled") else {}
+	try:
+		moved = doc.transition_to(target, event_source="poll", ignore_invalid=True, **ended)
+	except frappe.TimestampMismatchError:
+		# //// Neoffice — another pass (the fast poll, the cron) moved the same intent between our read and our write: theirs stands
+		stats["skipped"] += 1
+		return
 	if not moved:
 		return
+	if target == "succeeded" and order_status == "SUCCESS" and reason != _PAID_REASON:
+		# paid on TWINT's verdict, with a reason nobody mapped: told once, for someone to teach the map
+		frappe.log_error(
+			"TWINT paid an order with a reason this code does not know",
+			f"intent={intent['name']} order_id={intent.get('provider_intent_id')} reason={reason[:200]}",
+		)
 
 	stats["advanced"] += 1
 
@@ -296,14 +352,26 @@ def poll_pending_twint_transactions() -> dict[str, Any]:
 			"provider_intent_id",
 			"metadata_json",
 			"created_at",
+			"creation",
 		],
 		order_by="creation asc",
 		limit_page_length=50,
 	)
 
 	stats = {"checked": 0, "advanced": 0, "errors": 0, "skipped": 0}
-	for intent in intents:
-		_process_one_intent(intent, stats)
+	for index, intent in enumerate(intents):
+		# //// Neoffice — one intent that raises (a field refusing a long value, a stale document) must not stop the ones
+		# //// behind it, which are read in the order of their creation: the same one would block them every minute (maintenance#3259).
+		savepoint = f"twint_poll_{index}"
+		frappe.db.savepoint(savepoint)
+		try:
+			_process_one_intent(intent, stats)
+		except Exception:  # noqa: BLE001
+			frappe.db.rollback(save_point=savepoint)
+			stats["errors"] += 1
+			frappe.log_error(
+				"poll_pending_twint intent failed", f"intent={intent.get('name')}\n{frappe.get_traceback()}"
+			)
 
 	_retry_unfinalized_web_orders(stats)
 
@@ -491,7 +559,17 @@ def fast_poll_intent(intent_name: str) -> dict[str, Any]:
 			row = frappe.db.get_value(
 				"Payment Intent",
 				intent_name,
-				["name", "provider", "channel", "amount", "provider_intent_id", "metadata_json", "created_at", "status"],
+				[
+					"name",
+					"provider",
+					"channel",
+					"amount",
+					"provider_intent_id",
+					"metadata_json",
+					"created_at",
+					"creation",
+					"status",
+				],
 				as_dict=True,
 			)
 		except Exception as exc:  # noqa: BLE001
