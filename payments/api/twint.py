@@ -128,6 +128,27 @@ def _finalize_webshop_sales_order(doc) -> dict[str, Any] | None:
 		return {"status": "error", "message": str(exc)[:140]}
 
 
+# //// Neoffice — the end of an intent nothing can read to its end (maintenance#1734, #3259): older than 10 minutes, its order is aborted at TWINT and the intent
+# //// is canceled here, whether TWINT said « still pending » or its answer could not be read at all (an intent read again every minute for ever, 22.11.2026).
+def _cancel_when_too_old(driver, merchant_uuid: str, intent: dict[str, Any], stats: dict[str, int]) -> None:
+	ts = intent.get("created_at")
+	cutoff = now_datetime() - timedelta(minutes=10)
+	if not ts or ts >= cutoff:
+		return
+	if not _abort_timed_out_order(driver, merchant_uuid, intent, ts, stats):
+		return
+	doc = frappe.get_doc("Payment Intent", intent["name"])
+	if doc.transition_to(
+		"canceled",
+		event_source="poll",
+		error_code="twint_timeout",
+		error_message="No final status received after 10 minutes",
+		ignore_invalid=True,
+	):
+		stats["advanced"] += 1
+		_publish_intent_update(doc, intent["channel"], "canceled")
+
+
 def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 	"""Poll the bridge for ONE Payment Intent and apply any state change.
 
@@ -186,6 +207,8 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 			"poll_pending_twint bridge !success",
 			f"intent={intent['name']} result={result}",
 		)
+		# //// Neoffice — an answer nothing can read does not keep the intent open for ever (maintenance#3259)
+		_cancel_when_too_old(driver, merchant_uuid, intent, stats)
 		return
 
 	# Once the client confirms in their app the order sits in
@@ -213,32 +236,26 @@ def _process_one_intent(intent: dict[str, Any], stats: dict[str, int]) -> None:
 			result = capture  # ORDER_OK / SUCCESS now
 
 	target = driver._map_status(result.get("transaction_status"))  # noqa: SLF001
+	# //// Neoffice — TWINT's own verdict (Status FAILURE) is final whatever its Reason says: a reason this code does not map
+	# //// (ISSUER_ABORT was one) used to leave the intent open and the customer waiting, read again every minute (maintenance#3259).
+	if (not target or target == "processing") and str(result.get("order_status") or "").upper() == "FAILURE":
+		target = "failed"
 	if not target or target == "processing":
 		# Timeout intents that have been pending > 10 min (cron path only;
 		# fast_poll has its own exit condition).
-		ts = intent.get("created_at")
-		cutoff = now_datetime() - timedelta(minutes=10)
-		if ts and ts < cutoff:
-			# //// Neoffice — the order is aborted at TWINT before the intent is canceled here. Until 19.10.2026
-			# //// only the intent was canceled: the TWINT order stayed open (IN_PROGRESS), so a customer who
-			# //// scanned late confirmed an order nothing read any more, and nobody captured it (maintenance#1734).
-			if not _abort_timed_out_order(driver, merchant_uuid, intent, ts, stats):
-				return
-			doc = frappe.get_doc("Payment Intent", intent["name"])
-			if doc.transition_to(
-				"canceled",
-				event_source="poll",
-				error_code="twint_timeout",
-				error_message="No final status received after 10 minutes",
-				ignore_invalid=True,
-			):
-				stats["advanced"] += 1
-				_publish_intent_update(doc, intent["channel"], "canceled")
+		_cancel_when_too_old(driver, merchant_uuid, intent, stats)
 		return
 
 	# Apply the transition.
 	doc = frappe.get_doc("Payment Intent", intent["name"])
-	moved = doc.transition_to(target, event_source="poll", ignore_invalid=True)
+	# //// Neoffice — the reason TWINT gave goes with the end of the intent, so that a refusal can be told from a timeout (maintenance#3259)
+	ended = {}
+	if target in ("failed", "canceled") and result.get("transaction_status"):
+		ended = {
+			"error_code": "twint_" + str(result["transaction_status"]).strip().lower(),
+			"error_message": f"TWINT ended the order: {result.get('order_status') or '-'} / {result['transaction_status']}",
+		}
+	moved = doc.transition_to(target, event_source="poll", ignore_invalid=True, **ended)
 	if not moved:
 		return
 

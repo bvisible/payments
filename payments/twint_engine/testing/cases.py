@@ -314,6 +314,10 @@ def cases(version: str = "8_7") -> list[Case]:
 						("StartOrder", [("ORDER_RECEIVED</v81:Reason>", "ORDER_PARKED</v81:Reason>")]),
 					)
 				],
+				# //// Neoffice — the recorded bridge refused any reason outside the SDK's nine; TWINT's contract (`Reason` is a free
+				# //// token) never said it should, and a refusal left an order that had failed open for ever (maintenance#3259)
+				compare=DIFFERENCE,
+				why="the bridge refuses a reason the SDK does not list; the engine reads it and passes it on",
 			),
 			_pay(
 				"register: unknown pairing status",
@@ -380,6 +384,9 @@ def cases(version: str = "8_7") -> list[Case]:
 						(MONITOR_OK, [(OK_REASON, '<v81:Reason code="7">ORDER_SETTLED</v81:Reason>')]),
 					)
 				],
+				# //// Neoffice — same deliberate difference as "register: unknown reason" (maintenance#3259)
+				compare=DIFFERENCE,
+				why="the bridge refuses a reason the SDK does not list; the engine reads it and passes it on",
 			),
 			_monitor(
 				"monitor: answer of another operation", force=[("MonitorOrder", "edit", ("CancelOrder", []))]

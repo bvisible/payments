@@ -269,9 +269,8 @@ def order_fields(answer: Answer, *, nested: bool, pairing: bool) -> dict:
 	if nested:
 		values.non_empty(answer.text("Order", "MerchantTransactionReference"))
 	order_status = values.literal(answer.text(*status_parent, "Status"), values.ORDER_STATUSES)
-	transaction_status = values.literal(
-		answer.text(*status_parent, "Reason"), values.TRANSACTION_STATUSES
-	)
+	# the reason is TWINT's wording, not one of nine words (see values.reason)
+	transaction_status = values.reason(answer.text(*status_parent, "Reason"))
 	if nested:
 		currency = values.non_empty(answer.text("Order", "RequestedAmount", "Currency", base_last=True))
 		values.literal(currency, values.CURRENCIES)

@@ -72,6 +72,8 @@ _STATUS_BUCKETS: list[tuple[str, str]] = [
 	("client_abort", "canceled"),  # CLIENT_ABORT / CLIENT_ABORTED
 	("timeout", "canceled"),  # CLIENT_TIMEOUT
 	("client_failed", "failed"),
+	# //// Neoffice — the customer's bank refused (ISSUER_ABORT, seen 22.11.2026): a failure, no money captured (maintenance#3259)
+	("issuer_abort", "failed"),
 	("failure", "failed"),
 	# --- in flight (client not done yet, or awaiting merchant capture) ---
 	("confirmation_pending", "processing"),  # ORDER_CONFIRMATION_PENDING → poll captures

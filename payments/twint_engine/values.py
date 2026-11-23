@@ -18,6 +18,9 @@ RUNTIME_EXCEPTION = "RuntimeException"
 PHP_ERROR = "Error"
 
 ORDER_STATUSES = ("IN_PROGRESS", "FAILURE", "SUCCESS")
+# The reasons the SDK 1.8.4 knew, and the one its first real customer showed it was missing: ISSUER_ABORT, the customer's bank refused (22.11.2026).
+# This is what the engine KNOWS, not what it accepts: TWINT's own contract (twint_merchant_service_v10.xsd) types `Reason` as a free token with a numeric
+# code, so a reason that is not here is TWINT's wording, not a broken answer (see `reason`). The verdict is the order's `Status` (SUCCESS, IN_PROGRESS, FAILURE).
 TRANSACTION_STATUSES = (
 	"ORDER_OK",
 	"ORDER_PARTIAL_OK",
@@ -28,6 +31,7 @@ TRANSACTION_STATUSES = (
 	"CLIENT_TIMEOUT",
 	"MERCHANT_ABORT",
 	"CLIENT_ABORT",
+	"ISSUER_ABORT",
 )
 PAIRING_STATUSES = ("NO_PAIRING", "PAIRING_IN_PROGRESS", "PAIRING_ACTIVE")
 CURRENCIES = ("CHF", "XXX")
@@ -68,6 +72,18 @@ def literal(value, allowed: tuple) -> str:
 		return value
 	names = "|".join(f'"{name}"' for name in allowed)
 	raise SdkError(f'Expected "{names}", got "{_php_type(value)}".', ASSERT_EXCEPTION)
+
+
+def reason(value) -> str:
+	"""The `Reason` of an order's status, as TWINT wrote it.
+
+	The SDK checked it against nine words and refused any other as a broken answer; TWINT adds reasons (ISSUER_ABORT was never in the SDK) and a refusal here
+	made the engine unable to read an order that had already failed: the intent stayed open and the customer waited (maintenance#3259). Any text is accepted
+	and passed on; only an answer with no `Reason` element at all is refused, as before.
+	"""
+	if isinstance(value, str):
+		return value.strip()
+	raise SdkError(f'Expected "string", got "{_php_type(value)}".', ASSERT_EXCEPTION)
 
 
 def non_empty(value) -> str:
